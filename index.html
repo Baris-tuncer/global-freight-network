@@ -16382,41 +16382,16 @@
      LANDING PAGE - Premium Home
      ═══════════════════════════════════════════════════════════════════════════════ -->
 <div id="landingPage" class="landing-container">
-    <!-- DİL SEÇİCİ -->
-    <div class="language-selector" style="position: absolute; top: 20px; right: 20px; z-index: 100;">
-        <button onclick="toggleLanguageMenu()" class="lang-btn" id="currentLangBtn">
-            <span id="currentLangFlag">
-                <svg width="20" height="14" viewBox="0 0 20 14" style="border-radius: 2px;">
-                    <rect width="20" height="14" fill="#E30A17"/>
-                    <circle cx="8" cy="7" r="4" fill="white"/>
-                    <circle cx="9" cy="7" r="3.2" fill="#E30A17"/>
-                    <polygon points="10,7 13,5.5 11,7 13,8.5" fill="white"/>
-                </svg>
-            </span>
-            <span id="currentLangText">TR</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
-        </button>
-        <div id="langDropdown" class="lang-dropdown hidden">
-            <div class="lang-option" onclick="switchLanguage('tr')">
-                <svg width="20" height="14" viewBox="0 0 20 14" style="border-radius: 2px;">
-                    <rect width="20" height="14" fill="#E30A17"/>
-                    <circle cx="8" cy="7" r="4" fill="white"/>
-                    <circle cx="9" cy="7" r="3.2" fill="#E30A17"/>
-                    <polygon points="10,7 13,5.5 11,7 13,8.5" fill="white"/>
-                </svg>
-                <span>Türkçe</span>
-            </div>
-            <div class="lang-option" onclick="switchLanguage('en')">
-                <svg width="20" height="14" viewBox="0 0 20 14" style="border-radius: 2px;">
-                    <rect width="20" height="14" fill="#012169"/>
-                    <path d="M0,0 L20,14 M20,0 L0,14" stroke="white" stroke-width="2.5"/>
-                    <path d="M0,0 L20,14 M20,0 L0,14" stroke="#C8102E" stroke-width="1.5"/>
-                    <path d="M10,0 V14 M0,7 H20" stroke="white" stroke-width="4"/>
-                    <path d="M10,0 V14 M0,7 H20" stroke="#C8102E" stroke-width="2.5"/>
-                </svg>
-                <span>English</span>
-            </div>
-        </div>
+    <!-- Language: English Only -->
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 100; color: rgba(255,255,255,0.7); font-size: 14px; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+        <svg width="20" height="14" viewBox="0 0 20 14" style="border-radius: 2px;">
+            <rect width="20" height="14" fill="#012169"/>
+            <path d="M0,0 L20,14 M20,0 L0,14" stroke="white" stroke-width="2.5"/>
+            <path d="M0,0 L20,14 M20,0 L0,14" stroke="#C8102E" stroke-width="1.5"/>
+            <path d="M10,0 V14 M0,7 H20" stroke="white" stroke-width="4"/>
+            <path d="M10,0 V14 M0,7 H20" stroke="#C8102E" stroke-width="2.5"/>
+        </svg>
+        <span>EN</span>
     </div>
     
     <style>
@@ -16554,41 +16529,6 @@
     <div class="services-nav">
         <div class="services-logo" onclick="goToLanding()">Global Freight Network</div>
         <div class="services-user" style="display: flex; align-items: center; gap: 16px;">
-            <!-- DİL SEÇİCİ -->
-            <div class="language-selector-small">
-                <button onclick="toggleLanguageMenu2()" class="lang-btn-small">
-                    <span id="currentLangFlag2">
-                        <svg width="20" height="14" viewBox="0 0 20 14" style="border-radius: 2px;">
-                            <rect width="20" height="14" fill="#E30A17"/>
-                            <circle cx="8" cy="7" r="4" fill="white"/>
-                            <circle cx="9" cy="7" r="3.2" fill="#E30A17"/>
-                            <polygon points="10,7 13,5.5 11,7 13,8.5" fill="white"/>
-                        </svg>
-                    </span>
-                    <span id="currentLangText2">TR</span>
-                </button>
-                <div id="langDropdown2" class="lang-dropdown hidden">
-                    <div class="lang-option" onclick="switchLanguage('tr')">
-                        <svg width="20" height="14" viewBox="0 0 20 14" style="border-radius: 2px;">
-                            <rect width="20" height="14" fill="#E30A17"/>
-                            <circle cx="8" cy="7" r="4" fill="white"/>
-                            <circle cx="9" cy="7" r="3.2" fill="#E30A17"/>
-                            <polygon points="10,7 13,5.5 11,7 13,8.5" fill="white"/>
-                        </svg>
-                        <span>Türkçe</span>
-                    </div>
-                    <div class="lang-option" onclick="switchLanguage('en')">
-                        <svg width="20" height="14" viewBox="0 0 20 14" style="border-radius: 2px;">
-                            <rect width="20" height="14" fill="#012169"/>
-                            <path d="M0,0 L20,14 M20,0 L0,14" stroke="white" stroke-width="2.5"/>
-                            <path d="M0,0 L20,14 M20,0 L0,14" stroke="#C8102E" stroke-width="1.5"/>
-                            <path d="M10,0 V14 M0,7 H20" stroke="white" stroke-width="4"/>
-                            <path d="M10,0 V14 M0,7 H20" stroke="#C8102E" stroke-width="2.5"/>
-                        </svg>
-                        <span>English</span>
-                    </div>
-                </div>
-            </div>
             <span id="servicesUserName">User</span>
             <button class="btn-logout-small" onclick="doLogout()" data-i18n="dashboard.logout">Logout</button>
         </div>
@@ -20348,650 +20288,8 @@
     </div>
 </div>
 
-<!-- ==================== INSURANCE COMPANY DASHBOARD ==================== -->
-<div id="insuranceDashboard" class="dashboard-container hidden">
-    <div class="dashboard-nav">
-        <div class="nav-logo" onclick="goHome()" style="cursor:pointer;" title="Back to Home">Global Freight Network</div>
-        <div class="nav-menu">
-            <div class="nav-menu-item" onclick="goHome()">🏠 Home</div>
-            <div class="nav-menu-item active" onclick="showInsuranceTab('requests')">Sigorta Talepleri</div>
-            <div class="nav-menu-item" onclick="showInsuranceTab('rates')">Tarifelerim</div>
-            <div class="nav-menu-item" onclick="showInsuranceTab('policies')">Poliçelerim</div>
-            <div class="nav-menu-item" onclick="showInsuranceTab('claims')">Hasarlar</div>
-        </div>
-        <div class="nav-user">
-            <span id="insuranceNameDisplay">Company</span>
-            <button class="btn-logout" onclick="doLogout()">Logout</button>
-        </div>
-    </div>
-    
-    <div class="dashboard-content">
-        <div class="welcome-box provider-welcome insurance-gradient">
-            <div class="welcome-content">
-                <div class="welcome-left">
-                    <h2>Welcome, <span id="insuranceWelcomeName">Company</span>!</h2>
-                    <p>Manage cargo insurance requests and provide coverage quotes</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- ═══════════════════════════════════════════════════════════════════════════════
-             SİGORTA TARİFELERİM SEKMESİ
-        ═══════════════════════════════════════════════════════════════════════════════ -->
-        <div id="insuranceRatesTab" class="tab-content" style="display:none;">
-            <div class="provider-rates-section">
-                <div class="rates-section-header">
-                    <h3><span class="header-icon"></span> Sigorta Tarifelerim</h3>
-                    <p>Set your insurance premium rates by cargo type</p>
-                </div>
-                
-                <div class="rate-form-card">
-                    <div class="form-card-header insurance">
-                        <span class="form-icon"></span>
-                        <div>
-                            <h3>Add Insurance Premium Rate</h3>
-                            <p>Kargo değeri üzerinden uygulanacak prim oranı (%)</p>
-                        </div>
-                    </div>
-                    
-                    <form id="insuranceRateForm" onsubmit="return saveInsuranceRate(event)">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Kargo Kategorisi</label>
-                                <select id="insCargoCategory" required>
-                                    <option value="">Kategori Select...</option>
-                                    <optgroup label="Genel Yükler">
-                                        <option value="general">General Cargo</option>
-                                        <option value="industrial">Endüstriyel Malzeme</option>
-                                        <option value="textile">Tekstil / Konfeksiyon</option>
-                                        <option value="furniture">Mobilya / Ev Eşyası</option>
-                                        <option value="automotive">Otomotiv Parçaları</option>
-                                    </optgroup>
-                                    <optgroup label="Hassas Yükler">
-                                        <option value="electronics">Elektronik / Teknoloji</option>
-                                        <option value="machinery">Makine / Ekipman</option>
-                                        <option value="pharma">İlaç / Medikal</option>
-                                        <option value="glass">Cam / Seramik (Kırılabilir)</option>
-                                    </optgroup>
-                                    <optgroup label="Özel Yükler">
-                                        <option value="perishable">Bozulabilir / Gıda</option>
-                                        <option value="frozen">Dondurulmuş (Reefer)</option>
-                                        <option value="chemical">Kimyasal (Non-DG)</option>
-                                        <option value="hazmat">Tehlikeli Madde (DG)</option>
-                                        <option value="valuable">Değerli Eşya</option>
-                                        <option value="artwork">Sanat Eseri / Antika</option>
-                                    </optgroup>
-                                    <optgroup label="Araçlar">
-                                        <option value="vehicle">Araç (RoRo)</option>
-                                        <option value="yacht">Yat / Tekne</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Taşıma Modu</label>
-                                <select id="insTransportMode" required>
-                                    <option value="">Mod Select...</option>
-                                    <option value="sea">Sea (FCL/LCL)</option>
-                                    <option value="air">Hava</option>
-                                    <option value="land">Kara</option>
-                                    <option value="multi">Multimodal</option>
-                                    <option value="all">Tüm Modlar</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row three-col">
-                            <div class="form-group">
-                                <label>Prim Oranı (%)</label>
-                                <input type="number" id="insPremiumRate" placeholder="e.g. 0.35" step="0.01" min="0.01" max="5" required>
-                                <small>Kargo değerinin yüzdesi</small>
-                            </div>
-                            <div class="form-group">
-                                <label> Min. Prim (USD)</label>
-                                <input type="number" id="insMinPremium" placeholder="e.g. 50" min="0" value="50">
-                                <small>Minimum alınacak prim</small>
-                            </div>
-                            <div class="form-group">
-                                <label> Max. Teminat (USD)</label>
-                                <input type="number" id="insMaxCoverage" placeholder="e.g. 500000" min="1000">
-                                <small>Maksimum teminat limiti</small>
-                            </div>
-                        </div>
-                        
-                        <div class="coverage-options">
-                            <label class="coverage-title">Teminat Kapsamı:</label>
-                            <div class="coverage-checkboxes">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="insCoverTheft" checked> Hırsızlık
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="insCoverDamage" checked> Hasar
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="insCoverLoss" checked> Kayıp
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="insCoverDelay"> Gecikme
-                                </label>
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="insCoverNatural"> Doğal Afet
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <button type="submit" class="btn-save-rate insurance">
-                            <span>💾</span> Save Insurance Rate
-                        </button>
-                    </form>
-                </div>
-                
-                <!-- Kayıtlı Sigorta Tarifeleri -->
-                <div class="my-rates-container" style="margin-top: 24px;">
-                    <div class="my-rates-header">
-                        <h3>My Saved Rates</h3>
-                    </div>
-                    <div id="insuranceRatesList" class="my-rates-list">
-                        <div class="empty-rates">
-                            <span class="empty-icon"></span>
-                            <p>No saved insurance rates yet</p>
-                            <small>Yukarıdaki formdan tarife ekleyerek başlayın</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Requests Tab -->
-        <div id="insuranceRequestsTab" class="tab-content active">
-            <div class="section-title">Gelen Sigorta Talepleri</div>
-            <div id="insuranceRequestsContainer" class="requests-container"></div>
-        </div>
-        
-        <!-- Policies Tab -->
-        <div id="insurancePoliciesTab" class="tab-content" style="display:none;">
-            <div class="section-title">My Active Policies</div>
-            <div id="insurancePoliciesContainer" class="requests-container">
-                <div class="empty-state">
-                    <div class="empty-icon"></div>
-                    <h3>Henüz aktif poliçe yok</h3>
-                    <p>Onaylanan önerileriniz burada görünecek</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Claims Tab -->
-        <div id="insuranceClaimsTab" class="tab-content" style="display:none;">
-            <div class="section-title">Hasar Talepleri</div>
-            <div id="insuranceClaimsContainer" class="requests-container">
-                <div class="empty-state">
-                    <div class="empty-icon"></div>
-                    <h3>No open damage claims</h3>
-                    <p>Hasar bildirimleri burada görünecek</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- ==================== CUSTOMS BROKER DASHBOARD ==================== -->
-<div id="customsDashboard" class="dashboard-container hidden">
-    <div class="dashboard-nav">
-        <div class="nav-logo" onclick="goHome()" style="cursor:pointer;" title="Back to Home">Global Freight Network</div>
-        <div class="nav-menu">
-            <div class="nav-menu-item" onclick="goHome()">🏠 Home</div>
-            <div class="nav-menu-item active" onclick="showCustomsTab('jobs')">Customs Jobs</div>
-            <div class="nav-menu-item" onclick="showCustomsTab('rates')">Tarifelerim</div>
-            <div class="nav-menu-item" onclick="showCustomsTab('progress')">In Progress</div>
-            <div class="nav-menu-item" onclick="showCustomsTab('completed')">Completed</div>
-        </div>
-        <div class="nav-user">
-            <span id="customsNameDisplay">Müşavir</span>
-            <button class="btn-logout" onclick="doLogout()">Logout</button>
-        </div>
-    </div>
-    
-    <div class="dashboard-content">
-        <div class="welcome-box provider-welcome customs-gradient">
-            <div class="welcome-content">
-                <div class="welcome-left">
-                    <h2>Welcome, <span id="customsWelcomeName">Müşavir</span>!</h2>
-                    <p>Manage customs clearance and documentation requests</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- ═══════════════════════════════════════════════════════════════════════════════
-             GÜMRÜK TARİFELERİM SEKMESİ (SADECE TÜRKİYE)
-        ═══════════════════════════════════════════════════════════════════════════════ -->
-        <div id="customsRatesTab" class="tab-content" style="display:none;">
-            <div class="provider-rates-section">
-                <div class="rates-section-header">
-                    <h3><span class="header-icon"></span> TR - My Turkey Customs Rates</h3>
-                    <p>Set your Turkey export and Turkey import processing fees</p>
-                </div>
-                
-                <div class="info-box" style="margin-bottom: 20px;">
-                    <span class="info-icon"></span>
-                    <p><strong>Not:</strong> Foreign customs processing (e.g. Germany import) is done by forwarders' partners. In this panel, you can only enter your Turkey customs fees.</p>
-                </div>
-                
-                <!-- GÜMRÜK İŞLEM ÜCRETİ FORMU -->
-                <div class="rate-form-card">
-                    <div class="form-card-header customs">
-                        <span class="form-icon"></span>
-                        <div>
-                            <h3>Add TR Customs Fee</h3>
-                            <p>Turkey export/import processing fee</p>
-                        </div>
-                    </div>
-                    
-                    <form id="customsServiceForm" onsubmit="return saveCustomsServiceRate(event)">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Operation Type</label>
-                                <select id="csType" required>
-                                    <option value="">Tip Select...</option>
-                                    <option value="export">📤 Turkey Export (TR → Overseas)</option>
-                                    <option value="import">📥 Turkey Import (Overseas → TR)</option>
-                                    <option value="transit">Transit (TR üzerinden geçiş)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Customs Point</label>
-                                <select id="csCustomsPoint" required>
-                                    <option value="">Select...</option>
-                                    <optgroup label="Sea Customs">
-                                        <option value="ambarli">Ambarlı</option>
-                                        <option value="mersin">Mersin</option>
-                                        <option value="izmir">İzmir (Alsancak)</option>
-                                        <option value="gemlik">Gemlik</option>
-                                        <option value="iskenderun">İskenderun</option>
-                                        <option value="trabzon">Trabzon</option>
-                                    </optgroup>
-                                    <optgroup label="Air Customs">
-                                        <option value="ist-airport">Istanbul Airport</option>
-                                        <option value="saw">Sabiha Gokcen</option>
-                                        <option value="esb">Ankara Esenboğa</option>
-                                        <option value="adb">İzmir Adnan Menderes</option>
-                                    </optgroup>
-                                    <optgroup label="Land Customs">
-                                        <option value="kapikule">Kapıkule (Bulgaristan)</option>
-                                        <option value="ipsala">İpsala (Greece)</option>
-                                        <option value="gurbulak">Gürbulak (İran)</option>
-                                        <option value="habur">Habur (Irak)</option>
-                                        <option value="cilvegozu">Cilvegözü (Suriye)</option>
-                                    </optgroup>
-                                    <optgroup label="Diğer">
-                                        <option value="all-sea">Tüm Sea Customs</option>
-                                        <option value="all-air">Tüm Air Customs</option>
-                                        <option value="all-land">Tüm Land Customs</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row three-col">
-                            <div class="form-group">
-                                <label> İşlem Ücreti (USD)</label>
-                                <input type="number" id="csServiceFee" placeholder="e.g. 150" required min="1">
-                                <small>Müşavirlik ücreti</small>
-                            </div>
-                            <div class="form-group">
-                                <label>Evrak Ücreti (USD)</label>
-                                <input type="number" id="csDocFee" placeholder="e.g. 50" min="0" value="0">
-                                <small>Belge hazırlama</small>
-                            </div>
-                            <div class="form-group">
-                                <label>Harç/Damga (USD)</label>
-                                <input type="number" id="csStampFee" placeholder="e.g. 25" min="0" value="0">
-                                <small>Resmi harçlar</small>
-                            </div>
-                        </div>
-                        
-                        <button type="submit" class="btn-save-rate customs">
-                            <span>💾</span> Save TR Customs Fee
-                        </button>
-                    </form>
-                </div>
-                
-                <!-- VERGİ ORANI FORMU (SADECE TÜRKİYE İTHALATI) -->
-                <div class="rate-form-card" style="margin-top: 24px;">
-                    <div class="form-card-header customs-tax">
-                        <span class="form-icon"></span>
-                        <div>
-                            <h3>Add TR Import Tax Rate</h3>
-                            <p>Tax rate by HS code category for imports to Turkey</p>
-                        </div>
-                    </div>
-                    
-                    <form id="customsTaxForm" onsubmit="return saveCustomsTaxRate(event)">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>HS Kodu Kategorisi</label>
-                                <select id="ctHSCategory" required>
-                                    <option value="">Kategori Select...</option>
-                                    <optgroup label="Tarım & Gıda (01-24)">
-                                        <option value="01-05">01-05: Canlı Hayvanlar</option>
-                                        <option value="06-14">06-14: Bitkisel Ürünler</option>
-                                        <option value="15">15: Yağlar</option>
-                                        <option value="16-24">16-24: Gıda Ürünleri</option>
-                                    </optgroup>
-                                    <optgroup label="Hammaddeler (25-27)">
-                                        <option value="25-26">25-26: Mineral Ürünler</option>
-                                        <option value="27">27: Petrol & Yakıt</option>
-                                    </optgroup>
-                                    <optgroup label="Kimya (28-38)">
-                                        <option value="28-38">28-38: Kimyasal Ürünler</option>
-                                    </optgroup>
-                                    <optgroup label="Plastik & Kauçuk (39-40)">
-                                        <option value="39-40">39-40: Plastik & Kauçuk</option>
-                                    </optgroup>
-                                    <optgroup label="Tekstil (50-63)">
-                                        <option value="50-60">50-60: Tekstil Ham</option>
-                                        <option value="61-62">61-62: Giyim Eşyası</option>
-                                        <option value="63">63: Diğer Tekstil</option>
-                                    </optgroup>
-                                    <optgroup label="Metal (72-83)">
-                                        <option value="72-73">72-73: Demir & Çelik</option>
-                                        <option value="74-81">74-81: Diğer Metaller</option>
-                                        <option value="82-83">82-83: Metal Eşya</option>
-                                    </optgroup>
-                                    <optgroup label="Makine & Elektronik (84-85)">
-                                        <option value="84">84: Makineler</option>
-                                        <option value="85">85: Elektrikli Cihazlar</option>
-                                    </optgroup>
-                                    <optgroup label="Taşıtlar (86-89)">
-                                        <option value="86-89">86-89: Taşıtlar</option>
-                                    </optgroup>
-                                    <optgroup label="Diğer (90-97)">
-                                        <option value="90">90: Optik & Medikal</option>
-                                        <option value="94">94: Mobilya</option>
-                                        <option value="95">95: Oyuncak & Spor</option>
-                                        <option value="other">Diğer Kategoriler</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row three-col">
-                            <div class="form-group">
-                                <label>Customs Duty (%)</label>
-                                <input type="number" id="ctDutyRate" placeholder="e.g. 5" step="0.1" min="0" max="100" required>
-                                <small>CIF değer üzerinden</small>
-                            </div>
-                            <div class="form-group">
-                                <label>KDV / VAT (%)</label>
-                                <input type="number" id="ctVATRate" placeholder="e.g. 18" step="0.1" min="0" max="50">
-                                <small>Katma değer vergisi</small>
-                            </div>
-                            <div class="form-group">
-                                <label>ÖTV / Excise (%)</label>
-                                <input type="number" id="ctExciseRate" placeholder="e.g. 0" step="0.1" min="0" max="100" value="0">
-                                <small>Özel tüketim vergisi</small>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group full">
-                                <label> Notes (Optional)</label>
-                                <input type="text" id="ctNotes" placeholder="e.g. 0% under TR-EU Free Trade Agreement">
-                            </div>
-                        </div>
-                        
-                        <button type="submit" class="btn-save-rate customs-tax">
-                            <span>💾</span> Vergi Oranı Kaydet
-                        </button>
-                    </form>
-                </div>
-                
-                <!-- Saved Customs Rates -->
-                <div class="my-rates-container" style="margin-top: 24px;">
-                    <div class="my-rates-header">
-                        <h3>My Saved Rates</h3>
-                        <div class="my-rates-filters">
-                            <button class="filter-btn active" onclick="filterCustomsRates('all')">All</button>
-                            <button class="filter-btn" onclick="filterCustomsRates('service')">İşlem</button>
-                            <button class="filter-btn" onclick="filterCustomsRates('tax')">Vergi</button>
-                        </div>
-                    </div>
-                    <div id="customsRatesList" class="my-rates-list">
-                        <div class="empty-rates">
-                            <span class="empty-icon"></span>
-                            <p>Henüz kayıtlı gümrük tarifesi yok</p>
-                            <small>Yukarıdaki formlardan tarife ekleyerek başlayın</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- AI BELGE ÖNERİSİ - GÜMRÜKÇÜ İÇİN -->
-        <div class="ai-customs-panel" id="customsAIPanel">
-            <div class="ai-panel-title">
-                <span class="ai-icon-animated"><svg viewBox="0 0 24 24"><path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.996.996 0 0 0-1.41 0L1.29 18.96a.996.996 0 0 0 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05a.996.996 0 0 0 0-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"/></svg></span>
-                <span>AI Belge Asistanı</span>
-                <span class="ai-badge-live">AKILLI</span>
-            </div>
-            
-            <div class="ai-customs-content">
-                <p class="ai-customs-intro">Yük tipine ve varış ülkesine göre otomatik belge listesi:</p>
-                
-                <div class="ai-customs-demo">
-                    <div class="customs-demo-input">
-                        <div class="demo-field">
-                            <label>Yük Tipi:</label>
-                            <select id="aiCargoTypeDemo" onchange="updateAIDocuments()">
-                                <option value="general">Genel Yük</option>
-                                <option value="food">Gıda</option>
-                                <option value="textile">Tekstil</option>
-                                <option value="chemical">Kimyasal</option>
-                                <option value="machinery">Makine</option>
-                            </select>
-                        </div>
-                        <div class="demo-field">
-                            <label>Varış Ülkesi:</label>
-                            <select id="aiDestCountryDemo" onchange="updateAIDocuments()">
-                                <option value="almanya">Germany</option>
-                                <option value="ingiltere">İngiltere</option>
-                                <option value="abd">ABD</option>
-                                <option value="cin">Çin</option>
-                                <option value="dubai">BAE</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="customs-demo-result" id="aiDocumentsResult">
-                        <div class="doc-category">
-                            <div class="doc-cat-title">Zorunlu Belgeler</div>
-                            <ul class="doc-list">
-                                <li>Commercial Invoice</li>
-                                <li>Packing List</li>
-                                <li>Certificate of Origin</li>
-                            </ul>
-                        </div>
-                        <div class="doc-category">
-                            <div class="doc-cat-title">🇪🇺 AB Özel Belgeleri</div>
-                            <ul class="doc-list">
-                                <li>🇪🇺 EUR.1 Dolaşım Belgesi</li>
-                                <li>CE Uygunluk Belgesi</li>
-                            </ul>
-                        </div>
-                        <div class="doc-category special hidden" id="aiSpecialDocs">
-                            <div class="doc-cat-title">Special Requirements</div>
-                            <ul class="doc-list" id="aiSpecialDocsList"></ul>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="ai-customs-note">
-                    Her gümrükleme talebinde otomatik belge listesi oluşturulur
-                </div>
-            </div>
-        </div>
-        
-        <!-- Jobs Tab -->
-        <div id="customsJobsTab" class="tab-content active">
-            <div class="section-title">Gelen Gümrükleme Talepleri</div>
-            <div id="customsJobsContainer" class="requests-container"></div>
-        </div>
-        
-        <!-- Progress Tab -->
-        <div id="customsProgressTab" class="tab-content" style="display:none;">
-            <div class="section-title">In Progress İşler</div>
-            <div id="customsProgressContainer" class="requests-container">
-                <div class="empty-state">
-                    <div class="empty-icon"></div>
-                    <h3>No active jobs</h3>
-                    <p>Startttığınız işler burada görünecek</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Completed Tab -->
-        <div id="customsCompletedTab" class="tab-content" style="display:none;">
-            <div class="section-title">Completed İşler</div>
-            <div id="customsCompletedContainer" class="requests-container">
-                <div class="empty-state">
-                    <div class="empty-icon"></div>
-                    <h3>Completed işler</h3>
-                    <p>Geçmiş işleriniz burada görünecek</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- ==================== WAREHOUSE PROVIDER DASHBOARD ==================== -->
-<div id="warehouseDashboard" class="dashboard-container hidden">
-    <div class="dashboard-nav">
-        <div class="nav-logo" onclick="goHome()" style="cursor:pointer;" title="Back to Home">Global Freight Network</div>
-        <div class="nav-menu">
-            <div class="nav-menu-item" onclick="goHome()">🏠 Home</div>
-            <div class="nav-menu-item active" onclick="showWarehouseTab('requests')">Depo Talepleri</div>
-            <div class="nav-menu-item" onclick="showWarehouseTab('inventory')">Mevcut Stok</div>
-            <div class="nav-menu-item" onclick="showWarehouseTab('space')">Alan Yönetimi</div>
-        </div>
-        <div class="nav-user">
-            <span id="warehouseNameDisplay">Depo</span>
-            <button class="btn-logout" onclick="doLogout()">Logout</button>
-        </div>
-    </div>
-    
-    <div class="dashboard-content">
-        <div class="welcome-box provider-welcome warehouse-gradient">
-            <div class="welcome-content">
-                <div class="welcome-left">
-                    <h2>Welcome, <span id="warehouseWelcomeName">Sağlayıcı</span>!</h2>
-                    <p>Depo taleplerini ve operasyonları yönetin</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Requests Tab -->
-        <div id="warehouseRequestsTab" class="tab-content active">
-            <div class="section-title">Gelen Depolama Talepleri</div>
-            <div id="warehouseRequestsContainer" class="requests-container"></div>
-        </div>
-        
-        <!-- Inventory Tab -->
-        <div id="warehouseInventoryTab" class="tab-content" style="display:none;">
-            <div class="section-title">Mevcut Stok</div>
-            <div id="warehouseInventoryContainer" class="requests-container">
-                <div class="empty-state">
-                    <div class="empty-icon"></div>
-                    <h3>Stok bilgisi</h3>
-                    <p>Depolanan ürünleriniz burada görünecek</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Space Tab -->
-        <div id="warehouseSpaceTab" class="tab-content" style="display:none;">
-            <div class="section-title">Alan Yönetimi</div>
-            <div class="space-overview">
-                <div class="space-card">
-                    <div class="space-header">🏭 Toplam Kapasite</div>
-                    <div class="space-value">5,000 m²</div>
-                    <div class="space-bar"><div class="space-fill" style="width:78%"></div></div>
-                    <div class="space-info">%78 Dolu (3,900 m² kullanımda)</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ==================== PACKAGING COMPANY DASHBOARD ==================== -->
-<div id="packagingDashboard" class="dashboard-container hidden">
-    <div class="dashboard-nav">
-        <div class="nav-logo" onclick="goHome()" style="cursor:pointer;" title="Back to Home">Global Freight Network</div>
-        <div class="nav-menu">
-            <div class="nav-menu-item" onclick="goHome()">🏠 Home</div>
-            <div class="nav-menu-item active" onclick="showPackagingTab('jobs')">Paketleme İşleri</div>
-            <div class="nav-menu-item" onclick="showPackagingTab('progress')">In Progress</div>
-            <div class="nav-menu-item" onclick="showPackagingTab('materials')">Malzemeler</div>
-        </div>
-        <div class="nav-user">
-            <span id="packagingNameDisplay">Company</span>
-            <button class="btn-logout" onclick="doLogout()">Logout</button>
-        </div>
-    </div>
-    
-    <div class="dashboard-content">
-        <div class="welcome-box provider-welcome packaging-gradient">
-            <div class="welcome-content">
-                <div class="welcome-left">
-                    <h2>Welcome, <span id="packagingWelcomeName">Company</span>!</h2>
-                    <p>Manage professional packaging and crating requests</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Jobs Tab -->
-        <div id="packagingJobsTab" class="tab-content active">
-            <div class="section-title">Incoming Packaging Requests</div>
-            <div id="packagingJobsContainer" class="requests-container"></div>
-        </div>
-        
-        <!-- Progress Tab -->
-        <div id="packagingProgressTab" class="tab-content" style="display:none;">
-            <div class="section-title">In Progress İşler</div>
-            <div id="packagingProgressContainer" class="requests-container">
-                <div class="empty-state">
-                    <div class="empty-icon">🔧</div>
-                    <h3>No active jobs</h3>
-                    <p>Your active jobs will appear here</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Materials Tab -->
-        <div id="packagingMaterialsTab" class="tab-content" style="display:none;">
-            <div class="section-title">Malzeme Stoku</div>
-            <div class="materials-grid">
-                <div class="material-card">
-                    <div class="material-icon"></div>
-                    <div class="material-name">Oluklu Mukavva</div>
-                    <div class="material-stock">1,250 adet</div>
-                </div>
-                <div class="material-card">
-                    <div class="material-icon">🧱</div>
-                    <div class="material-name">Ahşap Sandık</div>
-                    <div class="material-stock">180 adet</div>
-                </div>
-                <div class="material-card">
-                    <div class="material-icon">🎈</div>
-                    <div class="material-name">Buble Wrap</div>
-                    <div class="material-stock">500 m²</div>
-                </div>
-                <div class="material-card">
-                    <div class="material-icon">🧊</div>
-                    <div class="material-name">EPS Köpük</div>
-                    <div class="material-stock">320 adet</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- AI CHATBOT -->
 <!-- PROPOSAL MODAL with AI Assistant -->
@@ -21145,7 +20443,7 @@ var currentUser = '';
 var currentUserType = ''; // client veya forwarder
 var currentRequestId = null;
 var carrierMode = 'all'; // 'all', 'sea', 'air', 'land'
-var currentLanguage = localStorage.getItem('gfn_language') || 'en'; // Default language
+var currentLanguage = 'en'; // English only for MVP
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // COMPACT I18N HELPER (t() function)
@@ -25122,7 +24420,7 @@ function selectService(type) {
         document.getElementById('clientNameDisplay').textContent = name;
         document.getElementById('clientWelcomeName').textContent = name;
         setupAutocomplete();
-        initAIAssistant('shipper');
+        
     } else if (userType === 'forwarder') {
         document.getElementById('forwarderDashboard').classList.remove('hidden');
         document.getElementById('forwarderNameDisplay').textContent = name;
@@ -25132,7 +24430,7 @@ function selectService(type) {
         carrierMode = 'all';
         // Varsayılan tab'ı göster
         showForwarderTab('home');
-        initAIAssistant('forwarder');
+        
         // localStorage'dan yüklenen tarifeleri göster
         setTimeout(function() {
             updateMyRatesList();
@@ -25147,7 +24445,7 @@ function selectService(type) {
         document.getElementById('carrierWelcomeBox').className = 'welcome-box sea-carrier-gradient';
         carrierMode = 'sea';
         renderCarrierRates();
-        initAIAssistant('carrier');
+        
         updateCarrierAIPanel();
     } else if (userType === 'airCarrier') {
         document.getElementById('carrierDashboard').classList.remove('hidden');
@@ -25157,7 +24455,7 @@ function selectService(type) {
         document.getElementById('carrierWelcomeBox').className = 'welcome-box air-carrier-gradient';
         carrierMode = 'air';
         renderCarrierRates();
-        initAIAssistant('carrier');
+        
         updateCarrierAIPanel();
     } else if (userType === 'landCarrier') {
         document.getElementById('carrierDashboard').classList.remove('hidden');
@@ -25167,33 +24465,10 @@ function selectService(type) {
         document.getElementById('carrierWelcomeBox').className = 'welcome-box land-carrier-gradient';
         carrierMode = 'land';
         renderCarrierRates();
-        initAIAssistant('carrier');
+        
         updateCarrierAIPanel();
-    } else if (userType === 'insurance') {
-        document.getElementById('insuranceDashboard').classList.remove('hidden');
-        document.getElementById('insuranceNameDisplay').textContent = name;
-        document.getElementById('insuranceWelcomeName').textContent = name;
-        renderInsuranceRequests();
-        initAIAssistant('insurance');
-    } else if (userType === 'customs') {
-        document.getElementById('customsDashboard').classList.remove('hidden');
-        document.getElementById('customsNameDisplay').textContent = name;
-        document.getElementById('customsWelcomeName').textContent = name;
-        renderCustomsJobs();
-        initAIAssistant('customs');
-    } else if (userType === 'warehouse') {
-        document.getElementById('warehouseDashboard').classList.remove('hidden');
-        document.getElementById('warehouseNameDisplay').textContent = name;
-        document.getElementById('warehouseWelcomeName').textContent = name;
-        renderWarehouseRequests();
-        initAIAssistant('warehouse');
-    } else if (userType === 'packaging') {
-        document.getElementById('packagingDashboard').classList.remove('hidden');
-        document.getElementById('packagingNameDisplay').textContent = name;
-        document.getElementById('packagingWelcomeName').textContent = name;
-        renderPackagingJobs();
-        initAIAssistant('packaging');
     }
+    // Note: Insurance, Customs, Warehouse, Packaging dashboards removed for MVP
 }
 
 function goHome() {
@@ -26056,17 +25331,6 @@ function hideAllPages() {
     // Carrier Dashboard
     var carrierDash = document.getElementById('carrierDashboard');
     if (carrierDash) carrierDash.classList.add('hidden');
-    
-    // Provider Dashboards
-    var insuranceDash = document.getElementById('insuranceDashboard');
-    var customsDash = document.getElementById('customsDashboard');
-    var warehouseDash = document.getElementById('warehouseDashboard');
-    var packagingDash = document.getElementById('packagingDashboard');
-    
-    if (insuranceDash) insuranceDash.classList.add('hidden');
-    if (customsDash) customsDash.classList.add('hidden');
-    if (warehouseDash) warehouseDash.classList.add('hidden');
-    if (packagingDash) packagingDash.classList.add('hidden');
 }
 
 function goToLogin(type) {
@@ -26165,7 +25429,7 @@ function doLogin(e) {
         if (avatarEl) avatarEl.textContent = initials || 'CL';
         
         setupAutocomplete();
-        initAIAssistant('shipper');
+        
         // Profili yükle
         loadClientProfile();
         // Teklifleri yükle
@@ -26191,7 +25455,7 @@ function doLogin(e) {
         carrierMode = 'all';
         // Varsayılan tab'ı göster
         showForwarderTab('home');
-        initAIAssistant('forwarder');
+        
         // Profili yükle
         loadForwarderProfile();
         // Verdiği teklifleri yükle
@@ -26205,7 +25469,7 @@ function doLogin(e) {
         document.getElementById('carrierWelcomeBox').className = 'welcome-box sea-carrier-gradient';
         carrierMode = 'sea';
         renderCarrierRates();
-        initAIAssistant('carrier');
+        
     } else if (userType === 'airCarrier') {
         document.getElementById('carrierDashboard').classList.remove('hidden');
         document.getElementById('carrierNameDisplay').textContent = name;
@@ -26214,7 +25478,7 @@ function doLogin(e) {
         document.getElementById('carrierWelcomeBox').className = 'welcome-box air-carrier-gradient';
         carrierMode = 'air';
         renderCarrierRates();
-        initAIAssistant('carrier');
+        
     } else if (userType === 'landCarrier') {
         document.getElementById('carrierDashboard').classList.remove('hidden');
         document.getElementById('carrierNameDisplay').textContent = name;
@@ -26223,32 +25487,9 @@ function doLogin(e) {
         document.getElementById('carrierWelcomeBox').className = 'welcome-box land-carrier-gradient';
         carrierMode = 'land';
         renderCarrierRates();
-        initAIAssistant('carrier');
-    } else if (userType === 'insurance') {
-        document.getElementById('insuranceDashboard').classList.remove('hidden');
-        document.getElementById('insuranceNameDisplay').textContent = name;
-        document.getElementById('insuranceWelcomeName').textContent = name;
-        renderInsuranceRequests();
-        initAIAssistant('insurance');
-    } else if (userType === 'customs') {
-        document.getElementById('customsDashboard').classList.remove('hidden');
-        document.getElementById('customsNameDisplay').textContent = name;
-        document.getElementById('customsWelcomeName').textContent = name;
-        renderCustomsJobs();
-        initAIAssistant('customs');
-    } else if (userType === 'warehouse') {
-        document.getElementById('warehouseDashboard').classList.remove('hidden');
-        document.getElementById('warehouseNameDisplay').textContent = name;
-        document.getElementById('warehouseWelcomeName').textContent = name;
-        renderWarehouseRequests();
-        initAIAssistant('warehouse');
-    } else if (userType === 'packaging') {
-        document.getElementById('packagingDashboard').classList.remove('hidden');
-        document.getElementById('packagingNameDisplay').textContent = name;
-        document.getElementById('packagingWelcomeName').textContent = name;
-        renderPackagingJobs();
-        initAIAssistant('packaging');
+        
     }
+    // Note: Insurance, Customs, Warehouse, Packaging removed for MVP
     
     return false;
 }
@@ -26294,38 +25535,15 @@ function doSignUp(e) {
         document.getElementById('clientNameDisplay').textContent = name;
         document.getElementById('clientWelcomeName').textContent = name;
         setupAutocomplete();
-        initAIAssistant('shipper');
+        
     } else if (userType === 'forwarder') {
         document.getElementById('forwarderDashboard').classList.remove('hidden');
         document.getElementById('forwarderNameDisplay').textContent = name;
         document.getElementById('forwarderWelcomeName').textContent = name;
         showForwarderTab('home');
-        initAIAssistant('forwarder');
-    } else if (userType === 'insurance') {
-        document.getElementById('insuranceDashboard').classList.remove('hidden');
-        document.getElementById('insuranceNameDisplay').textContent = name;
-        document.getElementById('insuranceWelcomeName').textContent = name;
-        renderInsuranceRequests();
-        initAIAssistant('insurance');
-    } else if (userType === 'customs') {
-        document.getElementById('customsDashboard').classList.remove('hidden');
-        document.getElementById('customsNameDisplay').textContent = name;
-        document.getElementById('customsWelcomeName').textContent = name;
-        renderCustomsJobs();
-        initAIAssistant('customs');
-    } else if (userType === 'warehouse') {
-        document.getElementById('warehouseDashboard').classList.remove('hidden');
-        document.getElementById('warehouseNameDisplay').textContent = name;
-        document.getElementById('warehouseWelcomeName').textContent = name;
-        renderWarehouseRequests();
-        initAIAssistant('warehouse');
-    } else if (userType === 'packaging') {
-        document.getElementById('packagingDashboard').classList.remove('hidden');
-        document.getElementById('packagingNameDisplay').textContent = name;
-        document.getElementById('packagingWelcomeName').textContent = name;
-        renderPackagingJobs();
-        initAIAssistant('packaging');
+        
     }
+    // Note: Insurance, Customs, Warehouse, Packaging removed for MVP
     
     return false;
 }
