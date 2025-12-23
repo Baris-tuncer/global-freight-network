@@ -27280,7 +27280,8 @@ function resetCalculator() {
 
 // Rates Tab Switching
 function showRatesTab(tabName) {
-    console.log('showRatesTab:', tabName);
+    console.log('========= showRatesTab ÇAĞRILDI =========');
+    console.log('Tab name:', tabName);
     
     // Tab butonlarını güncelle
     var tabs = document.querySelectorAll('.rates-tab');
@@ -27294,23 +27295,29 @@ function showRatesTab(tabName) {
     
     // Tüm içerikleri gizle (inline style ile)
     var contents = document.querySelectorAll('.rates-tab-content');
+    console.log('rates-tab-content sayısı:', contents.length);
     contents.forEach(function(content) {
         content.style.display = 'none';
     });
     
     // Aktif içeriği göster
     var activeContent = document.getElementById(tabName + 'Tab');
+    console.log('Aranan element ID:', tabName + 'Tab');
+    console.log('Element bulundu mu:', activeContent ? 'EVET' : 'HAYIR');
     if (activeContent) {
         activeContent.style.display = 'block';
-        console.log('Rates tab shown:', tabName + 'Tab');
+        console.log('Tab görünür yapıldı:', tabName + 'Tab');
     }
     
     // Her tab geçişinde dropdown'ları doldur
+    console.log('Dropdown doldurma başlıyor...');
     if (tabName === 'preCarriage') {
+        console.log('Pre-Carriage dropdown\'ları dolduruluyor...');
         populateTurkishCities();
         populatePortDropdowns();
         setDefaultDates();
     } else if (tabName === 'onCarriage') {
+        console.log('On-Carriage dropdown\'ları dolduruluyor...');
         populateCountryDropdown();
         setDefaultDates();
     } else if (tabName === 'terminal' || tabName === 'foreignCustoms') {
@@ -27326,6 +27333,7 @@ function showRatesTab(tabName) {
         console.log('Saved Rates tab opened, updating list...');
         if (typeof updateMyRatesList === 'function') updateMyRatesList();
     }
+    console.log('========= showRatesTab BİTTİ =========');
 }
 
 // Form başlatma - dropdown'ları doldur
@@ -27377,10 +27385,12 @@ function initForwarderRatesForms() {
 
 // Liman dropdown'larını doldur
 function populatePortDropdowns() {
+    console.log('populatePortDropdowns çağrıldı');
     var portSelects = ['sfOriginPort', 'sfDestPort', 'pcDestPort', 'thcPort'];
     
     portSelects.forEach(function(selectId) {
         var select = document.getElementById(selectId);
+        console.log('Port select ' + selectId + ':', select ? 'FOUND' : 'NOT FOUND');
         if (!select) return;
         
         // Mevcut seçenekleri temizle (ilk option hariç)
@@ -27389,6 +27399,7 @@ function populatePortDropdowns() {
         }
         
         // Ülkelere göre grupla
+        var portCount = 0;
         Object.keys(worldPorts).forEach(function(countryCode) {
             var countryData = worldPorts[countryCode];
             if (countryData.ports && countryData.ports.length > 0) {
@@ -27402,49 +27413,63 @@ function populatePortDropdowns() {
                     option.dataset.country = countryCode;
                     option.dataset.city = port.city;
                     optgroup.appendChild(option);
+                    portCount++;
                 });
                 
                 select.appendChild(optgroup);
             }
         });
+        console.log(selectId + ' dolduruldu, port sayısı:', portCount);
     });
 }
 
 // Türkiye şehirlerini doldur (Pre-carriage için)
 function populateTurkishCities() {
+    console.log('populateTurkishCities çağrıldı');
     var select = document.getElementById('pcOriginCity');
-    if (!select) return;
+    console.log('pcOriginCity element:', select);
+    if (!select) {
+        console.log('pcOriginCity BULUNAMADI!');
+        return;
+    }
     
     while (select.options.length > 1) {
         select.remove(1);
     }
     
     var turkishCities = worldPorts.TR ? worldPorts.TR.cities : [];
+    console.log('Turkish cities:', turkishCities.length);
     turkishCities.forEach(function(city) {
         var option = document.createElement('option');
         option.value = city;
         option.textContent = city;
         select.appendChild(option);
     });
+    console.log('pcOriginCity dolduruldu, option sayısı:', select.options.length);
 }
 
 // Ülke dropdown'ını doldur (On-carriage için)
 function populateCountryDropdown() {
+    console.log('populateCountryDropdown çağrıldı');
     var select = document.getElementById('ocCountry');
+    console.log('ocCountry element:', select ? 'FOUND' : 'NOT FOUND');
     if (!select) return;
     
     while (select.options.length > 1) {
         select.remove(1);
     }
     
+    var countryCount = 0;
     Object.keys(worldPorts).forEach(function(countryCode) {
         if (countryCode !== 'TR') { // Türkiye hariç (on-carriage yurtdışı)
             var option = document.createElement('option');
             option.value = countryCode;
             option.textContent = worldPorts[countryCode].country;
             select.appendChild(option);
+            countryCount++;
         }
     });
+    console.log('ocCountry dolduruldu, ülke sayısı:', countryCount);
 }
 
 // On-carriage ülke seçildiğinde limanları ve şehirleri doldur
