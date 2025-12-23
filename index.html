@@ -21354,7 +21354,7 @@
 
 <script>
 var userType = 'client';
-var currentUser = '';
+var supabaseUser = '';
 var currentUserType = ''; // client veya forwarder
 var currentRequestId = null;
 var carrierMode = 'all'; // 'all', 'sea', 'air', 'land'
@@ -26286,7 +26286,7 @@ function hideAllPages() {
 
 function goToLogin(type) {
     // Eğer kullanıcı zaten login olmuşsa direkt dashboard'a yönlendir
-    if (currentUser) {
+    if (supabaseUser) {
         selectService(type);
         return;
     }
@@ -26346,7 +26346,7 @@ function doLogin(e) {
     var email = document.getElementById('emailInput').value;
     var name = email.split('@')[0];
     name = name.charAt(0).toUpperCase() + name.slice(1);
-    currentUser = name;
+    supabaseUser = name;
     currentUserType = userType; // Mevcut kullanıcı tipi
     
     console.log('Giriş yapıldı:', currentUser, 'userType:', currentUserType);
@@ -26501,7 +26501,7 @@ function doSignUp(e) {
     };
     console.log('Legal consent recorded:', legalConsent);
     
-    currentUser = name;
+    supabaseUser = name;
     hideAllPages();
     
     if (userType === 'client') {
@@ -26547,7 +26547,7 @@ function doSignUp(e) {
 
 function doLogout() {
     hideAllPages();
-    currentUser = null;
+    supabaseUser = null;
     userType = null;
     document.getElementById('landingPage').classList.remove('hidden');
 }
@@ -36337,14 +36337,14 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // Current user state
-let currentUser = null;
+let supabaseUser = null;
 
 // Check authentication status on page load
 async function checkAuth() {
     try {
         const { data: { user }, error } = await supabase.auth.getUser();
         if (user) {
-            currentUser = user;
+            supabaseUser = user;
             updateUIForLoggedInUser(user);
             console.log('User logged in:', user.email);
         } else {
@@ -36404,7 +36404,7 @@ async function signIn(email, password) {
             return { success: false, error };
         }
         
-        currentUser = data.user;
+        supabaseUser = data.user;
         updateUIForLoggedInUser(data.user);
         showNotification('success', 'Welcome back!');
         
@@ -36427,7 +36427,7 @@ async function signOut() {
             showNotification('error', error.message);
             return;
         }
-        currentUser = null;
+        supabaseUser = null;
         updateUIForLoggedOutUser();
         showNotification('success', 'You have been signed out');
     } catch (error) {
@@ -36465,12 +36465,12 @@ async function resetPassword(email) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function getUserProfile() {
-    if (!currentUser) return null;
+    if (!supabaseUser) return null;
     
     const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', currentUser.id)
+        .eq('id', supabaseUser.id)
         .single();
     
     if (error) {
@@ -36482,12 +36482,12 @@ async function getUserProfile() {
 }
 
 async function updateUserProfile(updates) {
-    if (!currentUser) return { success: false };
+    if (!supabaseUser) return { success: false };
     
     const { data, error } = await supabase
         .from('profiles')
         .update(updates)
-        .eq('id', currentUser.id);
+        .eq('id', supabaseUser.id);
     
     if (error) {
         showNotification('error', 'Failed to update profile');
@@ -36504,7 +36504,7 @@ async function updateUserProfile(updates) {
 
 // Create new shipment
 async function createShipment(shipmentData) {
-    if (!currentUser) {
+    if (!supabaseUser) {
         showNotification('error', 'Please sign in to create a shipment');
         return { success: false };
     }
@@ -36516,8 +36516,8 @@ async function createShipment(shipmentData) {
             .from('shipments')
             .insert([{
                 ...shipmentData,
-                user_id: currentUser.id,
-                created_by: currentUser.id
+                user_id: supabaseUser.id,
+                created_by: supabaseUser.id
             }])
             .select()
             .single();
@@ -36540,12 +36540,12 @@ async function createShipment(shipmentData) {
 
 // Get user's shipments
 async function getMyShipments(limit = 10) {
-    if (!currentUser) return [];
+    if (!supabaseUser) return [];
     
     const { data, error } = await supabase
         .from('shipments')
         .select('*')
-        .eq('user_id', currentUser.id)
+        .eq('user_id', supabaseUser.id)
         .order('created_at', { ascending: false })
         .limit(limit);
     
@@ -36610,9 +36610,9 @@ async function requestQuote(quoteData) {
             status: 'draft'
         };
         
-        if (currentUser) {
-            insertData.user_id = currentUser.id;
-            insertData.created_by = currentUser.id;
+        if (supabaseUser) {
+            insertData.user_id = supabaseUser.id;
+            insertData.created_by = supabaseUser.id;
         }
         
         const { data, error } = await supabase
@@ -36639,12 +36639,12 @@ async function requestQuote(quoteData) {
 
 // Get my quotes
 async function getMyQuotes(limit = 10) {
-    if (!currentUser) return [];
+    if (!supabaseUser) return [];
     
     const { data, error } = await supabase
         .from('quotes')
         .select('*')
-        .eq('user_id', currentUser.id)
+        .eq('user_id', supabaseUser.id)
         .order('created_at', { ascending: false })
         .limit(limit);
     
@@ -36696,12 +36696,12 @@ async function submitContactForm(name, email, phone, company, subject, message) 
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function getNotifications() {
-    if (!currentUser) return [];
+    if (!supabaseUser) return [];
     
     const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', currentUser.id)
+        .eq('user_id', supabaseUser.id)
         .order('created_at', { ascending: false })
         .limit(20);
     
@@ -36710,13 +36710,13 @@ async function getNotifications() {
 }
 
 async function markNotificationAsRead(notificationId) {
-    if (!currentUser) return;
+    if (!supabaseUser) return;
     
     await supabase
         .from('notifications')
         .update({ is_read: true })
         .eq('id', notificationId)
-        .eq('user_id', currentUser.id);
+        .eq('user_id', supabaseUser.id);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -37021,12 +37021,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Listen for auth state changes
     supabase.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_IN') {
-            currentUser = session?.user || null;
-            if (currentUser) {
+            supabaseUser = session?.user || null;
+            if (supabaseUser) {
                 updateUIForLoggedInUser(currentUser);
             }
         } else if (event === 'SIGNED_OUT') {
-            currentUser = null;
+            supabaseUser = null;
             updateUIForLoggedOutUser();
         }
     });
