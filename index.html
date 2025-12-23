@@ -8596,7 +8596,12 @@
         }
         
         .rates-tab-content {
+            display: none !important;
             animation: fadeIn 0.3s ease;
+        }
+        
+        .rates-tab-content.active {
+            display: block !important;
         }
         
         @keyframes fadeIn {
@@ -18603,7 +18608,7 @@
             </div>
             
             <!-- DENİZ NAVLUN FİYATI GİRİŞİ -->
-            <div id="seaFreightTab" class="rates-tab-content" style="display:block;">
+            <div id="seaFreightTab" class="rates-tab-content active">
                 
                 <!-- Alt Tab Navigation -->
                 <!-- Simplified Rate Entry (No AI, No Calculations) -->
@@ -18767,7 +18772,7 @@
             </div>
             
             <!-- PRE-CARRIAGE (Fabrika → Liman) -->
-            <div id="preCarriageTab" class="rates-tab-content" style="display:none;">
+            <div id="preCarriageTab" class="rates-tab-content">
                 
                 <!-- Manual Entry Form -->
                 <div class="rate-form-card">
@@ -18831,7 +18836,7 @@
             </div>
             
             <!-- ON-CARRIAGE (Liman → Depo) -->
-            <div id="onCarriageTab" class="rates-tab-content" style="display:none;">
+            <div id="onCarriageTab" class="rates-tab-content">
                 <div class="rate-form-card">
                     <div class="form-card-header on-carriage">
                         <span class="form-icon">🚚</span>
@@ -18903,7 +18908,7 @@
             </div>
             
             <!--  TERMINAL / THC ÜCRETLERİ -->
-            <div id="terminalTab" class="rates-tab-content" style="display:none;">
+            <div id="terminalTab" class="rates-tab-content">
                 <div class="rate-form-card">
                     <div class="form-card-header terminal">
                         <span class="form-icon">🏗️</span>
@@ -18968,7 +18973,7 @@
             </div>
             
             <!-- YURTDIŞI GÜMRÜK ÜCRETİ -->
-            <div id="foreignCustomsTab" class="rates-tab-content" style="display:none;">
+            <div id="foreignCustomsTab" class="rates-tab-content">
                 <div class="rate-form-card">
                     <div class="form-card-header foreign-customs">
                         <span class="form-icon"></span>
@@ -19109,7 +19114,7 @@
             </div>
             
             <!-- KAYITLI TARİFELER -->
-            <div id="myRatesTab" class="rates-tab-content" style="display:none;">
+            <div id="myRatesTab" class="rates-tab-content">
                 <div class="my-rates-container">
                     <div class="my-rates-header">
                         <h3 data-i18n="rates.mySavedRates">My Saved Rates</h3>
@@ -27293,18 +27298,20 @@ function showRatesTab(tabName) {
         event.target.classList.add('active');
     }
     
-    // Tüm içerikleri gizle (inline style ile)
+    // Tüm içerikleri gizle (class ile)
     var contents = document.querySelectorAll('.rates-tab-content');
     console.log('rates-tab-content sayısı:', contents.length);
     contents.forEach(function(content) {
+        content.classList.remove('active');
         content.style.display = 'none';
     });
     
-    // Aktif içeriği göster
+    // Aktif içeriği göster (class ile)
     var activeContent = document.getElementById(tabName + 'Tab');
     console.log('Aranan element ID:', tabName + 'Tab');
     console.log('Element bulundu mu:', activeContent ? 'EVET' : 'HAYIR');
     if (activeContent) {
+        activeContent.classList.add('active');
         activeContent.style.display = 'block';
         console.log('Tab görünür yapıldı:', tabName + 'Tab');
     }
