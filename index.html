@@ -18745,243 +18745,64 @@
             <!-- PRE-CARRIAGE (Fabrika → Liman) -->
             <div id="preCarriageTab" class="rates-tab-content" style="display:none;">
                 
-                <!-- Alt Tab Navigation -->
-                <div class="sub-tabs">
-                    <button class="sub-tab active" onclick="showPreCarriageSubTab('manual')">
-                        Manual Entry
-                    </button>
-                    <button class="sub-tab premium" onclick="showPreCarriageSubTab('ai')">
-                        <span class="premium-badge">PREMIUM</span>
-                        AI PDF Upload
-                    </button>
-                </div>
-                
                 <!-- Manual Entry Form -->
-                <div id="pcManualTab" class="sub-tab-content">
-                    <div class="rate-form-card">
-                        <div class="form-card-header land">
-                            <span class="form-icon"></span>
-                            <div>
-                                <h3 data-i18n="rates.addPreCarriage">Add Pre-Carriage Rate</h3>
-                                <p data-i18n="rates.preCarriageDesc">Factory/Warehouse → Loading Port (Domestic)</p>
-                            </div>
-                        </div>
-                        
-                        <form id="preCarriageForm" onsubmit="return savePreCarriageRate(event)">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label><span data-i18n="rates.originCity">Origin City</span></label>
-                                    <select id="pcOriginCity" required>
-                                        <option value="">Select City...</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label data-i18n="rates.destPort">Destination Port</label>
-                                    <select id="pcDestPort" required>
-                                        <option value="">Select Port...</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label data-i18n="rates.containerType">Container Type</label>
-                                    <select id="pcContainerType" required>
-                                        <option value="">Select...</option>
-                                        <option value="20DC">20' Container</option>
-                                        <option value="40DC">40' Container</option>
-                                        <option value="40HC">40' High Cube</option>
-                                        <option value="45DC">45' Container</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label><span data-i18n="rates.freightCostUsd">Freight Cost (USD)</span></label>
-                                    <input type="number" id="pcRate" placeholder="e.g. 350" required min="1">
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label data-i18n="rates.transitTime">Transit Time (Days)</label>
-                                    <input type="number" id="pcTransit" placeholder="e.g. 1" required min="1" value="1">
-                                </div>
-                                <div class="form-group">
-                                    <label>⏰ <span data-i18n="rates.validity">Validity</span></label>
-                                    <input type="date" id="pcValidUntil" required>
-                                </div>
-                            </div>
-                            
-                            <button type="submit" class="btn-save-rate land">
-                                <span>💾</span> <span data-i18n="rates.savePreCarriage">Save Pre-Carriage</span>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                
-                <!-- AI PDF Upload (Premium) -->
-                <div id="pcAITab" class="sub-tab-content hidden">
-                    <div class="rate-form-card premium-card">
-                        <div class="form-card-header ai-header">
-                            <span class="form-icon ai-sparkle-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="white">
-                                    <path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.996.996 0 0 0-1.41 0L1.29 18.96a.996.996 0 0 0 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05a.996.996 0 0 0 0-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"/>
-                                </svg>
-                            </span>
-                            <div>
-                                <h3>Bulk Price Upload with AI</h3>
-                                <p class="ai-header-desc">PDF veya Excel dosyanızı yükleyin, AI otomatik işlesin</p>
-                            </div>
-                            <span class="premium-tag">PREMIUM</span>
-                        </div>
-                        
-                        <!-- Upload Area -->
-                        <div class="ai-upload-section">
-                            <div class="upload-zone" id="pcUploadZone" onclick="document.getElementById('pcFileInput').click()" ondrop="handlePCFileDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-                                <input type="file" id="pcFileInput" accept=".pdf,.xlsx,.xls,.csv" onchange="handlePCFileSelect(event)" style="display:none">
-                                <div class="upload-icon">
-                                    <svg width="64" height="64" viewBox="0 0 24 24" fill="#667eea">
-                                        <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15.01l1.41 1.41L11 14.84V19h2v-4.16l1.59 1.59L16 15.01 12.01 11 8 15.01z"/>
-                                    </svg>
-                                </div>
-                                <div class="upload-text">
-                                    <strong>PDF, Excel veya CSV dosyası yükleyin</strong>
-                                    <span>Drag and drop or click</span>
-                                </div>
-                                <div class="upload-formats">
-                                    <span class="format-tag pdf">PDF</span>
-                                    <span class="format-tag excel">XLSX</span>
-                                    <span class="format-tag csv">CSV</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Desteklenen Format Bilgisi -->
-                            <div class="format-info">
-                                <h4>Desteklenen Format Örneği:</h4>
-                                <div class="format-example">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>City</th>
-                                                <th>Port</th>
-                                                <th>20'</th>
-                                                <th>40'</th>
-                                                <th>40' HC</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>Ankara</td>
-                                                <td>Mersin</td>
-                                                <td>$280</td>
-                                                <td>$350</td>
-                                                <td>$380</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Bursa</td>
-                                                <td>Gemlik</td>
-                                                <td>$120</td>
-                                                <td>$150</td>
-                                                <td>$170</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- İşleme Progress -->
-                        <div class="ai-processing hidden" id="pcProcessing">
-                            <div class="processing-header">
-                                <div class="processing-icon">
-                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="#667eea" class="spin">
-                                        <path d="M12 4V2A10 10 0 0 0 2 12h2a8 8 0 0 1 8-8z"/>
-                                    </svg>
-                                </div>
-                                <div class="processing-text">
-                                    <strong>AI Processing File...</strong>
-                                    <span id="pcProcessingStatus">Reading file...</span>
-                                </div>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="pcProgressFill"></div>
-                            </div>
-                            <div class="progress-steps">
-                                <div class="step active" id="pcStep1">Okuma</div>
-                                <div class="step" id="pcStep2"> Analiz</div>
-                                <div class="step" id="pcStep3">🗺️ Eşleştirme</div>
-                                <div class="step" id="pcStep4">Completed</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Sonuç Tablosu -->
-                        <div class="ai-results hidden" id="pcResults">
-                            <div class="results-header">
-                                <div class="results-info">
-                                    <span class="results-icon"></span>
-                                    <div>
-                                        <strong id="pcResultCount">127 rate</strong> successfully extracted
-                                        <span class="results-time">İşlem süresi: 4.2 saniye</span>
-                                    </div>
-                                </div>
-                                <div class="results-actions">
-                                    <button class="btn-select-all" onclick="toggleAllPCResults(true)">☑️ Select All</button>
-                                    <button class="btn-deselect-all" onclick="toggleAllPCResults(false)">☐ Deselect All</button>
-                                </div>
-                            </div>
-                            
-                            <div class="results-table-wrapper">
-                                <table class="results-table" id="pcResultsTable">
-                                    <thead>
-                                        <tr>
-                                            <th><input type="checkbox" id="pcSelectAll" onchange="toggleAllPCResults(this.checked)" checked></th>
-                                            <th>City</th>
-                                            <th>Port</th>
-                                            <th>Konteyner</th>
-                                            <th>Fiyat (USD)</th>
-                                            <th>Durum</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="pcResultsBody">
-                                        <!-- AI sonuçları buraya gelecek -->
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <div class="results-footer">
-                                <div class="selected-count">
-                                    <span id="pcSelectedCount">127</span> / <span id="pcTotalCount">127</span> seçili
-                                </div>
-                                <div class="results-buttons">
-                                    <button class="btn-cancel" onclick="cancelPCUpload()">Cancel</button>
-                                    <button class="btn-save-all" onclick="saveAllPCRates()">
-                                        <span>💾</span> Save Selected (<span id="pcSaveCount">127</span> rate)
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Premium Pazarlama -->
-                        <div class="premium-marketing">
-                            <div class="marketing-stats">
-                                <div class="stat-item">
-                                    <span class="stat-value">%98</span>
-                                    <span class="stat-label">Accuracy Rate</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-value">50x</span>
-                                    <span class="stat-label">Faster</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-value">∞</span>
-                                    <span class="stat-label">Upload Limit</span>
-                                </div>
-                            </div>
-                            <p class="marketing-text">
-                                Manuel girişle 2 saat süren işlem, AI ile 30 saniyede tamamlanır.
-                                Armatör rate sheet'lerini, Excel rate listelerini anında sisteme aktarın.
-                            </p>
+                <div class="rate-form-card">
+                    <div class="form-card-header land">
+                        <span class="form-icon">🚛</span>
+                        <div>
+                            <h3 data-i18n="rates.addPreCarriage">Add Pre-Carriage Rate</h3>
+                            <p data-i18n="rates.preCarriageDesc">Factory/Warehouse → Loading Port (Domestic)</p>
                         </div>
                     </div>
+                    
+                    <form id="preCarriageForm" onsubmit="return savePreCarriageRate(event)" style="padding: 24px;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><span data-i18n="rates.originCity">Origin City</span></label>
+                                <select id="pcOriginCity" required>
+                                    <option value="">Select City...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="rates.destPort">Destination Port</label>
+                                <select id="pcDestPort" required>
+                                    <option value="">Select Port...</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-i18n="rates.containerType">Container Type</label>
+                                <select id="pcContainerType" required>
+                                    <option value="">Select...</option>
+                                    <option value="20DC">20' Container</option>
+                                    <option value="40DC">40' Container</option>
+                                    <option value="40HC">40' High Cube</option>
+                                    <option value="45DC">45' Container</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><span data-i18n="rates.freightCostUsd">Freight Cost (USD)</span></label>
+                                <input type="number" id="pcRate" placeholder="e.g. 350" required min="1">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-i18n="rates.transitTime">Transit Time (Days)</label>
+                                <input type="number" id="pcTransit" placeholder="e.g. 1" required min="1" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label>⏰ <span data-i18n="rates.validity">Validity</span></label>
+                                <input type="date" id="pcValidUntil" required>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn-save-rate land">
+                            <span>💾</span> <span data-i18n="rates.savePreCarriage">Save Pre-Carriage</span>
+                        </button>
+                    </form>
                 </div>
             </div>
             
@@ -18989,14 +18810,14 @@
             <div id="onCarriageTab" class="rates-tab-content" style="display:none;">
                 <div class="rate-form-card">
                     <div class="form-card-header on-carriage">
-                        <span class="form-icon"></span>
+                        <span class="form-icon">🚚</span>
                         <div>
                             <h3 data-i18n="rates.addOnCarriage">Add On-Carriage Rate</h3>
                             <p data-i18n="rates.onCarriageDesc">Destination Port → Buyer Warehouse/Factory (Overseas)</p>
                         </div>
                     </div>
                     
-                    <form id="onCarriageForm" onsubmit="return saveOnCarriageRate(event)">
+                    <form id="onCarriageForm" onsubmit="return saveOnCarriageRate(event)" style="padding: 24px;">
                         <div class="form-row">
                             <div class="form-group">
                                 <label data-i18n="rates.country">Country</label>
@@ -19061,14 +18882,14 @@
             <div id="terminalTab" class="rates-tab-content" style="display:none;">
                 <div class="rate-form-card">
                     <div class="form-card-header terminal">
-                        <span class="form-icon"></span>
+                        <span class="form-icon">🏗️</span>
                         <div>
                             <h3 data-i18n="rates.addTerminal">Add Terminal / THC Fee</h3>
                             <p data-i18n="rates.terminalDesc">Port terminal handling charges</p>
                         </div>
                     </div>
                     
-                    <form id="terminalForm" onsubmit="return saveTerminalRate(event)">
+                    <form id="terminalForm" onsubmit="return saveTerminalRate(event)" style="padding: 24px;">
                         <div class="form-row">
                             <div class="form-group">
                                 <label data-i18n="rates.port">Port</label>
@@ -20409,29 +20230,6 @@
     </div>
 </div>
 
-<!-- MESSAGE MODAL -->
-<div id="messageModal" class="modal-overlay">
-    <div class="modal-container message-modal">
-        <div class="modal-header">
-            <h3 id="messageModalTitle" data-i18n="message.messaging">Messaging</h3>
-            <div class="modal-request-badge" id="messageModalRequestId">REQ-2024-001</div>
-            <button class="modal-close" onclick="closeMessageModal()">×</button>
-        </div>
-        <div class="modal-body messages-body">
-            <div id="messagesList" class="messages-list">
-                <div class="no-messages" data-i18n="message.noMessages">No messages yet. Send the first message!</div>
-            </div>
-        </div>
-        <div class="modal-footer message-input-footer">
-            <input type="text" id="messageInput" data-i18n-placeholder="message.typeMessage" placeholder="Type your message..." onkeypress="if(event.key==='Enter')sendMessage()">
-            <button class="btn-send" onclick="sendMessage()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                </svg>
-            </button>
-        </div>
-    </div>
-</div>
 
 
 
@@ -23366,7 +23164,6 @@ function renderCarrierRequests() {
         }
         html += '</div>';
         html += '<div class="request-actions">';
-        html += '<button class="btn-message" onclick="openMessageModal(\'' + req.id + '\')"> Mesaj</button>';
         html += '<button class="btn-quote" onclick="openQuoteModal(\'' + req.id + '\')">Öneri Gönder</button>';
         html += '</div>';
         html += '</div>';
@@ -31277,11 +31074,7 @@ var networkRequests = [
         notes: 'Textile products, moisture protection required',
         status: 'open',
         createdAt: '2024-12-18T10:30:00',
-        quotes: [],
-        insurance: true,
-        customs: true,
-        warehouse: false,
-        packaging: true
+        quotes: []
     },
     {
         id: 'REQ-2024-002',
@@ -31303,11 +31096,7 @@ var networkRequests = [
         createdAt: '2024-12-17T14:20:00',
         quotes: [
             { forwarder: 'Global Logistics', price: 1850, transitDays: 18, validUntil: '2024-12-25', submittedAt: '2024-12-17T16:00:00' }
-        ],
-        insurance: true,
-        customs: true,
-        warehouse: true,
-        packaging: true
+        ]
     },
     {
         id: 'REQ-2024-003',
@@ -31330,11 +31119,7 @@ var networkRequests = [
         quotes: [
             { forwarder: 'ColdChain Express', price: 4200, transitDays: 8, validUntil: '2024-12-20', submittedAt: '2024-12-16T11:00:00' },
             { forwarder: 'Mediterranean Shipping', price: 3950, transitDays: 10, validUntil: '2024-12-21', submittedAt: '2024-12-16T14:30:00' }
-        ],
-        insurance: true,
-        customs: true,
-        warehouse: false,
-        packaging: false
+        ]
     },
     {
         id: 'REQ-2024-004',
@@ -31351,14 +31136,10 @@ var networkRequests = [
         cargoType: 'Computer Parts',
         incoterm: 'DDP',
         loadDate: '2024-12-20',
-        notes: 'Urgent delivery, insurance required',
+        notes: 'Urgent delivery',
         status: 'open',
         createdAt: '2024-12-18T08:00:00',
-        quotes: [],
-        insurance: true,
-        customs: true,
-        warehouse: false,
-        packaging: true
+        quotes: []
     },
     {
         id: 'REQ-2024-005',
@@ -31380,11 +31161,7 @@ var networkRequests = [
         createdAt: '2024-12-15T11:45:00',
         quotes: [
             { forwarder: 'EuroTrans', price: 2800, transitDays: 5, validUntil: '2024-12-28', submittedAt: '2024-12-15T15:00:00' }
-        ],
-        insurance: false,
-        customs: true,
-        warehouse: false,
-        packaging: true
+        ]
     }
 ];
 
@@ -31513,13 +31290,6 @@ function renderForwarderRequests() {
         var proposalCount = req.quotes ? req.quotes.length : 0;
         var hasProposal = hasMyProposal(req.id);
         
-        // Services badges
-        var servicesBadges = '';
-        if (req.insurance) servicesBadges += '<span class="service-badge insurance">' + t('insurance') + '</span>';
-        if (req.customs) servicesBadges += '<span class="service-badge customs">' + t('customs') + '</span>';
-        if (req.warehouse) servicesBadges += '<span class="service-badge warehouse">' + t('warehouse') + '</span>';
-        if (req.packaging) servicesBadges += '<span class="service-badge packaging">' + t('packaging') + '</span>';
-        
         html += '<div class="request-card network' + (hasProposal ? ' has-proposal' : '') + '">';
         html += '<div class="request-header">';
         html += '<div class="request-id-badge">' + req.id + '</div>';
@@ -31548,8 +31318,6 @@ function renderForwarderRequests() {
             html += '<div class="request-notes"> ' + req.notes + '</div>';
         }
         
-        html += '<div class="request-services">' + servicesBadges + '</div>';
-        
         html += '<div class="request-footer">';
         html += '<div class="quote-count">';
         if (proposalCount > 0) {
@@ -31559,7 +31327,6 @@ function renderForwarderRequests() {
         }
         html += '</div>';
         html += '<div class="request-actions">';
-        html += '<button class="btn-message" onclick="openMessageModal(\'' + req.id + '\')">' + t('message') + '</button>';
         if (hasProposal) {
             html += '<button class="btn-proposal btn-submitted" disabled>' + t('proposalSent') + '</button>';
         } else {
