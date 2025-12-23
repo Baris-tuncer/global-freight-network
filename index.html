@@ -16846,13 +16846,15 @@
                     <input type="text" id="companyName" data-i18n-placeholder="auth.companyNamePlaceholder" placeholder="Your company name">
                 </div>
                 <div class="form-group">
-                    <label data-i18n="auth.companyType">Company Tipi</label>
+                    <label data-i18n="auth.companyType">Company Type</label>
                     <select id="companyType">
                         <option value="" data-i18n="auth.selectType">Select type</option>
+                        <option value="cargo_owner" data-i18n="auth.cargoOwner">Cargo Owner</option>
+                        <option value="forwarder" data-i18n="auth.forwarder">Freight Forwarder</option>
                         <option value="air" data-i18n="auth.airCargo">Air Cargo Specialist</option>
-                        <option value="sea" data-i18n="auth.seaCargo">>Sea Cargo Uzmanı</option>
-                        <option value="land" data-i18n="auth.landCargo">Kara Kargo Uzmanı</option>
-                        <option value="multi" data-i18n="auth.multimodal">Multimodal Hizmetler</option>
+                        <option value="sea" data-i18n="auth.seaCargo">Sea Cargo Specialist</option>
+                        <option value="land" data-i18n="auth.landCargo">Land Cargo Specialist</option>
+                        <option value="multi" data-i18n="auth.multimodal">Multimodal Services</option>
                     </select>
                 </div>
             </div>
@@ -16886,8 +16888,35 @@
                 </div>
             </div>
             
-            <button type="submit" class="btn-primary" data-i18n="auth.createAccount">Create Account</button>
+            <button type="submit" id="signUpButton" class="btn-primary" disabled style="opacity: 0.5; cursor: not-allowed;" data-i18n="auth.createAccount">Create Account</button>
         </form>
+        <script>
+        // Sign Up button validation
+        document.addEventListener('DOMContentLoaded', function() {
+            var termsCheck = document.getElementById('termsAccept');
+            var disclaimerCheck = document.getElementById('disclaimerAccept');
+            var kvkkCheck = document.getElementById('kvkkAccept');
+            var signUpBtn = document.getElementById('signUpButton');
+            
+            function validateSignUpForm() {
+                if (termsCheck && disclaimerCheck && kvkkCheck && signUpBtn) {
+                    if (termsCheck.checked && disclaimerCheck.checked && kvkkCheck.checked) {
+                        signUpBtn.disabled = false;
+                        signUpBtn.style.opacity = '1';
+                        signUpBtn.style.cursor = 'pointer';
+                    } else {
+                        signUpBtn.disabled = true;
+                        signUpBtn.style.opacity = '0.5';
+                        signUpBtn.style.cursor = 'not-allowed';
+                    }
+                }
+            }
+            
+            if (termsCheck) termsCheck.addEventListener('change', validateSignUpForm);
+            if (disclaimerCheck) disclaimerCheck.addEventListener('change', validateSignUpForm);
+            if (kvkkCheck) kvkkCheck.addEventListener('change', validateSignUpForm);
+        });
+        </script>
         <div class="auth-link">
             Already have an account? <a onclick="goToLoginFromSignUp()">Sign In</a>
         </div>
@@ -17116,11 +17145,6 @@
                     <span data-i18n="menu.receivedQuotes">Received Proposals</span>
                     <span class="menu-badge" id="quotesBadge" style="display:none;">0</span>
                 </div>
-                <div class="nav-menu-item" data-tab="messages" onclick="showClientTab('messages')" id="clientMessagesMenuItem">
-                    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-                    <span data-i18n="menu.messages">Messages</span>
-                    <span class="menu-badge" id="msgBadge" style="display:none;"></span>
-                </div>
                 <div class="nav-menu-item" data-tab="shipments" onclick="showClientTab('shipments')">
                     <svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
                     <span data-i18n="menu.myShipments">My Shipments</span>
@@ -17237,20 +17261,20 @@
                     <div class="section-label">Air Cargo Details</div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Tehlikeli Madde (DG)</label>
+                            <label>Dangerous Goods (DG)</label>
                             <select id="airDangerous">
-                                <option value="no">Hayır</option>
-                                <option value="yes">Evet - DG Sertifikası Var</option>
+                                <option value="no">No</option>
+                                <option value="yes">Yes - DG Certificate Available</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Special Requirements</label>
                             <select id="airSpecial">
-                                <option value="none">Yok</option>
-                                <option value="temp">Sıcaklık Kontrollü</option>
-                                <option value="live">Canlı Hayvan</option>
+                                <option value="none">None</option>
+                                <option value="temp">Temperature Controlled</option>
+                                <option value="live">Live Animals</option>
                                 <option value="valuable">Valuable Cargo</option>
-                                <option value="perishable">Bozulabilir Ürün</option>
+                                <option value="perishable">Perishable Goods</option>
                             </select>
                         </div>
                     </div>
@@ -17264,10 +17288,10 @@
                         <select id="incoterm" required onchange="updateLocationRequirements()">
                             <option value="">Select delivery term</option>
                             <optgroup label="Door to Door">
-                                <option value="DDP">DDP - Door to Door (Her şey dahil)</option>
-                                <option value="DAP">DAP - Door to Door (Vergiler hariç)</option>
+                                <option value="DDP">DDP - Door to Door (All inclusive)</option>
+                                <option value="DAP">DAP - Door to Door (Taxes excluded)</option>
                             </optgroup>
-                            <optgroup label="Liman/Terminal">
+                            <optgroup label="Port/Terminal">
                                 <option value="CIF">CIF - Port to Port (Insurance included)</option>
                                 <option value="CFR">CFR - Port to Port (Freight only)</option>
                                 <option value="FOB">FOB - Free on Board (Loading port)</option>
@@ -17281,9 +17305,9 @@
                     <div class="form-group">
                         <label>Service Level</label>
                         <select id="serviceLevel">
-                            <option value="standard">Standart</option>
-                            <option value="express">Express (Öncelikli)</option>
-                            <option value="economy">Ekonomik (Maliyet tasarrufu)</option>
+                            <option value="standard">Standard</option>
+                            <option value="express">Express (Priority)</option>
+                            <option value="economy">Economy (Cost saving)</option>
                         </select>
                     </div>
                 </div>
@@ -17332,21 +17356,21 @@
                     <div class="form-group">
                         <label>Cargo Category</label>
                         <select id="cargoCategory" required onchange="updateCargoTypes()">
-                            <option value="">Kategori seçin</option>
+                            <option value="">Select category</option>
                             <option value="general">General Cargo</option>
                             <option value="fragile">Fragile / High Value</option>
-                            <option value="perishable">🧊 Bozulabilir / Soğuk Zincir</option>
-                            <option value="hazardous">☢️ Tehlikeli Madde</option>
+                            <option value="perishable">🧊 Perishable / Cold Chain</option>
+                            <option value="hazardous">☢️ Dangerous Goods</option>
                             <option value="oversized">Oversized / Heavy Cargo</option>
-                            <option value="vehicles">🚗 Araç / Makine</option>
-                            <option value="livestock">🐄 Canlı Hayvan</option>
+                            <option value="vehicles">🚗 Vehicles / Machinery</option>
+                            <option value="livestock">🐄 Live Animals</option>
                             <option value="personal">🏠 Personal Items / Household Goods</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Cargo Type</label>
                         <select id="cargoType" required>
-                            <option value="">Önce kategori seçin</option>
+                            <option value="">Select category first</option>
                         </select>
                     </div>
                 </div>
@@ -17426,244 +17450,7 @@
                     </div>
                 </div>
 
-                <!-- ADDITIONAL SERVICES -->
-                <div class="section-label">Additional Services</div>
-                <div class="services-grid">
-                    <div class="service-card" id="insuranceCard" onclick="toggleServicePanel('insurance')">
-                        <div class="service-header">
-                            <input type="checkbox" id="insurance" onclick="event.stopPropagation()">
-                            <div class="service-info">
-                                <span class="service-icon"></span>
-                                <div>
-                                    <span class="service-name">Cargo Insurance</span>
-                                    <span class="service-desc">Protect your shipment</span>
-                                </div>
-                            </div>
-                            <span class="service-arrow">›</span>
-                        </div>
-                        <div class="service-panel" id="insurancePanel">
-                            <div class="panel-content">
-                                <div class="form-group">
-                                    <label>Coverage Type</label>
-                                    <select id="insuranceCoverage">
-                                        <option value="all-risk">All Risk Coverage (Recommended)</option>
-                                        <option value="named-perils">Named Perils Only</option>
-                                        <option value="total-loss">Total Loss Only</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Declared Cargo Value (USD)</label>
-                                    <input type="number" id="insuranceValue" placeholder="e.g. 50000">
-                                </div>
-                                <div class="insurance-calc">
-                                    <div class="calc-row">
-                                        <span>Premium Rate:</span>
-                                        <span id="premiumRate">0.35%</span>
-                                    </div>
-                                    <div class="calc-row">
-                                        <span>Estimated Premium:</span>
-                                        <span id="premiumAmount" class="calc-amount">$0</span>
-                                    </div>
-                                </div>
-                                <div class="coverage-info">
-                                    <p>✓ Door-to-door coverage</p>
-                                    <p>✓ Theft, damage, loss protection</p>
-                                    <p>✓ Natural disaster coverage</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="service-card" id="customsCard" onclick="toggleServicePanel('customs')">
-                        <div class="service-header">
-                            <input type="checkbox" id="customsClearance" onclick="event.stopPropagation()">
-                            <div class="service-info">
-                                <span class="service-icon"></span>
-                                <div>
-                                    <span class="service-name">Customs Clearance</span>
-                                    <span class="service-desc">Kolay ithalat/ihracat</span>
-                                </div>
-                            </div>
-                            <span class="service-arrow">›</span>
-                        </div>
-                        <div class="service-panel" id="customsPanel">
-                            <div class="panel-content">
-                                <div class="form-group">
-                                    <label>Clearance Location</label>
-                                    <div class="checkbox-list">
-                                        <label class="check-item">
-                                            <input type="checkbox" id="clearanceOrigin" checked>
-                                            <span>Origin Country Clearance</span>
-                                        </label>
-                                        <label class="check-item">
-                                            <input type="checkbox" id="clearanceDest" checked>
-                                            <span>Destination Country Clearance</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Document Preparation</label>
-                                    <div class="checkbox-list">
-                                        <label class="check-item">
-                                            <input type="checkbox" id="docCommercial" checked>
-                                            <span>Commercial Invoice</span>
-                                        </label>
-                                        <label class="check-item">
-                                            <input type="checkbox" id="docPacking" checked>
-                                            <span>Packing List</span>
-                                        </label>
-                                        <label class="check-item">
-                                            <input type="checkbox" id="docOrigin">
-                                            <span>Certificate of Origin</span>
-                                        </label>
-                                        <label class="check-item">
-                                            <input type="checkbox" id="docPhyto">
-                                            <span>Phytosanitary Certificate</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="customs-estimate">
-                                    <span>Estimated Clearance Fee:</span>
-                                    <span class="estimate-price">$150 - $350</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="service-card" id="packagingCard" onclick="toggleServicePanel('packaging')">
-                        <div class="service-header">
-                            <input type="checkbox" id="packaging" onclick="event.stopPropagation()">
-                            <div class="service-info">
-                                <span class="service-icon"></span>
-                                <div>
-                                    <span class="service-name">Profesyonel Ambalaj</span>
-                                    <span class="service-desc">Safe packaging solutions</span>
-                                </div>
-                            </div>
-                            <span class="service-arrow">›</span>
-                        </div>
-                        <div class="service-panel" id="packagingPanel">
-                            <div class="panel-content">
-                                <div class="form-group">
-                                    <label>Packaging Type</label>
-                                    <select id="packagingType">
-                                        <option value="">Select packaging</option>
-                                        <option value="carton">Cardboard Cartons</option>
-                                        <option value="wooden">Wooden Crate</option>
-                                        <option value="pallet">Palletization</option>
-                                        <option value="shrink">Shrink Wrapping</option>
-                                        <option value="foam">Foam Protection</option>
-                                        <option value="vacuum">Vacuum Sealing</option>
-                                        <option value="custom">Custom Solution</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Special Requirements</label>
-                                    <div class="checkbox-list">
-                                        <label class="check-item">
-                                            <input type="checkbox" id="packFragile">
-                                            <span>Fragile Handling</span>
-                                        </label>
-                                        <label class="check-item">
-                                            <input type="checkbox" id="packWaterproof">
-                                            <span>Waterproof Protection</span>
-                                        </label>
-                                        <label class="check-item">
-                                            <input type="checkbox" id="packStackable">
-                                            <span>Stackable Design</span>
-                                        </label>
-                                        <label class="check-item">
-                                            <input type="checkbox" id="packFumigation">
-                                            <span>Wood Fumigation (ISPM15)</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="packaging-note">
-                                    <small>Wooden crates recommended for fragile/heavy items. Fumigation required for wood packaging to most countries.</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="service-card" id="warehousingCard" onclick="toggleServicePanel('warehousing')">
-                        <div class="service-header">
-                            <input type="checkbox" id="warehousing" onclick="event.stopPropagation()">
-                            <div class="service-info">
-                                <span class="service-icon">🏭</span>
-                                <div>
-                                    <span class="service-name">Depolama</span>
-                                    <span class="service-desc">Storage & distribution</span>
-                                </div>
-                            </div>
-                            <span class="service-arrow">›</span>
-                        </div>
-                        <div class="service-panel" id="warehousingPanel">
-                            <div class="panel-content">
-                                <div class="form-group">
-                                    <label>Warehouse Location</label>
-                                    <select id="warehouseLocation">
-                                        <option value="">Select location</option>
-                                        <option value="origin">Origin Country</option>
-                                        <option value="destination">Destination Country</option>
-                                        <option value="both">Both Locations</option>
-                                    </select>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label>Storage Duration</label>
-                                        <select id="storageDuration">
-                                            <option value="7">Up to 7 days</option>
-                                            <option value="14">Up to 14 days</option>
-                                            <option value="30">Up to 30 days</option>
-                                            <option value="60">Up to 60 days</option>
-                                            <option value="90">Up to 90 days</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Warehouse Type</label>
-                                        <select id="warehouseType">
-                                            <option value="standard">Standard Warehouse</option>
-                                            <option value="bonded">Bonded Warehouse</option>
-                                            <option value="cold">Cold Storage</option>
-                                            <option value="hazmat">Hazmat Certified</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Additional Services</label>
-                                    <div class="checkbox-list">
-                                        <label class="check-item">
-                                            <input type="checkbox" id="whPickPack">
-                                            <span>Pick & Pack Service</span>
-                                        </label>
-                                        <label class="check-item">
-                                            <input type="checkbox" id="whLabeling">
-                                            <span>Labeling & Barcoding</span>
-                                        </label>
-                                        <label class="check-item">
-                                            <input type="checkbox" id="whInventory">
-                                            <span>Inventory Management</span>
-                                        </label>
-                                        <label class="check-item">
-                                            <input type="checkbox" id="whCrossDock">
-                                            <span>Cross-Docking</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="warehouse-estimate">
-                                    <div class="est-row">
-                                        <span>Storage Rate:</span>
-                                        <span>~$0.50/CBM/day</span>
-                                    </div>
-                                    <div class="est-row">
-                                        <span>Handling Fee:</span>
-                                        <span>~$15/pallet</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- ADDITIONAL SERVICES REMOVED -->
                 
                 <div class="form-group">
                     <label>Notes (Optional)</label>
@@ -18774,7 +18561,7 @@
         <!-- Alt Satır: Menü -->
         <div class="nav-menu-row">
             <div class="nav-menu">
-                <div class="nav-menu-item active" data-tab="home" onclick="showForwarderTab('home')">
+                <div class="nav-menu-item active" data-tab="home" onclick="goToLanding()">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                     <span data-i18n="menu.home">Home</span>
                 </div>
@@ -32024,7 +31811,7 @@ function pickFreight(type) {
     createAutocomplete('destCity', cityList);
     
     // Update labels
-    var cityLabel = type === 'sea' ? 'Liman' : 'Havaalanı / Şehir';
+    var cityLabel = type === 'sea' ? 'Port' : 'Airport / City';
     document.getElementById('originCityLabel').textContent = cityLabel;
     document.getElementById('destCityLabel').textContent = cityLabel;
     
