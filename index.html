@@ -20253,6 +20253,73 @@
 
 
 <script>
+// ============================================
+// GLOBAL TAB SWITCHING - CLEAN VERSION
+// ============================================
+window.switchRateTab = function(tabName) {
+    console.log('switchRateTab called:', tabName);
+    
+    // 1. Hide all tab contents
+    var allTabs = document.querySelectorAll('.rates-tab-content');
+    for (var i = 0; i < allTabs.length; i++) {
+        allTabs[i].style.display = 'none';
+        allTabs[i].classList.remove('active');
+    }
+    
+    // 2. Remove active from all buttons
+    var allBtns = document.querySelectorAll('.rates-tabs .rates-tab');
+    for (var j = 0; j < allBtns.length; j++) {
+        allBtns[j].classList.remove('active');
+    }
+    
+    // 3. Show target tab
+    var tabId = tabName + 'Tab';
+    var targetTab = document.getElementById(tabId);
+    if (targetTab) {
+        targetTab.style.display = 'block';
+        targetTab.classList.add('active');
+        console.log('Tab shown:', tabId);
+    } else {
+        console.error('Tab not found:', tabId);
+    }
+    
+    // 4. Activate target button
+    var btnMap = {
+        'seaFreight': 'btnSeaFreight',
+        'preCarriage': 'btnPreCarriage',
+        'onCarriage': 'btnOnCarriage',
+        'terminal': 'btnTerminal',
+        'foreignCustoms': 'btnForeignCustoms',
+        'myRates': 'btnMyRates'
+    };
+    var targetBtn = document.getElementById(btnMap[tabName]);
+    if (targetBtn) {
+        targetBtn.classList.add('active');
+    }
+    
+    // 5. Populate data (delayed, error-isolated)
+    setTimeout(function() {
+        try {
+            if (tabName === 'seaFreight' && typeof populatePortDropdowns === 'function') populatePortDropdowns();
+            if (tabName === 'preCarriage' && typeof populateTurkishCities === 'function') populateTurkishCities();
+            if (tabName === 'preCarriage' && typeof populatePortDropdowns === 'function') populatePortDropdowns();
+            if (tabName === 'onCarriage' && typeof populateCountryDropdown === 'function') populateCountryDropdown();
+            if (tabName === 'terminal' && typeof populatePortDropdowns === 'function') populatePortDropdowns();
+            if (tabName === 'foreignCustoms' && typeof populateCountryDropdown === 'function') populateCountryDropdown();
+            if (tabName === 'foreignCustoms' && typeof populatePortDropdowns === 'function') populatePortDropdowns();
+            if (tabName === 'myRates' && typeof renderSavedRatesListNew === 'function') renderSavedRatesListNew();
+            if (typeof setDefaultDates === 'function') setDefaultDates();
+        } catch(e) {
+            console.warn('Data populate error:', e);
+        }
+    }, 100);
+};
+window.openRateTab = window.switchRateTab;
+console.log('switchRateTab ready');
+
+// ============================================
+// GLOBAL VARIABLES
+// ============================================
 var userType = 'client';
 var currentUser = '';
 var currentUserType = ''; // client veya forwarder
@@ -34949,94 +35016,6 @@ try {
     console.error('Supabase init error:', e);
     console.warn('⚠️ Using localStorage fallback');
 }
-
-// ============================================
-// GLOBAL TAB SWITCHING FUNCTION
-// ============================================
-// Bu fonksiyon Supabase'den ÖNCE tanımlanıyor ki
-// veri yüklemeden bağımsız çalışsın
-window.switchRateTab = function(tabName) {
-    console.log('📌 switchRateTab called:', tabName);
-    
-    // ═══════════════════════════════════════════════════════════════
-    // ADIM 1: UI DEĞİŞİKLİĞİ (Kesinlikle hata vermez - veri bağımsız)
-    // ═══════════════════════════════════════════════════════════════
-    
-    // 1a. Tüm tab içeriklerini gizle
-    var allTabs = document.querySelectorAll('.rates-tab-content');
-    for (var i = 0; i < allTabs.length; i++) {
-        allTabs[i].style.display = 'none';
-        allTabs[i].classList.remove('active');
-    }
-    
-    // 1b. Tüm butonlardan active sınıfını kaldır
-    var allBtns = document.querySelectorAll('.rates-tabs .rates-tab');
-    for (var j = 0; j < allBtns.length; j++) {
-        allBtns[j].classList.remove('active');
-    }
-    
-    // 1c. Hedef tab'ı göster
-    var tabId = tabName + 'Tab';
-    var targetTab = document.getElementById(tabId);
-    if (targetTab) {
-        targetTab.style.display = 'block';
-        targetTab.classList.add('active');
-        console.log('✅ Tab gösterildi:', tabId);
-    } else {
-        console.error('❌ Tab bulunamadı:', tabId);
-    }
-    
-    // 1d. Hedef butonu aktif yap
-    var btnMap = {
-        'seaFreight': 'btnSeaFreight',
-        'preCarriage': 'btnPreCarriage',
-        'onCarriage': 'btnOnCarriage',
-        'terminal': 'btnTerminal',
-        'foreignCustoms': 'btnForeignCustoms',
-        'myRates': 'btnMyRates'
-    };
-    var targetBtn = document.getElementById(btnMap[tabName]);
-    if (targetBtn) {
-        targetBtn.classList.add('active');
-    }
-    
-    // ═══════════════════════════════════════════════════════════════
-    // ADIM 2: VERİ DOLDURMA (Try-catch içinde - hata olsa UI açık kalır)
-    // ═══════════════════════════════════════════════════════════════
-    setTimeout(function() {
-        try {
-            if (tabName === 'seaFreight') {
-                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                if (typeof setDefaultDates === 'function') setDefaultDates();
-            } else if (tabName === 'preCarriage') {
-                if (typeof populateTurkishCities === 'function') populateTurkishCities();
-                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                if (typeof setDefaultDates === 'function') setDefaultDates();
-            } else if (tabName === 'onCarriage') {
-                if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
-                if (typeof setDefaultDates === 'function') setDefaultDates();
-            } else if (tabName === 'terminal') {
-                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                if (typeof setDefaultDates === 'function') setDefaultDates();
-            } else if (tabName === 'foreignCustoms') {
-                if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
-                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                if (typeof setDefaultDates === 'function') setDefaultDates();
-            } else if (tabName === 'myRates') {
-                if (typeof renderSavedRatesListNew === 'function') renderSavedRatesListNew();
-                else if (typeof updateMyRatesList === 'function') updateMyRatesList();
-            }
-            console.log('✅ Veri doldurma tamamlandı:', tabName);
-        } catch (e) {
-            console.warn('⚠️ Veri doldurma hatası (UI etkilenmez):', e);
-        }
-    }, 100);
-};
-
-// Alias
-window.openRateTab = window.switchRateTab;
-
-console.log('✅ switchRateTab fonksiyonu hazır:', typeof window.switchRateTab);
 
 // ============================================
 // SESSION CHECK ON PAGE LOAD
