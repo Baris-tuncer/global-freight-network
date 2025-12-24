@@ -27273,31 +27273,45 @@ function resetCalculator() {
 function showRatesTab(tabName) {
     console.log('showRatesTab:', tabName);
     
-    // Tab butonlarını güncelle
-    document.querySelectorAll('.rates-tab').forEach(function(tab) {
+    // Tab butonlarını güncelle (sadece rates-tabs içindekiler)
+    var ratesSection = document.getElementById('forwarderRatesSection');
+    if (!ratesSection) {
+        console.error('forwarderRatesSection not found!');
+        return;
+    }
+    
+    ratesSection.querySelectorAll('.rates-tab').forEach(function(tab) {
         tab.classList.remove('active');
-        if (tab.textContent.toLowerCase().includes(tabName.toLowerCase().replace('carriage','').replace('sea','').replace('freight','')) || 
-            (tabName === 'seaFreight' && tab.textContent.includes('Sea')) ||
-            (tabName === 'preCarriage' && tab.textContent.includes('Pre')) ||
-            (tabName === 'onCarriage' && tab.textContent.includes('On-')) ||
-            (tabName === 'terminal' && tab.textContent.includes('Terminal')) ||
-            (tabName === 'foreignCustoms' && tab.textContent.includes('Foreign')) ||
-            (tabName === 'myRates' && tab.textContent.includes('Saved'))) {
+    });
+    
+    // Tıklanan butonu aktif yap - tabName'e göre bul
+    ratesSection.querySelectorAll('.rates-tab').forEach(function(tab) {
+        var text = tab.textContent.trim();
+        if ((tabName === 'seaFreight' && text.includes('Sea')) ||
+            (tabName === 'preCarriage' && text.includes('Pre-Carriage')) ||
+            (tabName === 'onCarriage' && text.includes('On-Carriage')) ||
+            (tabName === 'terminal' && text.includes('Terminal')) ||
+            (tabName === 'foreignCustoms' && text.includes('Foreign')) ||
+            (tabName === 'myRates' && text.includes('Saved'))) {
             tab.classList.add('active');
         }
     });
     
-    // Tüm içerikleri gizle
-    document.querySelectorAll('.rates-tab-content').forEach(function(content) {
+    // Tüm içerikleri gizle (sadece forwarderRatesSection içindekiler)
+    ratesSection.querySelectorAll('.rates-tab-content').forEach(function(content) {
         content.classList.remove('active');
         content.style.display = 'none';
+        console.log('Hidden:', content.id);
     });
     
     // Aktif içeriği göster
     var activeContent = document.getElementById(tabName + 'Tab');
+    console.log('Looking for:', tabName + 'Tab', '- Found:', activeContent ? 'YES' : 'NO');
+    
     if (activeContent) {
         activeContent.classList.add('active');
         activeContent.style.display = 'block';
+        console.log('Showing:', tabName + 'Tab');
     }
     
     // Dropdown'ları doldur
@@ -28506,8 +28520,10 @@ function saveSeaFreightRate(e) {
         setDefaultDates();
         populatePortDropdowns();
         
-        // Bildirim
-        alert('Sea Freight rate saved successfully!\nRoute: ' + rate.originPortName + ' → ' + rate.destPortName + '\nRate: $' + baseRate);
+        // Bildirim - hem alert hem toast notification
+        var msg = 'Sea Freight rate saved!\nRoute: ' + rate.originPortName + ' → ' + rate.destPortName + '\nRate: $' + baseRate;
+        console.log('SUCCESS:', msg);
+        showRateNotification('✅ ' + msg.replace(/\n/g, ' | '), 'success');
         
         // Listeyi güncelle
         updateMyRatesList();
@@ -28517,7 +28533,7 @@ function saveSeaFreightRate(e) {
         alert('An error occurred: ' + error.message);
     }
     
-    return false;;
+    return false;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
