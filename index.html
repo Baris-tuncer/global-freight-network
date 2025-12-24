@@ -2903,7 +2903,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 10000;
+            z-index: 1500;
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s;
@@ -5539,7 +5539,7 @@
             background: white;
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            z-index: 10001;
+            z-index: 2000;
             transform: translateX(120%);
             transition: all 0.3s;
         }
@@ -5763,7 +5763,7 @@
             border: none;
             cursor: pointer;
             box-shadow: 0 4px 20px rgba(30, 60, 114, 0.3);
-            z-index: 99999;
+            z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -10573,7 +10573,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 100000;
+            z-index: 2000;
             animation: fadeIn 0.3s ease;
         }
         
@@ -11241,7 +11241,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 10000;
+            z-index: 1500;
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
@@ -12452,7 +12452,7 @@
             padding: 16px 24px;
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
-            z-index: 10000;
+            z-index: 1500;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -16885,7 +16885,7 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.7);
-    z-index: 99999;
+    z-index: 1000;
     justify-content: center;
     align-items: center;
     padding: 20px;
@@ -24241,7 +24241,7 @@ function showHowItWorks() {
     
     var modal = document.createElement('div');
     modal.className = 'how-it-works-modal';
-    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.8); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; backdrop-filter: blur(4px);';
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.8); display: flex; align-items: center; justify-content: center; z-index: 1500; padding: 20px; backdrop-filter: blur(4px);';
     
     var stepsHtml = c.steps.map(function(step) {
         var highlightHtml = step.highlight ? '<div style="margin-top: 8px; padding: 8px 12px; background: rgba(30, 60, 114, 0.08); border-radius: 6px; border-left: 3px solid #1e3c72;"><span style="color: #1e3c72; font-size: 12px; font-weight: 600;">' + step.highlight + '</span></div>' : '';
@@ -25267,19 +25267,58 @@ function goToLoginFromSignUp() {
     document.getElementById('loginPage').classList.remove('hidden');
 }
 
-function doLogin(e) {
+async function doLogin(e) {
     e.preventDefault();
     var email = document.getElementById('emailInput').value;
+    var password = document.getElementById('passwordInput').value;
+    
+    // Loading state
+    var loginBtn = e.target.querySelector('button[type="submit"]');
+    var originalText = loginBtn ? loginBtn.textContent : 'Login';
+    if (loginBtn) {
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Signing in...';
+    }
+    
+    try {
+        // Supabase Auth ile giriş yap
+        if (typeof supabase !== 'undefined') {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+            
+            if (error) {
+                console.warn('Supabase auth error:', error.message);
+                // Demo mode - continue without auth
+            } else if (data.user) {
+                console.log('Supabase login successful:', data.user.email);
+                // Session'ı localStorage'a kaydet
+                localStorage.setItem('supabaseSession', JSON.stringify(data.session));
+                localStorage.setItem('currentUserEmail', data.user.email);
+            }
+        }
+    } catch (authError) {
+        console.warn('Auth error (demo mode):', authError);
+    }
+    
+    // Restore button
+    if (loginBtn) {
+        loginBtn.disabled = false;
+        loginBtn.textContent = originalText;
+    }
+    
     var name = email.split('@')[0];
     name = name.charAt(0).toUpperCase() + name.slice(1);
     currentUser = name;
     currentUserType = userType; // Mevcut kullanıcı tipi
     
+    // Session bilgilerini localStorage'a kaydet
+    localStorage.setItem('currentUser', currentUser);
+    localStorage.setItem('currentUserType', currentUserType);
+    localStorage.setItem('userEmail', email);
+    
     console.log('Giriş yapıldı:', currentUser, 'userType:', currentUserType);
-    console.log('localStorage durumu:');
-    console.log('  - userContactsDB:', localStorage.getItem('userContactsDB'));
-    console.log('  - quotesDB:', localStorage.getItem('quotesDB'));
-    console.log('  - networkRequests:', localStorage.getItem('networkRequests'));
     
     hideAllPages();
     
@@ -25371,9 +25410,10 @@ function doLogin(e) {
     return false;
 }
 
-function doSignUp(e) {
+async function doSignUp(e) {
     e.preventDefault();
     var name = document.getElementById('nameInput').value;
+    var email = document.getElementById('signUpEmail') ? document.getElementById('signUpEmail').value : '';
     var pass = document.getElementById('signUpPassword').value;
     var confirm = document.getElementById('confirmPassword').value;
     
@@ -25392,19 +25432,70 @@ function doSignUp(e) {
         return false;
     }
     
-    // Yasal onayları kaydet (gerçek uygulamada sunucuya shipmentslmeli)
+    // Loading state
+    var signUpBtn = e.target.querySelector('button[type="submit"]');
+    var originalText = signUpBtn ? signUpBtn.textContent : 'Sign Up';
+    if (signUpBtn) {
+        signUpBtn.disabled = true;
+        signUpBtn.textContent = 'Creating account...';
+    }
+    
+    try {
+        // Supabase Auth ile kayıt ol
+        if (typeof supabase !== 'undefined' && email) {
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: pass,
+                options: {
+                    data: {
+                        full_name: name,
+                        user_type: userType
+                    }
+                }
+            });
+            
+            if (error) {
+                console.warn('Supabase signup error:', error.message);
+                alert('Registration error: ' + error.message);
+                if (signUpBtn) {
+                    signUpBtn.disabled = false;
+                    signUpBtn.textContent = originalText;
+                }
+                return false;
+            } else if (data.user) {
+                console.log('Supabase signup successful:', data.user.email);
+                localStorage.setItem('currentUserEmail', data.user.email);
+            }
+        }
+    } catch (authError) {
+        console.warn('Auth error (demo mode):', authError);
+    }
+    
+    // Restore button
+    if (signUpBtn) {
+        signUpBtn.disabled = false;
+        signUpBtn.textContent = originalText;
+    }
+    
+    // Yasal onayları kaydet
     var legalConsent = {
         termsAccepted: true,
         disclaimerAccepted: true,
         kvkkAccepted: true,
         marketingAccepted: document.getElementById('marketingAccept').checked,
         acceptedAt: new Date().toISOString(),
-        ipAddress: 'to-be-logged-server-side',
         userAgent: navigator.userAgent
     };
+    localStorage.setItem('legalConsent', JSON.stringify(legalConsent));
     console.log('Legal consent recorded:', legalConsent);
     
     currentUser = name;
+    currentUserType = userType;
+    
+    // Session bilgilerini localStorage'a kaydet
+    localStorage.setItem('currentUser', currentUser);
+    localStorage.setItem('currentUserType', currentUserType);
+    
     hideAllPages();
     
     if (userType === 'client') {
@@ -25425,11 +25516,34 @@ function doSignUp(e) {
     return false;
 }
 
-function doLogout() {
+async function doLogout() {
+    try {
+        // Supabase oturumunu kapat
+        if (typeof supabase !== 'undefined') {
+            await supabase.auth.signOut();
+            console.log('Supabase session closed');
+        }
+    } catch (error) {
+        console.warn('Logout error:', error);
+    }
+    
+    // localStorage'daki session verilerini temizle
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('currentUserType');
+    localStorage.removeItem('currentUserEmail');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('supabaseSession');
+    
+    // Global değişkenleri temizle
     hideAllPages();
     currentUser = null;
     userType = null;
+    currentUserType = null;
+    
+    // Landing page'e yönlendir
     document.getElementById('landingPage').classList.remove('hidden');
+    
+    console.log('User logged out successfully');
 }
 
 function submitQuote(e) {
@@ -29237,7 +29351,7 @@ function showRateNotification(message, type) {
     notification.className = 'rate-notification ' + type;
     notification.innerHTML = '<span>' + (type === 'success' ? '' : '') + '</span> ' + message;
     notification.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 15px 25px; background: ' + 
-        (type === 'success' ? '#10b981' : '#ef4444') + '; color: white; border-radius: 12px; z-index: 10000; ' +
+        (type === 'success' ? '#10b981' : '#ef4444') + '; color: white; border-radius: 12px; z-index: 1500; ' +
         'font-weight: 600; box-shadow: 0 4px 20px rgba(0,0,0,0.2); animation: slideIn 0.3s ease;';
     
     document.body.appendChild(notification);
@@ -31227,6 +31341,7 @@ function openQuoteModal(requestId) {
     var modal = document.getElementById('quoteModal');
     if (modal) {
         modal.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Scroll lock
         console.log('Modal opened');
         
         // Apply I18N translations to modal
@@ -31577,6 +31692,7 @@ function updateTradeLaneNotes(origin, dest) {
 // Close quote modal
 function closeQuoteModal() {
     document.getElementById('quoteModal').classList.remove('active');
+    document.body.style.overflow = 'auto'; // Restore scroll
     selectedRequestId = null;
     // Reset form
     document.getElementById('quotePriceInput').value = '';
@@ -33800,7 +33916,7 @@ function showCertTooltip(element, certId) {
     var tooltipEl = document.createElement('div');
     tooltipEl.className = 'cert-tooltip';
     tooltipEl.innerHTML = tooltip;
-    tooltipEl.style.cssText = 'position: absolute; background: #1e293b; color: white; padding: 12px 16px; border-radius: 8px; font-size: 12px; max-width: 280px; line-height: 1.5; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+    tooltipEl.style.cssText = 'position: absolute; background: #1e293b; color: white; padding: 12px 16px; border-radius: 8px; font-size: 12px; max-width: 280px; line-height: 1.5; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
     
     document.body.appendChild(tooltipEl);
     
@@ -34050,7 +34166,7 @@ function showVerificationInfo(userType) {
     
     var modal = document.createElement('div');
     modal.className = 'verification-info-modal';
-    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1500;';
     modal.innerHTML = '<div style="background: white; border-radius: 16px; padding: 24px; max-width: 500px; margin: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">' +
         '<h3 style="margin: 0 0 16px 0; color: #1e293b;">' + t.title + '</h3>' +
         '<p style="color: #64748b; font-size: 13px; margin-bottom: 20px;">' + t.desc + '</p>' +
@@ -34088,7 +34204,7 @@ function showCertificateInfo(certId) {
     
     var modal = document.createElement('div');
     modal.className = 'cert-info-modal';
-    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1500;';
     modal.innerHTML = '<div style="background: white; border-radius: 16px; padding: 24px; max-width: 400px; margin: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">' +
         '<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">' +
         '<span style="font-size: 32px;">' + cert.icon + '</span>' +
@@ -34636,7 +34752,7 @@ function closeLegalModal(event) {
     border: none;
     cursor: pointer;
     box-shadow: 0 4px 20px rgba(30, 60, 114, 0.35);
-    z-index: 9999;
+    z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -34686,7 +34802,7 @@ function closeLegalModal(event) {
     display: none;
     flex-direction: column;
     overflow: hidden;
-    z-index: 9998;
+    z-index: 900;
 }
 .ai-chatbot-panel.active {
     display: flex;
@@ -34702,7 +34818,7 @@ function closeLegalModal(event) {
 }
     border-radius: 20px;
     box-shadow: 0 10px 50px rgba(0,0,0,0.2);
-    z-index: 9998;
+    z-index: 900;
     display: flex;
     flex-direction: column;
     opacity: 0;
@@ -34887,6 +35003,75 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 console.log('Supabase client initialized');
+
+// ============================================
+// SESSION CHECK ON PAGE LOAD
+// ============================================
+async function checkSession() {
+    console.log('Checking session...');
+    
+    try {
+        // Supabase session kontrolü
+        if (typeof supabase !== 'undefined') {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                console.log('Active Supabase session found:', session.user.email);
+                localStorage.setItem('currentUserEmail', session.user.email);
+            }
+        }
+        
+        // localStorage'dan session bilgilerini kontrol et
+        const savedUser = localStorage.getItem('currentUser');
+        const savedUserType = localStorage.getItem('currentUserType');
+        
+        if (savedUser && savedUserType) {
+            console.log('Restoring session for:', savedUser, savedUserType);
+            currentUser = savedUser;
+            currentUserType = savedUserType;
+            userType = savedUserType;
+            
+            // Dashboard'a yönlendir
+            hideAllPages();
+            redirectToDashboard(savedUser, savedUserType);
+            return true;
+        }
+    } catch (error) {
+        console.warn('Session check error:', error);
+    }
+    
+    return false;
+}
+
+function redirectToDashboard(name, type) {
+    if (type === 'client') {
+        document.getElementById('clientDashboard').classList.remove('hidden');
+        document.getElementById('clientNameDisplay').textContent = name;
+        document.getElementById('clientWelcomeName').textContent = name;
+        if (typeof setupAutocomplete === 'function') setupAutocomplete();
+        if (typeof loadClientProfile === 'function') loadClientProfile();
+        if (typeof renderClientQuotes === 'function') renderClientQuotes();
+    } else if (type === 'forwarder') {
+        document.getElementById('forwarderDashboard').classList.remove('hidden');
+        document.getElementById('forwarderNameDisplay').textContent = name;
+        document.getElementById('forwarderWelcomeName').textContent = name;
+        if (typeof showForwarderTab === 'function') showForwarderTab('home');
+        if (typeof loadForwarderProfile === 'function') loadForwarderProfile();
+        if (typeof renderForwarderQuotes === 'function') renderForwarderQuotes();
+    } else if (type === 'seaCarrier' || type === 'airCarrier' || type === 'landCarrier') {
+        document.getElementById('carrierDashboard').classList.remove('hidden');
+        document.getElementById('carrierNameDisplay').textContent = name;
+        document.getElementById('carrierWelcomeName').textContent = name;
+        if (typeof renderCarrierRates === 'function') renderCarrierRates();
+    }
+}
+
+// Check session when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Supabase yüklendikten sonra session kontrolü yap
+    setTimeout(function() {
+        checkSession();
+    }, 500);
+});
 
 // ============================================
 // FREIGHT RATES - DATA ACCESS LAYER
