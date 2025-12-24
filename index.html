@@ -18577,22 +18577,22 @@
             
             <!-- Tab Navigation -->
             <div class="rates-tabs">
-                <button class="rates-tab active" id="btnSeaFreight" onclick="switchRateTab('seaFreight')">
+                <button class="rates-tab active" id="btnSeaFreight" onclick="window.switchRateTab('seaFreight')">
                     Sea Freight
                 </button>
-                <button class="rates-tab" id="btnPreCarriage" onclick="switchRateTab('preCarriage')">
+                <button class="rates-tab" id="btnPreCarriage" onclick="window.switchRateTab('preCarriage')">
                     Pre-Carriage
                 </button>
-                <button class="rates-tab" id="btnOnCarriage" onclick="switchRateTab('onCarriage')">
+                <button class="rates-tab" id="btnOnCarriage" onclick="window.switchRateTab('onCarriage')">
                     On-Carriage
                 </button>
-                <button class="rates-tab" id="btnTerminal" onclick="switchRateTab('terminal')">
+                <button class="rates-tab" id="btnTerminal" onclick="window.switchRateTab('terminal')">
                     Terminal/THC
                 </button>
-                <button class="rates-tab" id="btnForeignCustoms" onclick="switchRateTab('foreignCustoms')">
+                <button class="rates-tab" id="btnForeignCustoms" onclick="window.switchRateTab('foreignCustoms')">
                     Foreign Customs
                 </button>
-                <button class="rates-tab" id="btnMyRates" onclick="switchRateTab('myRates')">
+                <button class="rates-tab" id="btnMyRates" onclick="window.switchRateTab('myRates')">
                     Saved Rates
                 </button>
             </div>
@@ -18753,7 +18753,7 @@
                         
                         <!-- SAVE ACTION -->
                         <div class="rate-action">
-                            <button type="button" class="btn-save-rate-simple" onclick="saveSeaFreightRateNew(event)">
+                            <button type="button" class="btn-save-rate-simple" onclick="window.saveSeaFreightRateNew(event)">
                                 <span data-i18n="rates.saveRate">Save Rate</span>
                             </button>
                         </div>
@@ -18816,7 +18816,7 @@
                             </div>
                         </div>
                         
-                        <button type="button" class="btn-save-rate land" onclick="savePreCarriageRateNew(event)">
+                        <button type="button" class="btn-save-rate land" onclick="window.savePreCarriageRateNew(event)">
                             <span>💾</span> <span data-i18n="rates.savePreCarriage">Save Pre-Carriage</span>
                         </button>
                     </form>
@@ -18888,7 +18888,7 @@
                             </div>
                         </div>
                         
-                        <button type="button" class="btn-save-rate on-carriage" onclick="saveOnCarriageRateNew(event)">
+                        <button type="button" class="btn-save-rate on-carriage" onclick="window.saveOnCarriageRateNew(event)">
                             <span>💾</span> <span data-i18n="rates.saveOnCarriage">Save On-Carriage</span>
                         </button>
                     </form>
@@ -18953,7 +18953,7 @@
                             </label>
                         </div>
                         
-                        <button type="button" class="btn-save-rate terminal" onclick="saveTerminalRateNew(event)">
+                        <button type="button" class="btn-save-rate terminal" onclick="window.saveTerminalRateNew(event)">
                             <span>💾</span> <span data-i18n="rates.saveThc">Save THC Rate</span>
                         </button>
                     </form>
@@ -19094,7 +19094,7 @@
                             </div>
                         </div>
                         
-                        <button type="button" class="btn-save-rate foreign-customs" onclick="saveForeignCustomsRateNew(event)">
+                        <button type="button" class="btn-save-rate foreign-customs" onclick="window.saveForeignCustomsRateNew(event)">
                             <span>💾</span> <span data-i18n="rates.saveForeignCustoms">Save Foreign Customs Rate</span>
                         </button>
                     </form>
@@ -34930,16 +34930,116 @@ function closeLegalModal(event) {
      ============================================ -->
 <script>
 // ============================================
-// SUPABASE INITIALIZATION
+// SUPABASE INITIALIZATION (SAFE)
 // ============================================
 // Replace these with your actual Supabase credentials
-const SUPABASE_URL = 'https://teljolppqncevuzlhsoq.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbGpvbHBwcW5jZXZ1emxoc29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0OTI2NzQsImV4cCI6MjA4MjA2ODY3NH0.Sly-MJBAkLhse2Yd4Pe_-M85LfXujWRZ7ZiMy__qLr4';
+var SUPABASE_URL = 'https://teljolppqncevuzlhsoq.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbGpvbHBwcW5jZXZ1emxoc29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0OTI2NzQsImV4cCI6MjA4MjA2ODY3NH0.Sly-MJBAkLhse2Yd4Pe_-M85LfXujWRZ7ZiMy__qLr4';
 
-// Initialize Supabase client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Initialize Supabase client SAFELY
+var supabase = null;
+try {
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('✅ Supabase client initialized');
+    } else {
+        console.warn('⚠️ Supabase SDK not loaded - using localStorage fallback');
+    }
+} catch (e) {
+    console.error('Supabase init error:', e);
+    console.warn('⚠️ Using localStorage fallback');
+}
 
-console.log('Supabase client initialized');
+// ============================================
+// GLOBAL TAB SWITCHING FUNCTION (ÖNCE TANIMLA)
+// ============================================
+function openRateTab(tabName) {
+    console.log('openRateTab called:', tabName);
+    
+    // Tab button IDs
+    var buttonIds = ['btnSeaFreight', 'btnPreCarriage', 'btnOnCarriage', 'btnTerminal', 'btnForeignCustoms', 'btnMyRates'];
+    
+    // Tab content IDs
+    var contentIds = ['seaFreightTab', 'preCarriageTab', 'onCarriageTab', 'terminalTab', 'foreignCustomsTab', 'myRatesTab'];
+    
+    // Button-Tab mapping
+    var tabMap = {
+        'seaFreight': { btn: 'btnSeaFreight', tab: 'seaFreightTab' },
+        'preCarriage': { btn: 'btnPreCarriage', tab: 'preCarriageTab' },
+        'onCarriage': { btn: 'btnOnCarriage', tab: 'onCarriageTab' },
+        'terminal': { btn: 'btnTerminal', tab: 'terminalTab' },
+        'foreignCustoms': { btn: 'btnForeignCustoms', tab: 'foreignCustomsTab' },
+        'myRates': { btn: 'btnMyRates', tab: 'myRatesTab' }
+    };
+    
+    // STEP 1: UI DEĞİŞİKLİĞİ (GARANTİLİ)
+    try {
+        // Remove active from all buttons
+        for (var i = 0; i < buttonIds.length; i++) {
+            var btn = document.getElementById(buttonIds[i]);
+            if (btn) btn.className = 'rates-tab';
+        }
+        
+        // Hide all tabs
+        for (var j = 0; j < contentIds.length; j++) {
+            var tab = document.getElementById(contentIds[j]);
+            if (tab) {
+                tab.style.display = 'none';
+                tab.classList.remove('active');
+            }
+        }
+        
+        // Show target tab
+        var target = tabMap[tabName];
+        if (target) {
+            var targetBtn = document.getElementById(target.btn);
+            var targetTab = document.getElementById(target.tab);
+            if (targetBtn) targetBtn.className = 'rates-tab active';
+            if (targetTab) {
+                targetTab.style.display = 'block';
+                targetTab.classList.add('active');
+            }
+        }
+        console.log('✅ Tab UI updated:', tabName);
+    } catch (uiError) {
+        console.error('Tab UI error:', uiError);
+    }
+    
+    // STEP 2: VERİ DOLDURMA (AYRI TRY-CATCH)
+    setTimeout(function() {
+        try {
+            if (tabName === 'seaFreight') {
+                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                if (typeof setDefaultDates === 'function') setDefaultDates();
+            } else if (tabName === 'preCarriage') {
+                if (typeof populateTurkishCities === 'function') populateTurkishCities();
+                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                if (typeof setDefaultDates === 'function') setDefaultDates();
+            } else if (tabName === 'onCarriage') {
+                if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
+                if (typeof setDefaultDates === 'function') setDefaultDates();
+            } else if (tabName === 'terminal') {
+                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                if (typeof setDefaultDates === 'function') setDefaultDates();
+            } else if (tabName === 'foreignCustoms') {
+                if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
+                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                if (typeof setDefaultDates === 'function') setDefaultDates();
+            } else if (tabName === 'myRates') {
+                if (typeof renderSavedRatesListNew === 'function') renderSavedRatesListNew();
+            }
+        } catch (dataError) {
+            console.warn('Tab data populate error:', dataError);
+        }
+    }, 100);
+}
+
+// GLOBAL SCOPE'A ATA (KRITIK!)
+window.openRateTab = openRateTab;
+window.switchRateTab = openRateTab;
+var switchRateTab = openRateTab;
+
+console.log('✅ openRateTab/switchRateTab registered globally');
 
 // ============================================
 // SESSION CHECK ON PAGE LOAD
@@ -35158,30 +35258,35 @@ function deleteRateFromLocalStorage(rateId) {
 let currentRateFilter = 'all';
 
 async function saveSeaFreightRateNew(event) {
+    console.log('🚀 saveSeaFreightRateNew TRIGGERED');
+    
     // Prevent any form submission
     if (event) {
         event.preventDefault();
         event.stopPropagation();
     }
     
-    console.log('Saving Sea Freight Rate (New System)...');
-    
     try {
-        const originPortSelect = document.getElementById('sfOriginPort');
-        const destPortSelect = document.getElementById('sfDestPort');
-        const containerSelect = document.getElementById('sfContainerType');
-        const incotermSelect = document.getElementById('sfIncoterm');
+        console.log('📝 Starting save process...');
+        
+        var originPortSelect = document.getElementById('sfOriginPort');
+        var destPortSelect = document.getElementById('sfDestPort');
+        var containerSelect = document.getElementById('sfContainerType');
+        var incotermSelect = document.getElementById('sfIncoterm');
+        
+        console.log('Origin port:', originPortSelect ? originPortSelect.value : 'NOT FOUND');
+        console.log('Dest port:', destPortSelect ? destPortSelect.value : 'NOT FOUND');
         
         if (!originPortSelect || !originPortSelect.value || originPortSelect.selectedIndex < 1) {
-            showRateNotification('Please select origin port', 'error');
+            alert('⚠️ Please select origin port');
             return false;
         }
         if (!destPortSelect || !destPortSelect.value || destPortSelect.selectedIndex < 1) {
-            showRateNotification('Please select destination port', 'error');
+            alert('⚠️ Please select destination port');
             return false;
         }
         
-        const rateData = {
+        var rateData = {
             rate_type: 'sea',
             origin_port: originPortSelect.value,
             origin_port_name: originPortSelect.options[originPortSelect.selectedIndex]?.text || '',
@@ -35197,24 +35302,31 @@ async function saveSeaFreightRateNew(event) {
             notes: document.getElementById('sfNotes')?.value || ''
         };
         
-        console.log('Rate data:', rateData);
-        const result = await saveRateToSupabase(rateData);
+        console.log('📦 Rate data prepared:', rateData);
+        
+        var result = await saveRateToSupabase(rateData);
+        console.log('💾 Save result:', result);
         
         if (result.success) {
-            showRateNotification('✅ Sea Freight rate saved! ' + rateData.origin_port_name + ' → ' + rateData.destination_port_name, 'success');
+            alert('✅ Sea Freight rate saved successfully!\n' + rateData.origin_port_name + ' → ' + rateData.destination_port_name);
+            if (typeof showRateNotification === 'function') {
+                showRateNotification('✅ Sea Freight rate saved!', 'success');
+            }
             document.getElementById('seaFreightForm')?.reset();
             if (typeof setDefaultDates === 'function') setDefaultDates();
             if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-            // Switch to Saved Rates tab after successful save
-            if (typeof window.switchRateTab === 'function') {
-                setTimeout(function() { window.switchRateTab('myRates'); }, 500);
-            }
+            // Switch to Saved Rates tab
+            setTimeout(function() { 
+                if (typeof window.switchRateTab === 'function') {
+                    window.switchRateTab('myRates'); 
+                }
+            }, 500);
         } else {
-            showRateNotification('Error: ' + (result.error || 'Unknown error'), 'error');
+            alert('❌ Error: ' + (result.error || 'Unknown error'));
         }
     } catch (error) {
-        console.error('Save error:', error);
-        showRateNotification('Error: ' + (error.message || 'Save failed'), 'error');
+        console.error('❌ Save error:', error);
+        alert('❌ Save failed: ' + (error.message || 'Unknown error'));
     }
     return false;
 }
@@ -35522,111 +35634,19 @@ window.deleteRateNew = deleteRateNew;
 window.filterSavedRatesNew = filterSavedRatesNew;
 
 // ============================================
-// RATE TAB SWITCHING - GLOBAL FUNCTION
+// GLOBAL EXPORTS - TÜM FONKSİYONLARI WINDOW'A ATA
 // ============================================
-// Robust tab switching - UI first, then populate
-function openRateTab(tabName) {
-    console.log('openRateTab called:', tabName);
-    
-    // STEP 1: UI DEĞİŞİKLİĞİ (ÖNCE - GARANTİLİ ÇALIŞIR)
-    // Tab button IDs
-    var buttonIds = ['btnSeaFreight', 'btnPreCarriage', 'btnOnCarriage', 'btnTerminal', 'btnForeignCustoms', 'btnMyRates'];
-    
-    // Tab content IDs
-    var contentIds = ['seaFreightTab', 'preCarriageTab', 'onCarriageTab', 'terminalTab', 'foreignCustomsTab', 'myRatesTab'];
-    
-    // Button-Tab mapping
-    var tabMapping = {
-        'seaFreight': { btn: 'btnSeaFreight', tab: 'seaFreightTab' },
-        'preCarriage': { btn: 'btnPreCarriage', tab: 'preCarriageTab' },
-        'onCarriage': { btn: 'btnOnCarriage', tab: 'onCarriageTab' },
-        'terminal': { btn: 'btnTerminal', tab: 'terminalTab' },
-        'foreignCustoms': { btn: 'btnForeignCustoms', tab: 'foreignCustomsTab' },
-        'myRates': { btn: 'btnMyRates', tab: 'myRatesTab' }
-    };
-    
-    // Remove active class from all buttons
-    for (var i = 0; i < buttonIds.length; i++) {
-        var btn = document.getElementById(buttonIds[i]);
-        if (btn) {
-            btn.className = 'rates-tab';
-        }
-    }
-    
-    // Hide all tab contents
-    for (var j = 0; j < contentIds.length; j++) {
-        var tab = document.getElementById(contentIds[j]);
-        if (tab) {
-            tab.style.display = 'none';
-            tab.classList.remove('active');
-        }
-    }
-    
-    // Get target IDs
-    var mapping = tabMapping[tabName];
-    if (!mapping) {
-        console.error('Unknown tab:', tabName);
-        return;
-    }
-    
-    // Activate button
-    var targetBtn = document.getElementById(mapping.btn);
-    if (targetBtn) {
-        targetBtn.className = 'rates-tab active';
-    }
-    
-    // Show tab content
-    var targetTab = document.getElementById(mapping.tab);
-    if (targetTab) {
-        targetTab.style.display = 'block';
-        targetTab.classList.add('active');
-    }
-    
-    console.log('UI updated for tab:', tabName);
-    
-    // STEP 2: VERİ DOLDURMA (SONRA - HATA OLSA BİLE TAB AÇIK KALIR)
-    setTimeout(function() {
-        try {
-            if (tabName === 'seaFreight') {
-                try { if (typeof populatePortDropdowns === 'function') populatePortDropdowns(); } catch(e) { console.warn('populatePortDropdowns error:', e); }
-                try { if (typeof setDefaultDates === 'function') setDefaultDates(); } catch(e) { console.warn('setDefaultDates error:', e); }
-            } else if (tabName === 'preCarriage') {
-                try { if (typeof populateTurkishCities === 'function') populateTurkishCities(); } catch(e) { console.warn('populateTurkishCities error:', e); }
-                try { if (typeof populatePortDropdowns === 'function') populatePortDropdowns(); } catch(e) { console.warn('populatePortDropdowns error:', e); }
-                try { if (typeof setDefaultDates === 'function') setDefaultDates(); } catch(e) { console.warn('setDefaultDates error:', e); }
-            } else if (tabName === 'onCarriage') {
-                try { if (typeof populateCountryDropdown === 'function') populateCountryDropdown(); } catch(e) { console.warn('populateCountryDropdown error:', e); }
-                try { if (typeof setDefaultDates === 'function') setDefaultDates(); } catch(e) { console.warn('setDefaultDates error:', e); }
-            } else if (tabName === 'terminal') {
-                try { if (typeof populatePortDropdowns === 'function') populatePortDropdowns(); } catch(e) { console.warn('populatePortDropdowns error:', e); }
-                try { if (typeof setDefaultDates === 'function') setDefaultDates(); } catch(e) { console.warn('setDefaultDates error:', e); }
-            } else if (tabName === 'foreignCustoms') {
-                try { if (typeof populateCountryDropdown === 'function') populateCountryDropdown(); } catch(e) { console.warn('populateCountryDropdown error:', e); }
-                try { if (typeof populatePortDropdowns === 'function') populatePortDropdowns(); } catch(e) { console.warn('populatePortDropdowns error:', e); }
-                try { if (typeof setDefaultDates === 'function') setDefaultDates(); } catch(e) { console.warn('setDefaultDates error:', e); }
-            } else if (tabName === 'myRates') {
-                try {
-                    if (typeof renderSavedRatesListNew === 'function') {
-                        renderSavedRatesListNew();
-                    } else if (typeof updateMyRatesList === 'function') {
-                        updateMyRatesList();
-                    }
-                } catch(e) { console.warn('renderSavedRatesListNew error:', e); }
-            }
-            console.log('Tab data populated:', tabName);
-        } catch (err) {
-            console.error('Tab populate error:', err);
-        }
-    }, 50);
-}
-
-// Global aliases - HER İKİ İSİMLE DE ERİŞİLEBİLİR
-window.openRateTab = openRateTab;
-window.switchRateTab = openRateTab;
-var switchRateTab = openRateTab;
+window.saveSeaFreightRateNew = saveSeaFreightRateNew;
+window.savePreCarriageRateNew = savePreCarriageRateNew;
+window.saveOnCarriageRateNew = saveOnCarriageRateNew;
+window.saveTerminalRateNew = saveTerminalRateNew;
+window.saveForeignCustomsRateNew = saveForeignCustomsRateNew;
+window.renderSavedRatesListNew = renderSavedRatesListNew;
+window.saveRateToSupabase = saveRateToSupabase;
+window.saveRateToLocalStorage = saveRateToLocalStorage;
 
 console.log('✅ Freight Rates Module loaded - Supabase + localStorage fallback');
-console.log('✅ openRateTab/switchRateTab function available globally');
+console.log('✅ All save functions registered globally');
 </script>
 
 </body>
