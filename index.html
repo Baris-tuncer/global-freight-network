@@ -18759,6 +18759,9 @@
             
             <!-- PRE-CARRIAGE (Fabrika → Liman) -->
             <div id="preCarriageTab" class="rates-tab-content" style="display:none;">
+                <div style="background: #fff3e0; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
+                    <strong>🚛 Pre-Carriage tab is visible!</strong>
+                </div>
                 
                 <!-- Manual Entry Form -->
                 <div class="rate-form-card">
@@ -18823,6 +18826,9 @@
             
             <!-- ON-CARRIAGE (Liman → Depo) -->
             <div id="onCarriageTab" class="rates-tab-content" style="display:none;">
+                <div style="background: #e3f2fd; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
+                    <strong>🚚 On-Carriage tab is visible!</strong>
+                </div>
                 <div class="rate-form-card">
                     <div class="form-card-header on-carriage">
                         <span class="form-icon">🚚</span>
@@ -19101,6 +19107,9 @@
             
             <!-- KAYITLI TARİFELER -->
             <div id="myRatesTab" class="rates-tab-content" style="display:none;">
+                <div style="background: #e8f5e9; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
+                    <strong>✅ Saved Rates tab is visible!</strong>
+                </div>
                 <div class="my-rates-container">
                     <div class="my-rates-header">
                         <h3 data-i18n="rates.mySavedRates">My Saved Rates</h3>
@@ -27297,21 +27306,20 @@ function showRatesTab(tabName) {
         }
     });
     
-    // Tüm içerikleri gizle (sadece forwarderRatesSection içindekiler)
+    // Tüm içerikleri gizle - setAttribute ile kesin gizle
     ratesSection.querySelectorAll('.rates-tab-content').forEach(function(content) {
         content.classList.remove('active');
-        content.style.display = 'none';
-        console.log('Hidden:', content.id);
+        content.setAttribute('style', 'display: none !important;');
     });
     
-    // Aktif içeriği göster
+    // Aktif içeriği göster - setAttribute ile kesin göster
     var activeContent = document.getElementById(tabName + 'Tab');
-    console.log('Looking for:', tabName + 'Tab', '- Found:', activeContent ? 'YES' : 'NO');
+    console.log('Target:', tabName + 'Tab', '- Found:', activeContent ? 'YES' : 'NO');
     
     if (activeContent) {
         activeContent.classList.add('active');
-        activeContent.style.display = 'block';
-        console.log('Showing:', tabName + 'Tab');
+        activeContent.setAttribute('style', 'display: block !important;');
+        console.log('Activated:', tabName + 'Tab');
     }
     
     // Dropdown'ları doldur
