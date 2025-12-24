@@ -18599,64 +18599,83 @@
             
             <script>
             // Basit tab switching - sadece My Rates içindeki tabları değiştirir
-            function switchRateTab(tabName) {
+            // Global scope'da tanımla
+            window.switchRateTab = function(tabName) {
                 console.log('switchRateTab called:', tabName);
                 
-                // Tüm butonlardan active kaldır
-                document.getElementById('btnSeaFreight').className = 'rates-tab';
-                document.getElementById('btnPreCarriage').className = 'rates-tab';
-                document.getElementById('btnOnCarriage').className = 'rates-tab';
-                document.getElementById('btnTerminal').className = 'rates-tab';
-                document.getElementById('btnForeignCustoms').className = 'rates-tab';
-                document.getElementById('btnMyRates').className = 'rates-tab';
-                
-                // Tüm tab içeriklerini gizle - doğrudan element referansı ile
-                document.getElementById('seaFreightTab').style.display = 'none';
-                document.getElementById('preCarriageTab').style.display = 'none';
-                document.getElementById('onCarriageTab').style.display = 'none';
-                document.getElementById('terminalTab').style.display = 'none';
-                document.getElementById('foreignCustomsTab').style.display = 'none';
-                document.getElementById('myRatesTab').style.display = 'none';
-                
-                // Seçilen tab'ı göster ve butonu aktif yap
-                if (tabName === 'seaFreight') {
-                    document.getElementById('btnSeaFreight').className = 'rates-tab active';
-                    document.getElementById('seaFreightTab').style.display = 'block';
-                    if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                    if (typeof setDefaultDates === 'function') setDefaultDates();
-                } else if (tabName === 'preCarriage') {
-                    document.getElementById('btnPreCarriage').className = 'rates-tab active';
-                    document.getElementById('preCarriageTab').style.display = 'block';
-                    if (typeof populateTurkishCities === 'function') populateTurkishCities();
-                    if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                    if (typeof setDefaultDates === 'function') setDefaultDates();
-                } else if (tabName === 'onCarriage') {
-                    document.getElementById('btnOnCarriage').className = 'rates-tab active';
-                    document.getElementById('onCarriageTab').style.display = 'block';
-                    if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
-                    if (typeof setDefaultDates === 'function') setDefaultDates();
-                } else if (tabName === 'terminal') {
-                    document.getElementById('btnTerminal').className = 'rates-tab active';
-                    document.getElementById('terminalTab').style.display = 'block';
-                    if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                    if (typeof setDefaultDates === 'function') setDefaultDates();
-                } else if (tabName === 'foreignCustoms') {
-                    document.getElementById('btnForeignCustoms').className = 'rates-tab active';
-                    document.getElementById('foreignCustomsTab').style.display = 'block';
-                    if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
-                    if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                    if (typeof setDefaultDates === 'function') setDefaultDates();
-                } else if (tabName === 'myRates') {
-                    document.getElementById('btnMyRates').className = 'rates-tab active';
-                    document.getElementById('myRatesTab').style.display = 'block';
-                    if (typeof renderSavedRatesListNew === 'function') {
-                        renderSavedRatesListNew();
-                    } else if (typeof updateMyRatesList === 'function') {
-                        updateMyRatesList();
+                try {
+                    // Tüm butonlardan active kaldır
+                    var btnSeaFreight = document.getElementById('btnSeaFreight');
+                    var btnPreCarriage = document.getElementById('btnPreCarriage');
+                    var btnOnCarriage = document.getElementById('btnOnCarriage');
+                    var btnTerminal = document.getElementById('btnTerminal');
+                    var btnForeignCustoms = document.getElementById('btnForeignCustoms');
+                    var btnMyRates = document.getElementById('btnMyRates');
+                    
+                    if (btnSeaFreight) btnSeaFreight.className = 'rates-tab';
+                    if (btnPreCarriage) btnPreCarriage.className = 'rates-tab';
+                    if (btnOnCarriage) btnOnCarriage.className = 'rates-tab';
+                    if (btnTerminal) btnTerminal.className = 'rates-tab';
+                    if (btnForeignCustoms) btnForeignCustoms.className = 'rates-tab';
+                    if (btnMyRates) btnMyRates.className = 'rates-tab';
+                    
+                    // Tüm tab içeriklerini gizle
+                    var seaFreightTab = document.getElementById('seaFreightTab');
+                    var preCarriageTab = document.getElementById('preCarriageTab');
+                    var onCarriageTab = document.getElementById('onCarriageTab');
+                    var terminalTab = document.getElementById('terminalTab');
+                    var foreignCustomsTab = document.getElementById('foreignCustomsTab');
+                    var myRatesTab = document.getElementById('myRatesTab');
+                    
+                    if (seaFreightTab) seaFreightTab.style.display = 'none';
+                    if (preCarriageTab) preCarriageTab.style.display = 'none';
+                    if (onCarriageTab) onCarriageTab.style.display = 'none';
+                    if (terminalTab) terminalTab.style.display = 'none';
+                    if (foreignCustomsTab) foreignCustomsTab.style.display = 'none';
+                    if (myRatesTab) myRatesTab.style.display = 'none';
+                    
+                    // Seçilen tab'ı göster ve butonu aktif yap
+                    if (tabName === 'seaFreight') {
+                        if (btnSeaFreight) btnSeaFreight.className = 'rates-tab active';
+                        if (seaFreightTab) seaFreightTab.style.display = 'block';
+                        if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                        if (typeof setDefaultDates === 'function') setDefaultDates();
+                    } else if (tabName === 'preCarriage') {
+                        if (btnPreCarriage) btnPreCarriage.className = 'rates-tab active';
+                        if (preCarriageTab) preCarriageTab.style.display = 'block';
+                        if (typeof populateTurkishCities === 'function') populateTurkishCities();
+                        if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                        if (typeof setDefaultDates === 'function') setDefaultDates();
+                    } else if (tabName === 'onCarriage') {
+                        if (btnOnCarriage) btnOnCarriage.className = 'rates-tab active';
+                        if (onCarriageTab) onCarriageTab.style.display = 'block';
+                        if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
+                        if (typeof setDefaultDates === 'function') setDefaultDates();
+                    } else if (tabName === 'terminal') {
+                        if (btnTerminal) btnTerminal.className = 'rates-tab active';
+                        if (terminalTab) terminalTab.style.display = 'block';
+                        if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                        if (typeof setDefaultDates === 'function') setDefaultDates();
+                    } else if (tabName === 'foreignCustoms') {
+                        if (btnForeignCustoms) btnForeignCustoms.className = 'rates-tab active';
+                        if (foreignCustomsTab) foreignCustomsTab.style.display = 'block';
+                        if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
+                        if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                        if (typeof setDefaultDates === 'function') setDefaultDates();
+                    } else if (tabName === 'myRates') {
+                        if (btnMyRates) btnMyRates.className = 'rates-tab active';
+                        if (myRatesTab) myRatesTab.style.display = 'block';
+                        if (typeof renderSavedRatesListNew === 'function') {
+                            renderSavedRatesListNew();
+                        } else if (typeof updateMyRatesList === 'function') {
+                            updateMyRatesList();
+                        }
                     }
+                    
+                    console.log('Tab shown:', tabName);
+                } catch (err) {
+                    console.error('switchRateTab error:', err);
                 }
-                
-                console.log('Tab shown:', tabName + 'Tab');
             }
             </script>
             
@@ -18673,7 +18692,7 @@
                         </div>
                     </div>
                     
-                    <form id="seaFreightForm" onsubmit="return saveSeaFreightRateNew(event)">
+                    <form id="seaFreightForm">
                         
                         <!-- SECTION 1: BASE RATE -->
                         <div class="rate-section">
@@ -18816,7 +18835,7 @@
                         
                         <!-- SAVE ACTION -->
                         <div class="rate-action">
-                            <button type="submit" class="btn-save-rate-simple">
+                            <button type="button" class="btn-save-rate-simple" onclick="saveSeaFreightRateNew(event)">
                                 <span data-i18n="rates.saveRate">Save Rate</span>
                             </button>
                         </div>
@@ -18835,7 +18854,7 @@
                         </div>
                     </div>
                     
-                    <form id="preCarriageForm" onsubmit="return savePreCarriageRateNew(event)" style="padding: 24px;">
+                    <form id="preCarriageForm" style="padding: 24px;">
                         <div class="form-row">
                             <div class="form-group">
                                 <label><span data-i18n="rates.originCity">Origin City</span></label>
@@ -18879,7 +18898,7 @@
                             </div>
                         </div>
                         
-                        <button type="submit" class="btn-save-rate land">
+                        <button type="button" class="btn-save-rate land" onclick="savePreCarriageRateNew(event)">
                             <span>💾</span> <span data-i18n="rates.savePreCarriage">Save Pre-Carriage</span>
                         </button>
                     </form>
@@ -18897,7 +18916,7 @@
                         </div>
                     </div>
                     
-                    <form id="onCarriageForm" onsubmit="return saveOnCarriageRateNew(event)" style="padding: 24px;">
+                    <form id="onCarriageForm" style="padding: 24px;">
                         <div class="form-row">
                             <div class="form-group">
                                 <label data-i18n="rates.country">Country</label>
@@ -18951,7 +18970,7 @@
                             </div>
                         </div>
                         
-                        <button type="submit" class="btn-save-rate on-carriage">
+                        <button type="button" class="btn-save-rate on-carriage" onclick="saveOnCarriageRateNew(event)">
                             <span>💾</span> <span data-i18n="rates.saveOnCarriage">Save On-Carriage</span>
                         </button>
                     </form>
@@ -18969,7 +18988,7 @@
                         </div>
                     </div>
                     
-                    <form id="terminalForm" onsubmit="return saveTerminalRateNew(event)" style="padding: 24px;">
+                    <form id="terminalForm" style="padding: 24px;">
                         <div class="form-row">
                             <div class="form-group">
                                 <label data-i18n="rates.port">Port</label>
@@ -19016,7 +19035,7 @@
                             </label>
                         </div>
                         
-                        <button type="submit" class="btn-save-rate terminal">
+                        <button type="button" class="btn-save-rate terminal" onclick="saveTerminalRateNew(event)">
                             <span>💾</span> <span data-i18n="rates.saveThc">Save THC Rate</span>
                         </button>
                     </form>
@@ -19039,7 +19058,7 @@
                         <p data-i18n="rates.foreignCustomsNote">Enter the rates your foreign customs partner provides. These rates will be used in DDP quotes.</p>
                     </div>
                     
-                    <form id="foreignCustomsForm" onsubmit="return saveForeignCustomsRateNew(event)">
+                    <form id="foreignCustomsForm">
                         <div class="form-row">
                             <div class="form-group">
                                 <label data-i18n="rates.country">Country</label>
@@ -19157,7 +19176,7 @@
                             </div>
                         </div>
                         
-                        <button type="submit" class="btn-save-rate foreign-customs">
+                        <button type="button" class="btn-save-rate foreign-customs" onclick="saveForeignCustomsRateNew(event)">
                             <span>💾</span> <span data-i18n="rates.saveForeignCustoms">Save Foreign Customs Rate</span>
                         </button>
                     </form>
@@ -35207,7 +35226,12 @@ function deleteRateFromLocalStorage(rateId) {
 let currentRateFilter = 'all';
 
 async function saveSeaFreightRateNew(event) {
-    if (event) event.preventDefault();
+    // Prevent any form submission
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
     console.log('Saving Sea Freight Rate (New System)...');
     
     try {
@@ -35216,11 +35240,11 @@ async function saveSeaFreightRateNew(event) {
         const containerSelect = document.getElementById('sfContainerType');
         const incotermSelect = document.getElementById('sfIncoterm');
         
-        if (!originPortSelect?.value || originPortSelect.selectedIndex < 1) {
+        if (!originPortSelect || !originPortSelect.value || originPortSelect.selectedIndex < 1) {
             showRateNotification('Please select origin port', 'error');
             return false;
         }
-        if (!destPortSelect?.value || destPortSelect.selectedIndex < 1) {
+        if (!destPortSelect || !destPortSelect.value || destPortSelect.selectedIndex < 1) {
             showRateNotification('Please select destination port', 'error');
             return false;
         }
@@ -35241,20 +35265,24 @@ async function saveSeaFreightRateNew(event) {
             notes: document.getElementById('sfNotes')?.value || ''
         };
         
+        console.log('Rate data:', rateData);
         const result = await saveRateToSupabase(rateData);
         
         if (result.success) {
             showRateNotification('✅ Sea Freight rate saved! ' + rateData.origin_port_name + ' → ' + rateData.destination_port_name, 'success');
             document.getElementById('seaFreightForm')?.reset();
-            setDefaultDates();
-            populatePortDropdowns();
-            await renderSavedRatesListNew();
+            if (typeof setDefaultDates === 'function') setDefaultDates();
+            if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+            // Switch to Saved Rates tab after successful save
+            if (typeof switchRateTab === 'function') {
+                setTimeout(function() { switchRateTab('myRates'); }, 500);
+            }
         } else {
-            showRateNotification('Error: ' + result.error, 'error');
+            showRateNotification('Error: ' + (result.error || 'Unknown error'), 'error');
         }
     } catch (error) {
         console.error('Save error:', error);
-        showRateNotification('Error: ' + error.message, 'error');
+        showRateNotification('Error: ' + (error.message || 'Save failed'), 'error');
     }
     return false;
 }
