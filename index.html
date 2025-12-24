@@ -20254,40 +20254,37 @@
 
 <script>
 // ============================================
-// GLOBAL TAB SWITCHING - BULLETPROOF VERSION
+// GLOBAL TAB SWITCHING - FINAL VERSION
 // ============================================
 window.switchRateTab = function(tabName) {
-    // DEBUG ALERT - Bu görünmezse script yüklenmemiştir
-    alert('TAB TIKLANDIĞINI ALGILADI: ' + tabName);
-    console.log('switchRateTab called:', tabName);
+    console.log('switchRateTab:', tabName);
     
-    // 1. Hide all tab contents - FORCE with inline style
+    // 1. Tum tab iceriklerini gizle
     var allTabs = document.querySelectorAll('.rates-tab-content');
     for (var i = 0; i < allTabs.length; i++) {
         allTabs[i].style.cssText = 'display: none !important;';
         allTabs[i].classList.remove('active');
     }
     
-    // 2. Remove active from all buttons
+    // 2. Tum butonlardan active kaldir
     var allBtns = document.querySelectorAll('.rates-tabs .rates-tab');
     for (var j = 0; j < allBtns.length; j++) {
         allBtns[j].classList.remove('active');
     }
     
-    // 3. Show target tab - FORCE with inline style
+    // 3. Hedef tabi goster
     var tabId = tabName + 'Tab';
     var targetTab = document.getElementById(tabId);
     if (targetTab) {
         targetTab.style.cssText = 'display: block !important;';
         targetTab.classList.add('active');
-        console.log('Tab shown:', tabId);
+        console.log('Tab acildi:', tabId);
     } else {
-        alert('HATA: ' + tabId + ' bulunamadı!');
-        console.error('Tab not found:', tabId);
+        console.error('Tab bulunamadi:', tabId);
         return;
     }
     
-    // 4. Activate target button
+    // 4. Hedef butonu aktif yap
     var btnMap = {
         'seaFreight': 'btnSeaFreight',
         'preCarriage': 'btnPreCarriage',
@@ -20301,7 +20298,7 @@ window.switchRateTab = function(tabName) {
         targetBtn.classList.add('active');
     }
     
-    // 5. Populate data (delayed, completely error-isolated)
+    // 5. Veri doldurma (gecikmeli, hata izole)
     setTimeout(function() {
         try {
             if (tabName === 'seaFreight') {
@@ -20317,7 +20314,6 @@ window.switchRateTab = function(tabName) {
                 if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
                 if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
             } else if (tabName === 'myRates') {
-                // Async function - call and catch errors
                 if (typeof renderSavedRatesListNew === 'function') {
                     try {
                         var result = renderSavedRatesListNew();
@@ -20327,19 +20323,18 @@ window.switchRateTab = function(tabName) {
                             });
                         }
                     } catch(e) {
-                        console.warn('renderSavedRatesListNew sync error:', e);
+                        console.warn('renderSavedRatesListNew error:', e);
                     }
                 }
             }
             if (typeof setDefaultDates === 'function') setDefaultDates();
         } catch(e) {
-            console.warn('Data populate error:', e);
+            console.warn('Veri doldurma hatasi:', e);
         }
     }, 100);
 };
 window.openRateTab = window.switchRateTab;
-alert('switchRateTab FONKSIYONU YUKLENDI!');
-console.log('switchRateTab ready');
+console.log('switchRateTab hazir');
 
 // ============================================
 // GLOBAL VARIABLES
