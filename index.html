@@ -63,7 +63,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: 
+            background:
                 radial-gradient(ellipse at 30% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
                 radial-gradient(ellipse at 70% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
                 linear-gradient(180deg, #0c1222 0%, #111827 40%, #0f172a 100%);
@@ -75,7 +75,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 20% 30%, rgba(0, 212, 170, 0.02) 0%, transparent 40%),
                 radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.02) 0%, transparent 40%);
             animation: patternMove 40s ease-in-out infinite;
@@ -428,7 +428,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: 
+            background:
                 radial-gradient(ellipse at 20% 30%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 70%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
             pointer-events: none;
@@ -1070,8 +1070,8 @@
             font-size: 0.9em;
         }
 
-        .form-group input, 
-        .form-group select, 
+        .form-group input,
+        .form-group select,
         .form-group textarea {
             width: 100%;
             padding: 14px 16px;
@@ -1084,8 +1084,8 @@
             transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-        .form-group input:focus, 
-        .form-group select:focus, 
+        .form-group input:focus,
+        .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
             border-color: var(--primary);
@@ -7068,7 +7068,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 20% 80%, rgba(0,212,170,0.1) 0%, transparent 50%),
                 radial-gradient(circle at 80% 20%, rgba(255,107,53,0.1) 0%, transparent 50%);
             pointer-events: none;
@@ -16369,7 +16369,7 @@
     </style>
     
     <!-- Supabase Client Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -16799,7 +16799,7 @@
                 <div class="agreement-item" style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;">
                     <input type="checkbox" id="termsAccept" required style="margin-top: 3px; width: 18px; height: 18px; cursor: pointer;">
                     <label for="termsAccept" style="font-size: 13px; color: #334155; cursor: pointer;" data-i18n-html="auth.termsAccept">
-                        <a onclick="openLegalModal('terms')" style="color: #1e3c72; text-decoration: underline; cursor: pointer;">Terms of Service</a>'nı ve 
+                        <a onclick="openLegalModal('terms')" style="color: #1e3c72; text-decoration: underline; cursor: pointer;">Terms of Service</a>'nı ve
                         <a onclick="openLegalModal('privacy')" style="color: #1e3c72; text-decoration: underline; cursor: pointer;">Privacy Policy</a> - I have read and accept. <span style="color: #dc2626;">*</span>
                     </label>
                 </div>
@@ -19852,7 +19852,7 @@ function applyI18n() {
     var validitySelect = document.getElementById('validityInput');
     if (validitySelect) {
         var dayText = t('days');
-        validitySelect.innerHTML = 
+        validitySelect.innerHTML =
             '<option value="3">3 ' + dayText + '</option>' +
             '<option value="5">5 ' + dayText + '</option>' +
             '<option value="7" selected>7 ' + dayText + '</option>' +
@@ -21715,62 +21715,62 @@ function saveCustomsRatesToStorage() {
 
 // Incoterm Tanımları ve Included Services
 var incotermDefinitions = {
-    EXW: { 
-        name: 'Ex Works', 
+    EXW: {
+        name: 'Ex Works',
         description: 'Fabrika teslim',
         sellerPays: [],
         buyerPays: ['preCarriage', 'exportCustoms', 'seaFreight', 'importCustoms', 'onCarriage', 'insurance']
     },
-    FCA: { 
-        name: 'Free Carrier', 
+    FCA: {
+        name: 'Free Carrier',
         description: 'Taşıyıcıya teslim',
         sellerPays: ['preCarriage', 'exportCustoms'],
         buyerPays: ['seaFreight', 'importCustoms', 'onCarriage', 'insurance']
     },
-    FOB: { 
-        name: 'Free On Board', 
+    FOB: {
+        name: 'Free On Board',
         description: 'Gemiye yükleme',
         sellerPays: ['preCarriage', 'exportCustoms', 'originTHC'],
         buyerPays: ['seaFreight', 'importCustoms', 'onCarriage', 'insurance']
     },
-    CFR: { 
-        name: 'Cost and Freight', 
+    CFR: {
+        name: 'Cost and Freight',
         description: 'Navlun dahil',
         sellerPays: ['preCarriage', 'exportCustoms', 'originTHC', 'seaFreight'],
         buyerPays: ['destTHC', 'importCustoms', 'onCarriage', 'insurance']
     },
-    CIF: { 
-        name: 'Cost Insurance Freight', 
+    CIF: {
+        name: 'Cost Insurance Freight',
         description: 'Navlun ve sigorta dahil',
         sellerPays: ['preCarriage', 'exportCustoms', 'originTHC', 'seaFreight', 'insurance'],
         buyerPays: ['destTHC', 'importCustoms', 'onCarriage']
     },
-    CPT: { 
-        name: 'Carriage Paid To', 
+    CPT: {
+        name: 'Carriage Paid To',
         description: 'Taşıma ödenmiş',
         sellerPays: ['preCarriage', 'exportCustoms', 'originTHC', 'seaFreight', 'destTHC'],
         buyerPays: ['importCustoms', 'onCarriage', 'insurance']
     },
-    CIP: { 
-        name: 'Carriage Insurance Paid', 
+    CIP: {
+        name: 'Carriage Insurance Paid',
         description: 'Taşıma ve sigorta ödenmiş',
         sellerPays: ['preCarriage', 'exportCustoms', 'originTHC', 'seaFreight', 'destTHC', 'insurance'],
         buyerPays: ['importCustoms', 'onCarriage']
     },
-    DAP: { 
-        name: 'Delivered at Place', 
+    DAP: {
+        name: 'Delivered at Place',
         description: 'Belirlenen yerde teslim',
         sellerPays: ['preCarriage', 'exportCustoms', 'originTHC', 'seaFreight', 'destTHC', 'onCarriage'],
         buyerPays: ['importCustoms', 'insurance']
     },
-    DPU: { 
-        name: 'Delivered at Place Unloaded', 
+    DPU: {
+        name: 'Delivered at Place Unloaded',
         description: 'Boşaltılmış teslim',
         sellerPays: ['preCarriage', 'exportCustoms', 'originTHC', 'seaFreight', 'destTHC', 'onCarriage', 'unloading'],
         buyerPays: ['importCustoms', 'insurance']
     },
-    DDP: { 
-        name: 'Delivered Duty Paid', 
+    DDP: {
+        name: 'Delivered Duty Paid',
         description: 'Gümrük resmi ödenmiş teslim',
         sellerPays: ['preCarriage', 'exportCustoms', 'originTHC', 'seaFreight', 'destTHC', 'importCustoms', 'onCarriage', 'insurance'],
         buyerPays: []
@@ -21945,8 +21945,8 @@ var PlatformAI = {
             position: position,
             positionClass: positionClass,
             percentDiff: percentDiff,
-            recommendation: price <= stats.avgPrice ? 
-                'Bu rate platformdaki ortalamaya göre uygun.' : 
+            recommendation: price <= stats.avgPrice ?
+                'Bu rate platformdaki ortalamaya göre uygun.' :
                 'Daha düşük ratelı alternatifler mevcut.'
         };
     },
@@ -21994,7 +21994,7 @@ var PlatformAI = {
         
         var currentKey = o + '-' + d;
         var currentRoute = allRoutes[currentKey];
-        var rank = sortedRoutes.findIndex(function(r) { 
+        var rank = sortedRoutes.findIndex(function(r) {
             return self.normalizeCity(r.origin) + '-' + self.normalizeCity(r.dest) === currentKey;
         }) + 1;
         
@@ -22004,7 +22004,7 @@ var PlatformAI = {
             currentRoute: currentRoute,
             rank: rank || 'Yeni',
             demandLevel: currentRoute ? (currentRoute.count >= 3 ? 'Yüksek' : currentRoute.count >= 2 ? 'Orta' : 'Düşük') : 'Veri Yok',
-            suggestion: rank <= 3 ? 'Bu rota çok popüler, rekabetçi rate verin!' : 
+            suggestion: rank <= 3 ? 'Bu rota çok popüler, rekabetçi rate verin!' :
                         rank <= 10 ? 'Orta seviye talep, iyi rate avantaj sağlar.' :
                         'Düşük rekabet, pazar payı kazanma fırsatı!'
         };
@@ -22099,7 +22099,7 @@ var PlatformAI = {
         // Varış ülkesine göre
         var destCountry = this.normalizeCity(dest);
         
-        if (destCountry.includes('almanya') || destCountry.includes('germany') || 
+        if (destCountry.includes('almanya') || destCountry.includes('germany') ||
             destCountry.includes('fransa') || destCountry.includes('italya') ||
             destCountry.includes('hollanda') || destCountry.includes('avusturya')) {
             docs.customs.push({ name: 'EUR.1 Dolaşım Belgesi', icon: '🇪🇺' });
@@ -22315,11 +22315,11 @@ function updateCarrierAIPanel() {
             var lowCompRoutes = sortedRoutes.filter(function(r) { return r.count <= 2; });
             if (lowCompRoutes.length > 0) {
                 var suggestedRoute = lowCompRoutes[Math.floor(Math.random() * Math.min(3, lowCompRoutes.length))];
-                suggestionEl.innerHTML = 
+                suggestionEl.innerHTML =
                     '<strong>' + suggestedRoute.name + '</strong> rotasında sadece ' + suggestedRoute.count + ' forwarder var. ' +
                     'Add rates to this route to increase your market share!';
             } else {
-                suggestionEl.innerHTML = 
+                suggestionEl.innerHTML =
                     'Platform büyüyor! Yeni rotalar ekleyerek müşteri tabanınızı genişletin.';
             }
         }
@@ -23004,11 +23004,11 @@ function getMarketData(origin, dest, mode) {
     // Kısmi eşleşme dene
     for (var key in db) {
         var parts = key.split('-');
-        if ((parts[0].includes(o) || o.includes(parts[0])) && 
+        if ((parts[0].includes(o) || o.includes(parts[0])) &&
             (parts[1].includes(d) || d.includes(parts[1]))) {
             return { data: db[key], key: key, reversed: false };
         }
-        if ((parts[0].includes(d) || d.includes(parts[0])) && 
+        if ((parts[0].includes(d) || d.includes(parts[0])) &&
             (parts[1].includes(o) || o.includes(parts[1]))) {
             return { data: db[key], key: key, reversed: true };
         }
@@ -23953,7 +23953,7 @@ function updateChatContent(conversationId) {
     
     // Header güncelle
     if (chatHeader) {
-        chatHeader.innerHTML = 
+        chatHeader.innerHTML =
             '<div class="chat-user-info">' +
                 '<div class="chat-avatar">' + conv.avatar + '</div>' +
                 '<div class="chat-user-details">' +
@@ -23998,7 +23998,7 @@ function renderDynamicConversation(conversationId, chatHeader, chatMessages) {
     
     // Update header
     if (chatHeader) {
-        chatHeader.innerHTML = 
+        chatHeader.innerHTML =
             '<div class="chat-header-info">' +
                 '<div class="conv-avatar" style="background: linear-gradient(135deg, #10b981, #059669);">' + conv.avatar + '</div>' +
                 '<div>' +
@@ -24094,7 +24094,7 @@ function sendMessage() {
     // Add message to UI
     var newMessage = document.createElement('div');
     newMessage.className = 'message sent';
-    newMessage.innerHTML = 
+    newMessage.innerHTML =
         '<div class="message-content">' +
             '<div class="message-bubble"><p>' + message + '</p></div>' +
             '<span class="message-time">' + currentTime + '</span>' +
@@ -24129,7 +24129,7 @@ function sendMessage() {
         
         var autoReply = document.createElement('div');
         autoReply.className = 'message';
-        autoReply.innerHTML = 
+        autoReply.innerHTML =
             '<div class="message-avatar" style="background: linear-gradient(135deg, #1e3c72, #2a5298);">' + avatar + '</div>' +
             '<div class="message-content">' +
                 '<div class="message-bubble"><p>' + replyText + '</p></div>' +
@@ -24230,7 +24230,7 @@ function acceptOffer(offerId) {
             showRateNotification('Shipment ' + newAccepted.shipmentNo + ' created!', 'success');
             
             // Show forwarder contact info
-            alert('Contact Information\n\n' + 
+            alert('Contact Information\n\n' +
                   'Company: ' + forwarder.name + '\n' +
                   'Phone: +90 212 555 1234\n' +
                   'Email: operations@' + offerId.replace('offer', 'forwarder') + '.com\n\n' +
@@ -24385,20 +24385,20 @@ function updateConsistencySignals() {
         if (transit >= 15 && transit <= 25) {
             icon.className = 'check-icon positive';
             icon.textContent = '✓';
-            text.textContent = currentLanguage === 'tr' ? 
-                'Transit süresi: Bu hat için tipik aralıkta' : 
+            text.textContent = currentLanguage === 'tr' ?
+                'Transit süresi: Bu hat için tipik aralıkta' :
                 'Transit time: Aligns with typical range for this lane';
         } else if (transit < 15) {
             icon.className = 'check-icon warning';
             icon.textContent = '!';
-            text.textContent = currentLanguage === 'tr' ? 
-                'Transit süresi: Tipik aralığın altında - doğrulayın' : 
+            text.textContent = currentLanguage === 'tr' ?
+                'Transit süresi: Tipik aralığın altında - doğrulayın' :
                 'Transit time: Below typical range - verify feasibility';
         } else {
             icon.className = 'check-icon warning';
             icon.textContent = '!';
-            text.textContent = currentLanguage === 'tr' ? 
-                'Transit süresi: Tipik aralığın üstünde' : 
+            text.textContent = currentLanguage === 'tr' ?
+                'Transit süresi: Tipik aralığın üstünde' :
                 'Transit time: Above typical range for this lane';
         }
     }
@@ -24415,20 +24415,20 @@ function updateConsistencySignals() {
         if (diffDays >= 7 && diffDays <= 30) {
             icon.className = 'check-icon positive';
             icon.textContent = '✓';
-            text.textContent = currentLanguage === 'tr' ? 
-                'Geçerlilik: Piyasa pratiğiyle uyumlu' : 
+            text.textContent = currentLanguage === 'tr' ?
+                'Geçerlilik: Piyasa pratiğiyle uyumlu' :
                 'Validity: Consistent with market practice';
         } else if (diffDays < 7) {
             icon.className = 'check-icon warning';
             icon.textContent = '!';
-            text.textContent = currentLanguage === 'tr' ? 
-                'Geçerlilik: Tipik piyasa pratiğinden kısa' : 
+            text.textContent = currentLanguage === 'tr' ?
+                'Geçerlilik: Tipik piyasa pratiğinden kısa' :
                 'Validity: Shorter than typical market practice';
         } else {
             icon.className = 'check-icon positive';
             icon.textContent = '✓';
-            text.textContent = currentLanguage === 'tr' ? 
-                'Geçerlilik: Uzun vadeli (30+ gün)' : 
+            text.textContent = currentLanguage === 'tr' ?
+                'Geçerlilik: Uzun vadeli (30+ gün)' :
                 'Validity: Extended period (30+ days)';
         }
     }
@@ -24951,7 +24951,7 @@ function generateAIRecommendation(freight, weight, cargoCategory, incoterm, load
     
     var aiRecEl = document.getElementById('aiRecommendation');
     if (aiRecEl) {
-        aiRecEl.innerHTML = recommendations.length > 0 
+        aiRecEl.innerHTML = recommendations.length > 0
             ? '<strong>AI Önerisi:</strong> ' + recommendations[0] + ' ' + defaultRec
             : '<strong>AI Önerisi:</strong> ' + defaultRec;
     }
@@ -25170,16 +25170,16 @@ function selectQuote(name, price) {
         contact: contact,
         status: 'introduction_accepted',
         messages: [
-            { 
-                from: 'system', 
-                text: currentLanguage === 'tr' 
+            {
+                from: 'system',
+                text: currentLanguage === 'tr'
                     ? '✅ Tanıştırma kabul edildi. ' + name + ' ile artık doğrudan iletişim kurabilirsiniz.'
-                    : '✅ Introduction accepted. You can now communicate directly with ' + name + '.', 
+                    : '✅ Introduction accepted. You can now communicate directly with ' + name + '.',
                 time: currentTime,
                 type: 'system'
             },
-            { 
-                from: 'them', 
+            {
+                from: 'them',
                 text: currentLanguage === 'tr'
                     ? 'Merhaba! ' + route + ' rotası için talebinizi aldık. Önerimiz $' + price.toLocaleString() + ' (CIF). Detaylar hakkında sorularınız varsa yanıtlamaktan memnuniyet duyarız.'
                     : 'Hello! We received your request for the ' + route + ' route. Our proposal is $' + price.toLocaleString() + ' (CIF). Feel free to ask if you have any questions about the details.',
@@ -25210,7 +25210,7 @@ function selectQuote(name, price) {
         // Introduction Success Message
         '<div class="fcm-intro-success">' +
         '<div class="intro-success-icon">🤝</div>' +
-        '<p>' + (currentLanguage === 'tr' 
+        '<p>' + (currentLanguage === 'tr'
             ? 'Artık ' + name + ' ile doğrudan iletişim kurabilirsiniz. Mesajlar bölümünde yeni bir konuşma başlatıldı.'
             : 'You can now communicate directly with ' + name + '. A new conversation has been started in Messages.') + '</p>' +
         '</div>' +
@@ -25255,8 +25255,8 @@ function selectQuote(name, price) {
         // Action Buttons
         '<div class="fcm-actions-new">' +
         '<button class="fcm-btn fcm-btn-primary" onclick="closeForwarderModal(); goToConversation(\'' + convId + '\');">' +
-        '<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg> ' + 
-        (currentLanguage === 'tr' ? 'Mesajlaşmaya Git' : 'Go to Messages') + 
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg> ' +
+        (currentLanguage === 'tr' ? 'Mesajlaşmaya Git' : 'Go to Messages') +
         '</button>' +
         '<button class="fcm-btn fcm-btn-secondary" onclick="closeForwarderModal();">' +
         (currentLanguage === 'tr' ? 'Daha Sonra' : 'Later') +
@@ -25266,7 +25266,7 @@ function selectQuote(name, price) {
         // Platform Note
         '<div class="fcm-note">' +
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="#64748b"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>' +
-        '<span>' + (currentLanguage === 'tr' 
+        '<span>' + (currentLanguage === 'tr'
             ? 'Tüm görüşmeler ve anlaşmalar doğrudan taraflar arasında yürütülür.'
             : 'All negotiations and agreements are conducted directly between the parties.') + '</span>' +
         '</div>' +
@@ -25288,9 +25288,9 @@ function selectQuote(name, price) {
     
     // Show notification
     showNotification(
-        currentLanguage === 'tr' 
-            ? '✅ ' + name + ' ile tanıştırma kabul edildi!' 
-            : '✅ Introduction accepted with ' + name + '!', 
+        currentLanguage === 'tr'
+            ? '✅ ' + name + ' ile tanıştırma kabul edildi!'
+            : '✅ Introduction accepted with ' + name + '!',
         'success'
     );
 }
@@ -26248,7 +26248,7 @@ function searchLiveRates() {
         
         var summaryEl = document.querySelector('.market-summary .summary-grid');
         if (summaryEl) {
-            summaryEl.innerHTML = 
+            summaryEl.innerHTML =
                 '<div class="summary-item"><span class="summary-label">En Düşük</span><span class="summary-value low">$' + minPrice.toLocaleString() + '</span></div>' +
                 '<div class="summary-item"><span class="summary-label">Ortalama</span><span class="summary-value avg">$' + avgPrice.toLocaleString() + '</span></div>' +
                 '<div class="summary-item"><span class="summary-label">En Yüksek</span><span class="summary-value high">$' + maxPrice.toLocaleString() + '</span></div>' +
@@ -27258,8 +27258,8 @@ function saveForwarderContact(e) {
 // Demo teklifler (ilk yüklemede)
 function initDemoQuotes() {
     // Demo tekliflerin varlığını kontrol et (ID ile)
-    var hasDemoQuotes = quotesDB.some(function(q) { 
-        return q.id && q.id.startsWith('QT-DEMO-'); 
+    var hasDemoQuotes = quotesDB.some(function(q) {
+        return q.id && q.id.startsWith('QT-DEMO-');
     });
     
     if (!hasDemoQuotes) {
@@ -27380,10 +27380,10 @@ function renderClientQuotes() {
     console.log('Aranıyor: Aranan clientId:', clientId);
     console.log('quotesDB içeriği:', quotesDB);
     
-    var quotes = quotesDB.filter(function(q) { 
+    var quotes = quotesDB.filter(function(q) {
         var match = q.clientId === clientId || q.clientId === 'demo-client';
         if (match) console.log('Success: Matching quote:', q.id, 'clientId:', q.clientId);
-        return match; 
+        return match;
     });
     
     console.log('Bulunan öneri sayısı:', quotes.length);
@@ -27532,8 +27532,8 @@ function renderForwarderQuotes() {
     
     // Forwarder'ın verdiği teklifleri bul (hem forwarderId hem forwarderName ile eşleştir)
     var myQuotes = quotesDB.filter(function(q) {
-        var match = q.forwarderId === forwarderId || 
-               q.forwarderName === forwarderId || 
+        var match = q.forwarderId === forwarderId ||
+               q.forwarderName === forwarderId ||
                q.forwarderId === 'demo-forwarder';
         if (match) console.log('Success: Matching quote:', q.id, 'forwarderId:', q.forwarderId);
         return match;
@@ -27968,7 +27968,7 @@ function showRateNotification(message, type) {
     var notification = document.createElement('div');
     notification.className = 'rate-notification ' + type;
     notification.innerHTML = '<span>' + (type === 'success' ? '' : '') + '</span> ' + message;
-    notification.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 15px 25px; background: ' + 
+    notification.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 15px 25px; background: ' +
         (type === 'success' ? '#10b981' : '#ef4444') + '; color: white; border-radius: 12px; z-index: 1500; ' +
         'font-weight: 600; box-shadow: 0 4px 20px rgba(0,0,0,0.2); animation: slideIn 0.3s ease;';
     
@@ -28160,9 +28160,9 @@ function saveCustomsServiceRate(e) {
     e.preventDefault();
     
     var pointNames = {
-        'ambarli': 'Ambarlı', 'mersin': 'Mersin', 'izmir': 'İzmir (Alsancak)', 
+        'ambarli': 'Ambarlı', 'mersin': 'Mersin', 'izmir': 'İzmir (Alsancak)',
         'gemlik': 'Gemlik', 'iskenderun': 'İskenderun', 'trabzon': 'Trabzon',
-        'ist-airport': 'Istanbul Airport', 'saw': 'Sabiha Gokcen', 
+        'ist-airport': 'Istanbul Airport', 'saw': 'Sabiha Gokcen',
         'esb': 'Ankara Esenboğa', 'adb': 'İzmir Adnan Menderes',
         'kapikule': 'Kapıkule', 'ipsala': 'İpsala', 'gurbulak': 'Gürbulak',
         'habur': 'Habur', 'cilvegozu': 'Cilvegözü',
@@ -28444,7 +28444,7 @@ function calculateMultimodalPrice() {
     // 1. Pre-carriage (Türkiye şehir → TR liman)
     if (rules.preCarriage && originCity) {
         var preRate = forwarderRatesDB.preCarriage.find(function(r) {
-            return r.destPort === originPort && 
+            return r.destPort === originPort &&
                    (r.containerType === containerType || r.containerType === '40HC');
         });
         if (preRate) {
@@ -28542,7 +28542,7 @@ function calculateMultimodalPrice() {
     // 7. On-carriage
     if (rules.onCarriage && destCity) {
         var onRate = forwarderRatesDB.onCarriage.find(function(r) {
-            return r.country === destCountry && 
+            return r.country === destCountry &&
                    (r.containerType === containerType || r.containerType === '40HC');
         });
         if (onRate) {
@@ -28801,7 +28801,7 @@ var allCities = [
     'Moscow, Russia','Saint Petersburg, Russia','Novosibirsk, Russia','Yekaterinburg, Russia','Nizhny Novgorod, Russia','Kazan, Russia','Chelyabinsk, Russia','Omsk, Russia','Samara, Russia','Rostov-on-Don, Russia','Ufa, Russia','Krasnoyarsk, Russia','Voronezh, Russia','Perm, Russia','Volgograd, Russia','Krasnodar, Russia','Saratov, Russia','Tyumen, Russia','Tolyatti, Russia','Izhevsk, Russia','Barnaul, Russia','Vladivostok, Russia','Irkutsk, Russia','Khabarovsk, Russia','Yaroslavl, Russia','Orenburg, Russia','Novokuznetsk, Russia','Ryazan, Russia','Tomsk, Russia','Kemerovo, Russia',
     // BRAZIL - All major cities
     'Sao Paulo, Brazil','Rio de Janeiro, Brazil','Brasilia, Brazil','Salvador, Brazil','Fortaleza, Brazil','Belo Horizonte, Brazil','Manaus, Brazil','Curitiba, Brazil','Recife, Brazil','Porto Alegre, Brazil','Belem, Brazil','Goiania, Brazil','Guarulhos, Brazil','Campinas, Brazil','Sao Luis, Brazil','Sao Goncalo, Brazil','Maceio, Brazil','Duque de Caxias, Brazil','Natal, Brazil','Campo Grande, Brazil','Teresina, Brazil','Santos, Brazil','Nova Iguacu, Brazil','Joao Pessoa, Brazil','Osasco, Brazil','Jaboatao, Brazil','Uberlandia, Brazil','Sorocaba, Brazil','Ribeirao Preto, Brazil','Cuiaba, Brazil',
-    // MEXICO - All major cities  
+    // MEXICO - All major cities
     'Mexico City, Mexico','Guadalajara, Mexico','Monterrey, Mexico','Puebla, Mexico','Tijuana, Mexico','Leon, Mexico','Ciudad Juarez, Mexico','Zapopan, Mexico','Ecatepec, Mexico','Nezahualcoyotl, Mexico','Chihuahua, Mexico','Naucalpan, Mexico','Merida, Mexico','San Luis Potosi, Mexico','Aguascalientes, Mexico','Hermosillo, Mexico','Saltillo, Mexico','Mexicali, Mexico','Culiacan, Mexico','Guadalupe, Mexico','Cancun, Mexico','Acapulco, Mexico','Queretaro, Mexico','Morelia, Mexico','Tlalnepantla, Mexico','Toluca, Mexico','Torreon, Mexico','Veracruz, Mexico','Reynosa, Mexico','Tuxtla Gutierrez, Mexico',
     // CANADA - All major cities
     'Toronto, Canada','Montreal, Canada','Vancouver, Canada','Calgary, Canada','Edmonton, Canada','Ottawa, Canada','Winnipeg, Canada','Quebec City, Canada','Hamilton, Canada','Kitchener, Canada','London, Canada','Victoria, Canada','Halifax, Canada','Oshawa, Canada','Windsor, Canada','Saskatoon, Canada','Regina, Canada','Barrie, Canada','St. Johns, Canada','Kelowna, Canada','Sherbrooke, Canada','Kingston, Canada','Trois-Rivieres, Canada','Guelph, Canada','Moncton, Canada','Brantford, Canada','Thunder Bay, Canada','Saint John, Canada','Peterborough, Canada','Nanaimo, Canada',
@@ -29164,7 +29164,7 @@ function updateContainerOptions() {
         containerLabel.textContent = 'Araç Tipi';
     }
     
-    var options = containerOptions[freightType] && containerOptions[freightType][loadType] ? 
+    var options = containerOptions[freightType] && containerOptions[freightType][loadType] ?
                   containerOptions[freightType][loadType] : [];
     
     containerSelect.innerHTML = '<option value="">Select</option>';
@@ -29527,8 +29527,8 @@ function hasMyProposal(reqId) {
     }
     // Fallback: check quotesDB
     if (typeof quotesDB !== 'undefined' && Array.isArray(quotesDB)) {
-        return quotesDB.some(function(q) { 
-            return q.requestId === reqId && q.forwarderId === currentUser; 
+        return quotesDB.some(function(q) {
+            return q.requestId === reqId && q.forwarderId === currentUser;
         });
     }
     return false;
@@ -29554,12 +29554,12 @@ function renderForwarderRequests() {
     var list = networkRequests || [];
     
     if (requestsFilter === 'open') {
-        list = list.filter(function(r) { 
-            return r.status === 'open' && !hasMyProposal(r.id); 
+        list = list.filter(function(r) {
+            return r.status === 'open' && !hasMyProposal(r.id);
         });
     } else if (requestsFilter === 'quoted') {
-        list = list.filter(function(r) { 
-            return hasMyProposal(r.id); 
+        list = list.filter(function(r) {
+            return hasMyProposal(r.id);
         });
     }
     // 'all' = no filter
@@ -29707,8 +29707,8 @@ function openQuoteModal(requestId) {
     if (modalRequestId) modalRequestId.textContent = request.id;
     if (modalRoute) modalRoute.textContent = (request.origin || '').split(',')[0] + ' → ' + (request.destination || '').split(',')[0];
     if (modalDetails) {
-        modalDetails.textContent = 
-            (request.freight === 'sea' ? 'Sea' : request.freight === 'air' ? 'Air' : 'Land') + 
+        modalDetails.textContent =
+            (request.freight === 'sea' ? 'Sea' : request.freight === 'air' ? 'Air' : 'Land') +
             ' | ' + numberFormat(request.weight || 0) + ' kg | ' + (request.incoterm || 'FOB');
     }
     
@@ -29770,7 +29770,7 @@ function calculateAIQuoteData(request) {
     var aiSeason = document.getElementById('aiSeason');
     if (aiSeason) {
         var month = new Date().getMonth();
-        var seasonText = (month >= 9 && month <= 11) ? 'Yoğun sezon (Q4)' : 
+        var seasonText = (month >= 9 && month <= 11) ? 'Yoğun sezon (Q4)' :
                          (month >= 0 && month <= 2) ? 'Çin Yeni Yılı dönemi' : 'Normal talep dönemi';
         aiSeason.textContent = 'Sezon: ' + seasonText;
     }
@@ -29897,7 +29897,7 @@ function generateCombinationOptions(request, primaryRates) {
             cost: totalCost,
             carrier: bestPrimaryRate.carrier,
             route: originCity + ' → ' + destCity,
-            pros: freight === 'sea' ? ['En düşük maliyet', 'Büyük hacimler için ideal'] : 
+            pros: freight === 'sea' ? ['En düşük maliyet', 'Büyük hacimler için ideal'] :
                   freight === 'air' ? ['En hızlı teslimat', 'Güvenilir zamanlama'] :
                   ['Kapıdan kapıya', 'Esnek zamanlama'],
             cons: freight === 'sea' ? ['Uzun transit süresi', 'Liman bağımlılığı'] :
@@ -30308,8 +30308,8 @@ function generateOperationalReview() {
     if (incoterm === 'DDP' || incoterm === 'DAP') {
         html += '<div class="review-item">';
         html += '<span class="warning-mark">⚠</span>';
-        html += '<span>' + (lang === 'tr' 
-            ? 'Incoterm kapsam açıklaması faydalı olabilir' 
+        html += '<span>' + (lang === 'tr'
+            ? 'Incoterm kapsam açıklaması faydalı olabilir'
             : 'Incoterm scope clarification may be helpful') + '</span>';
         html += '</div>';
     }
@@ -30317,8 +30317,8 @@ function generateOperationalReview() {
     if (parseInt(validity) >= 30) {
         html += '<div class="review-item">';
         html += '<span class="warning-mark">⚠</span>';
-        html += '<span>' + (lang === 'tr' 
-            ? 'Geçerlilik açıklaması önerilir' 
+        html += '<span>' + (lang === 'tr'
+            ? 'Geçerlilik açıklaması önerilir'
             : 'Validity explanation suggested') + '</span>';
         html += '</div>';
     }
@@ -30381,9 +30381,9 @@ function submitForwarderQuote() {
     var btn = document.getElementById('quoteSubmitBtn');
     var originalText = btn ? btn.textContent : t('submitProposal');
     
-    if (btn) { 
-        btn.disabled = true; 
-        btn.textContent = t('submitting'); 
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = t('submitting');
     }
     
     try {
@@ -30488,9 +30488,9 @@ function submitForwarderQuote() {
             showRateNotification(t('warningRequestNotFound'), 'error');
         }
     } finally {
-        if (btn) { 
-            btn.disabled = false; 
-            btn.textContent = originalText; 
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = originalText;
         }
     }
 }
@@ -30505,8 +30505,8 @@ function openMessageModal(requestId) {
     var lang = currentLanguage || 'tr';
     var tr = translations[lang] || translations['tr'];
     
-    document.getElementById('messageModalTitle').textContent = lang === 'en' ? 
-        'Messaging with ' + request.shipperCompany : 
+    document.getElementById('messageModalTitle').textContent = lang === 'en' ?
+        'Messaging with ' + request.shipperCompany :
         request.shipperCompany + ' ile Mesajlaşma';
     document.getElementById('messageModalRequestId').textContent = request.id;
     document.getElementById('messageModal').classList.add('active');
@@ -31079,7 +31079,7 @@ function formatDateTracking(date) {
 }
 
 function formatDateTime(date) {
-    return date.toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' }) + ' ' + 
+    return date.toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' }) + ' ' +
            date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 }
 
@@ -32080,100 +32080,100 @@ var countryDocRequirements = {
 
 // Uluslararası belgeler (tüm ülkeler için geçerli) - Detaylı tooltip açıklamalarıyla
 var internationalCertificates = [
-    { 
-        id: 'aeo', 
-        name: 'AEO Sertifikası', 
+    {
+        id: 'aeo',
+        name: 'AEO Sertifikası',
         nameEn: 'AEO Certification',
-        icon: '🏆', 
-        points: 20, 
+        icon: '🏆',
+        points: 20,
         desc: 'Yetkilendirilmiş Ekonomik Operatör',
         descEn: 'Authorized Economic Operator',
         tooltip: 'Yüksek düzeyde gümrük uyumluluğu ve operasyonel güvenilirlik gösterir. AEO statüsüne sahip forwarder\'lar daha hızlı gümrük süreçleri ve artırılmış güvenden yararlanır.',
         tooltipEn: 'Indicates a high level of customs compliance and operational reliability. Forwarders with AEO status benefit from faster customs processes and enhanced trust.'
     },
-    { 
-        id: 'iso9001', 
-        name: 'ISO 9001', 
+    {
+        id: 'iso9001',
+        name: 'ISO 9001',
         nameEn: 'ISO 9001',
-        icon: '📋', 
-        points: 15, 
+        icon: '📋',
+        points: 15,
         desc: 'Kalite Yönetim Sistemi',
         descEn: 'Quality Management System',
         tooltip: 'Forwarder\'ın uluslararası kabul görmüş bir kalite yönetim sistemi altında çalıştığını ve tutarlı hizmet standartları sağladığını doğrular.',
         tooltipEn: 'Confirms the forwarder operates under an internationally recognized quality management system, ensuring consistent service standards.'
     },
-    { 
-        id: 'iso14001', 
-        name: 'ISO 14001', 
+    {
+        id: 'iso14001',
+        name: 'ISO 14001',
         nameEn: 'ISO 14001',
-        icon: '🌿', 
-        points: 10, 
+        icon: '🌿',
+        points: 10,
         desc: 'Çevre Yönetim Sistemi',
         descEn: 'Environmental Management System',
         tooltip: 'Çevresel sorumluluk ve sürdürülebilir lojistik operasyonlarına bağlılığı gösterir.',
         tooltipEn: 'Shows commitment to environmental responsibility and sustainable logistics operations.'
     },
-    { 
-        id: 'iata', 
-        name: 'IATA Akreditasyonu', 
+    {
+        id: 'iata',
+        name: 'IATA Akreditasyonu',
         nameEn: 'IATA Accreditation',
-        icon: '✈️', 
-        points: 15, 
+        icon: '✈️',
+        points: 15,
         desc: 'Hava kargo için',
         descEn: 'For air cargo',
         tooltip: 'Doğrudan hava kargo operasyonları için gereklidir. Forwarder\'ın Hava Konşimentosu düzenleme ve havayollarıyla doğrudan çalışma yetkisine sahip olduğunu garanti eder.',
         tooltipEn: 'Required for direct air cargo operations. Ensures the forwarder is authorized to issue Air Waybills and work directly with airlines.'
     },
-    { 
-        id: 'fiata', 
-        name: 'FIATA Üyeliği', 
+    {
+        id: 'fiata',
+        name: 'FIATA Üyeliği',
         nameEn: 'FIATA Membership',
-        icon: '🌐', 
-        points: 10, 
+        icon: '🌐',
+        points: 10,
         desc: 'Uluslararası FF birliği',
         descEn: 'International FF association',
         tooltip: 'Uluslararası Taşıma Acenteleri Birliği Federasyonu üyeliği. Küresel standartlara uyumu ve mesleki güvenilirliği gösterir.',
         tooltipEn: 'International Federation of Freight Forwarders Associations membership. Shows compliance with global standards and professional reliability.'
     },
-    { 
-        id: 'wca', 
-        name: 'WCA/GPLN Network', 
+    {
+        id: 'wca',
+        name: 'WCA/GPLN Network',
         nameEn: 'WCA/GPLN Membership',
-        icon: '🔗', 
-        points: 10, 
+        icon: '🔗',
+        points: 10,
         desc: 'Global agent ağı',
         descEn: 'Global agent network',
         tooltip: 'Küresel navlun ağında üyelik gösterir, genişletilmiş uluslararası erişim ve partner güvenilirliği sağlar.',
         tooltipEn: 'Indicates membership in a global freight network, providing extended international reach and partner reliability.'
     },
-    { 
-        id: 'gdp', 
-        name: 'GDP Sertifikası', 
+    {
+        id: 'gdp',
+        name: 'GDP Sertifikası',
         nameEn: 'GDP Certification',
-        icon: '💊', 
-        points: 20, 
+        icon: '💊',
+        points: 20,
         desc: 'İlaç taşımacılığı',
         descEn: 'Pharmaceutical transport',
         tooltip: 'Farmasötik ve sıcaklık kontrollü sevkiyatlar için gereklidir. İyi Dağıtım Uygulamalarına uyumu garanti eder.',
         tooltipEn: 'Required for pharmaceutical and temperature-controlled shipments. Ensures compliance with Good Distribution Practices.'
     },
-    { 
-        id: 'ctpat', 
-        name: 'C-TPAT', 
+    {
+        id: 'ctpat',
+        name: 'C-TPAT',
         nameEn: 'C-TPAT',
-        icon: '🛡️', 
-        points: 25, 
+        icon: '🛡️',
+        points: 25,
         desc: 'ABD güvenlik programı',
         descEn: 'US security program',
         tooltip: 'Gümrük-Ticaret Terörle Mücadele Ortaklığı. ABD\'ye yapılan sevkiyatlar için güvenlik standartlarını doğrular.',
         tooltipEn: 'Customs-Trade Partnership Against Terrorism. Verifies security standards for shipments to the United States.'
     },
-    { 
-        id: 'duns', 
-        name: 'D-U-N-S Number', 
+    {
+        id: 'duns',
+        name: 'D-U-N-S Number',
         nameEn: 'D-U-N-S Number',
-        icon: '📊', 
-        points: 10, 
+        icon: '📊',
+        points: 10,
         desc: 'Dun & Bradstreet',
         descEn: 'Dun & Bradstreet',
         tooltip: 'Uluslararası iş kimlik numarası. Şirketin finansal güvenilirliğini ve ticari geçmişini doğrulamak için kullanılır.',
@@ -32686,7 +32686,7 @@ function getDocIcon(iconType) {
 // Ülke bayrağı (metin olarak)
 function getCountryFlag(code) {
     var flags = {
-        'TR': 'TR', 'DE': 'DE', 'FR': 'FR', 'IT': 'IT', 'ES': 'ES', 
+        'TR': 'TR', 'DE': 'DE', 'FR': 'FR', 'IT': 'IT', 'ES': 'ES',
         'NL': 'NL', 'BE': 'BE', 'PL': 'PL', 'AT': 'AT', 'CH': 'CH',
         'GR': 'GR', 'GB': 'GB', 'US': 'US', 'CN': 'CN', 'AE': 'AE',
         'IN': 'IN', 'SG': 'SG', 'OTHER': '--'
@@ -33519,8 +33519,8 @@ async function saveRequestToSupabase(requestData) {
 // Tüm teklifleri Supabase'den çek
 async function loadQuotesFromSupabase(requestId) {
     if (!supabase) {
-        return quotesDB.filter(function(q) { 
-            return !requestId || q.requestId === requestId; 
+        return quotesDB.filter(function(q) {
+            return !requestId || q.requestId === requestId;
         });
     }
     
