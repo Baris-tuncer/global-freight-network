@@ -18601,69 +18601,65 @@
             </div>
             
             <script>
-            // Basit tab switching - doğrudan burada tanımlı
+            // Basit tab switching - sadece My Rates içindeki tabları değiştirir
             function switchRateTab(tabName) {
                 console.log('switchRateTab called:', tabName);
                 
-                // ÖNCE: Parent section'ın görünür olduğundan emin ol
-                var parentSection = document.getElementById('forwarderRatesSection');
-                if (parentSection) {
-                    parentSection.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
-                    console.log('Parent section made visible');
-                }
-                
                 // Tüm butonlardan active kaldır
-                var btns = ['btnSeaFreight', 'btnPreCarriage', 'btnOnCarriage', 'btnTerminal', 'btnForeignCustoms', 'btnMyRates'];
-                btns.forEach(function(id) {
-                    var el = document.getElementById(id);
-                    if (el) el.classList.remove('active');
-                });
+                document.getElementById('btnSeaFreight').className = 'rates-tab';
+                document.getElementById('btnPreCarriage').className = 'rates-tab';
+                document.getElementById('btnOnCarriage').className = 'rates-tab';
+                document.getElementById('btnTerminal').className = 'rates-tab';
+                document.getElementById('btnForeignCustoms').className = 'rates-tab';
+                document.getElementById('btnMyRates').className = 'rates-tab';
                 
-                // Tıklanan butona active ekle
-                var btnId = 'btn' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
-                var btn = document.getElementById(btnId);
-                if (btn) btn.classList.add('active');
+                // Tüm tab içeriklerini gizle - doğrudan element referansı ile
+                document.getElementById('seaFreightTab').style.display = 'none';
+                document.getElementById('preCarriageTab').style.display = 'none';
+                document.getElementById('onCarriageTab').style.display = 'none';
+                document.getElementById('terminalTab').style.display = 'none';
+                document.getElementById('foreignCustomsTab').style.display = 'none';
+                document.getElementById('myRatesTab').style.display = 'none';
                 
-                // Tüm tab içeriklerini gizle
-                var tabs = ['seaFreightTab', 'preCarriageTab', 'onCarriageTab', 'terminalTab', 'foreignCustomsTab', 'myRatesTab'];
-                tabs.forEach(function(id) {
-                    var el = document.getElementById(id);
-                    if (el) el.style.cssText = 'display: none !important';
-                });
-                
-                // Seçilen tab'ı göster
-                var targetTab = document.getElementById(tabName + 'Tab');
-                if (targetTab) {
-                    targetTab.style.cssText = 'display: block !important';
-                    console.log('Tab shown:', tabName + 'Tab');
-                }
-                
-                // Tab'a göre dropdown'ları doldur ve data yükle
+                // Seçilen tab'ı göster ve butonu aktif yap
                 if (tabName === 'seaFreight') {
+                    document.getElementById('btnSeaFreight').className = 'rates-tab active';
+                    document.getElementById('seaFreightTab').style.display = 'block';
                     if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
                     if (typeof setDefaultDates === 'function') setDefaultDates();
                 } else if (tabName === 'preCarriage') {
+                    document.getElementById('btnPreCarriage').className = 'rates-tab active';
+                    document.getElementById('preCarriageTab').style.display = 'block';
                     if (typeof populateTurkishCities === 'function') populateTurkishCities();
                     if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
                     if (typeof setDefaultDates === 'function') setDefaultDates();
                 } else if (tabName === 'onCarriage') {
+                    document.getElementById('btnOnCarriage').className = 'rates-tab active';
+                    document.getElementById('onCarriageTab').style.display = 'block';
                     if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
                     if (typeof setDefaultDates === 'function') setDefaultDates();
                 } else if (tabName === 'terminal') {
+                    document.getElementById('btnTerminal').className = 'rates-tab active';
+                    document.getElementById('terminalTab').style.display = 'block';
                     if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
                     if (typeof setDefaultDates === 'function') setDefaultDates();
                 } else if (tabName === 'foreignCustoms') {
+                    document.getElementById('btnForeignCustoms').className = 'rates-tab active';
+                    document.getElementById('foreignCustomsTab').style.display = 'block';
                     if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
                     if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
                     if (typeof setDefaultDates === 'function') setDefaultDates();
                 } else if (tabName === 'myRates') {
-                    // Load saved rates using the new function
+                    document.getElementById('btnMyRates').className = 'rates-tab active';
+                    document.getElementById('myRatesTab').style.display = 'block';
                     if (typeof renderSavedRatesListNew === 'function') {
                         renderSavedRatesListNew();
                     } else if (typeof updateMyRatesList === 'function') {
                         updateMyRatesList();
                     }
                 }
+                
+                console.log('Tab shown:', tabName + 'Tab');
             }
             </script>
             
@@ -18832,10 +18828,6 @@
             
             <!-- PRE-CARRIAGE (Fabrika → Liman) -->
             <div id="preCarriageTab" class="rates-tab-content" style="display:none;">
-                
-                    
-                </div>
-                
                 <!-- Manual Entry Form -->
                 <div class="rate-form-card">
                     <div class="form-card-header land">
@@ -18899,9 +18891,6 @@
             
             <!-- ON-CARRIAGE (Liman → Depo) -->
             <div id="onCarriageTab" class="rates-tab-content" style="display:none;">
-                
-                    
-                </div>
                 <div class="rate-form-card">
                     <div class="form-card-header on-carriage">
                         <span class="form-icon">🚚</span>
