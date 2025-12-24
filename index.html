@@ -20254,15 +20254,17 @@
 
 <script>
 // ============================================
-// GLOBAL TAB SWITCHING - CLEAN VERSION
+// GLOBAL TAB SWITCHING - BULLETPROOF VERSION
 // ============================================
 window.switchRateTab = function(tabName) {
+    // DEBUG ALERT - Bu görünmezse script yüklenmemiştir
+    alert('TAB TIKLANDIĞINI ALGILADI: ' + tabName);
     console.log('switchRateTab called:', tabName);
     
-    // 1. Hide all tab contents
+    // 1. Hide all tab contents - FORCE with inline style
     var allTabs = document.querySelectorAll('.rates-tab-content');
     for (var i = 0; i < allTabs.length; i++) {
-        allTabs[i].style.display = 'none';
+        allTabs[i].style.cssText = 'display: none !important;';
         allTabs[i].classList.remove('active');
     }
     
@@ -20272,15 +20274,17 @@ window.switchRateTab = function(tabName) {
         allBtns[j].classList.remove('active');
     }
     
-    // 3. Show target tab
+    // 3. Show target tab - FORCE with inline style
     var tabId = tabName + 'Tab';
     var targetTab = document.getElementById(tabId);
     if (targetTab) {
-        targetTab.style.display = 'block';
+        targetTab.style.cssText = 'display: block !important;';
         targetTab.classList.add('active');
         console.log('Tab shown:', tabId);
     } else {
+        alert('HATA: ' + tabId + ' bulunamadı!');
         console.error('Tab not found:', tabId);
+        return;
     }
     
     // 4. Activate target button
@@ -20297,17 +20301,36 @@ window.switchRateTab = function(tabName) {
         targetBtn.classList.add('active');
     }
     
-    // 5. Populate data (delayed, error-isolated)
+    // 5. Populate data (delayed, completely error-isolated)
     setTimeout(function() {
         try {
-            if (tabName === 'seaFreight' && typeof populatePortDropdowns === 'function') populatePortDropdowns();
-            if (tabName === 'preCarriage' && typeof populateTurkishCities === 'function') populateTurkishCities();
-            if (tabName === 'preCarriage' && typeof populatePortDropdowns === 'function') populatePortDropdowns();
-            if (tabName === 'onCarriage' && typeof populateCountryDropdown === 'function') populateCountryDropdown();
-            if (tabName === 'terminal' && typeof populatePortDropdowns === 'function') populatePortDropdowns();
-            if (tabName === 'foreignCustoms' && typeof populateCountryDropdown === 'function') populateCountryDropdown();
-            if (tabName === 'foreignCustoms' && typeof populatePortDropdowns === 'function') populatePortDropdowns();
-            if (tabName === 'myRates' && typeof renderSavedRatesListNew === 'function') renderSavedRatesListNew();
+            if (tabName === 'seaFreight') {
+                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+            } else if (tabName === 'preCarriage') {
+                if (typeof populateTurkishCities === 'function') populateTurkishCities();
+                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+            } else if (tabName === 'onCarriage') {
+                if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
+            } else if (tabName === 'terminal') {
+                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+            } else if (tabName === 'foreignCustoms') {
+                if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
+                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+            } else if (tabName === 'myRates') {
+                // Async function - call and catch errors
+                if (typeof renderSavedRatesListNew === 'function') {
+                    try {
+                        var result = renderSavedRatesListNew();
+                        if (result && typeof result.catch === 'function') {
+                            result.catch(function(err) {
+                                console.warn('renderSavedRatesListNew error:', err);
+                            });
+                        }
+                    } catch(e) {
+                        console.warn('renderSavedRatesListNew sync error:', e);
+                    }
+                }
+            }
             if (typeof setDefaultDates === 'function') setDefaultDates();
         } catch(e) {
             console.warn('Data populate error:', e);
@@ -20315,6 +20338,7 @@ window.switchRateTab = function(tabName) {
     }, 100);
 };
 window.openRateTab = window.switchRateTab;
+alert('switchRateTab FONKSIYONU YUKLENDI!');
 console.log('switchRateTab ready');
 
 // ============================================
@@ -35108,23 +35132,32 @@ document.addEventListener('DOMContentLoaded', function() {
  * Save a freight rate to Supabase
  */
 async function saveRateToSupabase(rateData) {
+    // If Supabase is not available, use localStorage directly
+    if (!supabase) {
+        console.log('Supabase not available, using localStorage');
+        return saveRateToLocalStorage(rateData);
+    }
+    
     try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        var userData = await supabase.auth.getUser();
+        var user = userData && userData.data ? userData.data.user : null;
+        var userError = userData ? userData.error : null;
+        
         if (userError || !user) {
             console.warn('User not authenticated, using localStorage fallback');
             return saveRateToLocalStorage(rateData);
         }
 
-        const dataToInsert = { ...rateData, user_id: user.id };
-        const { data, error } = await supabase
+        var dataToInsert = Object.assign({}, rateData, { user_id: user.id });
+        var result = await supabase
             .from('freight_rates')
             .insert([dataToInsert])
             .select()
             .single();
 
-        if (error) throw error;
-        console.log('Rate saved to Supabase:', data);
-        return { success: true, data };
+        if (result.error) throw result.error;
+        console.log('Rate saved to Supabase:', result.data);
+        return { success: true, data: result.data };
     } catch (error) {
         console.error('Supabase save error:', error);
         // Fallback to localStorage
@@ -35136,14 +35169,22 @@ async function saveRateToSupabase(rateData) {
  * Load freight rates from Supabase
  */
 async function loadRatesFromSupabase(rateType = 'all') {
+    // If Supabase is not available, use localStorage directly
+    if (!supabase) {
+        console.log('Supabase not available, using localStorage');
+        return loadRatesFromLocalStorage(rateType);
+    }
+    
     try {
-        const { data: { user } } = await supabase.auth.getUser();
+        var userData = await supabase.auth.getUser();
+        var user = userData && userData.data ? userData.data.user : null;
+        
         if (!user) {
             console.warn('User not authenticated, using localStorage fallback');
             return loadRatesFromLocalStorage(rateType);
         }
 
-        let query = supabase
+        var query = supabase
             .from('freight_rates')
             .select('*')
             .eq('user_id', user.id)
@@ -35153,11 +35194,11 @@ async function loadRatesFromSupabase(rateType = 'all') {
             query = query.eq('rate_type', rateType);
         }
 
-        const { data, error } = await query;
-        if (error) throw error;
+        var result = await query;
+        if (result.error) throw result.error;
         
-        console.log(`Loaded ${data.length} rates from Supabase`);
-        return { success: true, data: data || [] };
+        console.log('Loaded ' + (result.data ? result.data.length : 0) + ' rates from Supabase');
+        return { success: true, data: result.data || [] };
     } catch (error) {
         console.error('Supabase load error:', error);
         return loadRatesFromLocalStorage(rateType);
@@ -35168,13 +35209,18 @@ async function loadRatesFromSupabase(rateType = 'all') {
  * Delete a freight rate from Supabase
  */
 async function deleteRateFromSupabase(rateId) {
+    // If Supabase is not available, use localStorage directly
+    if (!supabase) {
+        return deleteRateFromLocalStorage(rateId);
+    }
+    
     try {
-        const { error } = await supabase
+        var result = await supabase
             .from('freight_rates')
             .delete()
             .eq('id', rateId);
 
-        if (error) throw error;
+        if (result.error) throw result.error;
         return { success: true };
     } catch (error) {
         console.error('Supabase delete error:', error);
