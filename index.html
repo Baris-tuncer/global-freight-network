@@ -27271,38 +27271,33 @@ function resetCalculator() {
 
 // Rates Tab Switching
 function showRatesTab(tabName) {
-    console.log('=== showRatesTab called ===');
-    console.log('Tab name:', tabName);
+    console.log('showRatesTab:', tabName);
     
     // Tab butonlarını güncelle
     document.querySelectorAll('.rates-tab').forEach(function(tab) {
         tab.classList.remove('active');
+        if (tab.textContent.toLowerCase().includes(tabName.toLowerCase().replace('carriage','').replace('sea','').replace('freight','')) || 
+            (tabName === 'seaFreight' && tab.textContent.includes('Sea')) ||
+            (tabName === 'preCarriage' && tab.textContent.includes('Pre')) ||
+            (tabName === 'onCarriage' && tab.textContent.includes('On-')) ||
+            (tabName === 'terminal' && tab.textContent.includes('Terminal')) ||
+            (tabName === 'foreignCustoms' && tab.textContent.includes('Foreign')) ||
+            (tabName === 'myRates' && tab.textContent.includes('Saved'))) {
+            tab.classList.add('active');
+        }
     });
-    // Tıklanan butonu aktif yap
-    if (event && event.target) {
-        event.target.classList.add('active');
-    }
     
-    // Tüm içerikleri gizle (hem class hem style ile)
-    var allTabs = document.querySelectorAll('.rates-tab-content');
-    console.log('Found tabs:', allTabs.length);
-    allTabs.forEach(function(content) {
+    // Tüm içerikleri gizle
+    document.querySelectorAll('.rates-tab-content').forEach(function(content) {
         content.classList.remove('active');
         content.style.display = 'none';
     });
     
-    // Aktif içeriği göster (hem class hem style ile)
-    var targetId = tabName + 'Tab';
-    var activeContent = document.getElementById(targetId);
-    console.log('Looking for:', targetId);
-    console.log('Found element:', activeContent ? 'YES' : 'NO');
-    
+    // Aktif içeriği göster
+    var activeContent = document.getElementById(tabName + 'Tab');
     if (activeContent) {
         activeContent.classList.add('active');
         activeContent.style.display = 'block';
-        console.log('Activated:', targetId);
-    } else {
-        console.error('Element not found:', targetId);
     }
     
     // Dropdown'ları doldur
@@ -28130,20 +28125,20 @@ function renderClientQuotes() {
             '<div class="quote-status ' + statusClass + '">' + statusText + '</div>' +
             '</div>' +
             '<div class="quote-route">' +
-            '<span class="route-origin">TR - ' + quote.origin + '</span>' +
+            '<span class="route-origin">TR - ' + (quote.origin || 'Origin') + '</span>' +
             '<span class="route-arrow">→</span>' +
-            '<span class="route-dest">' + quote.destination + '</span>' +
-            '<span class="route-container">' + quote.containerType + '</span>' +
+            '<span class="route-dest">' + (quote.destination || 'Destination') + '</span>' +
+            '<span class="route-container">' + (quote.containerType || '') + '</span>' +
             '</div>' +
             '<div class="quote-details">' +
-            '<div class="quote-detail"><span>Freight Rate:</span> <strong>$' + quote.freightRate.toLocaleString() + '</strong></div>' +
-            '<div class="quote-detail"><span>Transit:</span> ' + quote.transitDays + ' days</div>' +
+            '<div class="quote-detail"><span>Freight Rate:</span> <strong>$' + (quote.freightRate || quote.baseRate || 0).toLocaleString() + '</strong></div>' +
+            '<div class="quote-detail"><span>Transit:</span> ' + (quote.transitDays || quote.transit || 0) + ' days</div>' +
             '</div>' +
             '<div class="quote-total">' +
             '<span>Total Price:</span>' +
-            '<span class="total-price">$' + quote.totalPrice.toLocaleString() + '</span>' +
+            '<span class="total-price">$' + (quote.totalPrice || quote.freightRate || quote.baseRate || 0).toLocaleString() + '</span>' +
             '</div>' +
-            '<div class="quote-valid">Validity: ' + quote.validUntil + '</div>' +
+            '<div class="quote-valid">Validity: ' + (quote.validUntil || 'N/A') + '</div>' +
             '<div class="quote-actions">';
         
         if (quote.status === 'pending') {
@@ -29251,23 +29246,23 @@ function updateMyRatesList() {
         if (rate.type === 'sea') {
             title = rate.originPortName + ' → ' + rate.destPortName;
             subtitle = rate.containerType + ' • ' + rate.transit + ' days';
-            price = '$' + rate.freightRate.toLocaleString();
+            price = '$' + (rate.baseRate || rate.freightRate || 0).toLocaleString();
         } else if (rate.type === 'pre') {
             title = rate.originCity + ' → ' + rate.destPortName;
             subtitle = rate.containerType + ' • ' + rate.transit + ' days';
-            price = '$' + rate.rate.toLocaleString();
+            price = '$' + (rate.rate || 0).toLocaleString();
         } else if (rate.type === 'on') {
-            title = rate.originPortName + ' → ' + rate.destCity;
-            subtitle = rate.countryName + ' • ' + rate.containerType;
-            price = (rate.currency === 'EUR' ? '€' : rate.currency === 'GBP' ? '£' : '$') + rate.rate.toLocaleString();
+            title = (rate.originPortName || 'Port') + ' → ' + (rate.destCity || 'City');
+            subtitle = (rate.countryName || '') + ' • ' + (rate.containerType || '');
+            price = (rate.currency === 'EUR' ? '€' : rate.currency === 'GBP' ? '£' : '$') + (rate.rate || 0).toLocaleString();
         } else if (rate.type === 'fc') {
-            title = rate.countryName + ' - ' + rate.portName;
-            subtitle = rate.containerType + ' • Partner: ' + (rate.partnerName || 'Belirtilmedi');
-            price = (rate.currency === 'EUR' ? '€' : rate.currency === 'GBP' ? '£' : '$') + rate.customsFee.toLocaleString();
+            title = (rate.countryName || '') + ' - ' + (rate.portName || 'Port');
+            subtitle = (rate.containerType || '') + ' • Partner: ' + (rate.partnerName || 'N/A');
+            price = (rate.currency === 'EUR' ? '€' : rate.currency === 'GBP' ? '£' : '$') + (rate.customsFee || 0).toLocaleString();
         } else {
-            title = rate.portName;
-            subtitle = (rate.thcType === 'origin' ? 'Origin THC' : 'Dest THC') + ' • ' + rate.containerType;
-            price = '$' + rate.rate.toLocaleString();
+            title = rate.portName || 'Port';
+            subtitle = (rate.thcType === 'origin' ? 'Origin THC' : 'Dest THC') + ' • ' + (rate.containerType || '');
+            price = '$' + (rate.rate || 0).toLocaleString();
         }
         
         html += '<div class="rate-item" data-type="' + rate.type + '">' +
