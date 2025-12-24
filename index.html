@@ -18597,88 +18597,6 @@
                 </button>
             </div>
             
-            <script>
-            // Basit tab switching - sadece My Rates içindeki tabları değiştirir
-            // Global scope'da tanımla
-            window.switchRateTab = function(tabName) {
-                console.log('switchRateTab called:', tabName);
-                
-                try {
-                    // Tüm butonlardan active kaldır
-                    var btnSeaFreight = document.getElementById('btnSeaFreight');
-                    var btnPreCarriage = document.getElementById('btnPreCarriage');
-                    var btnOnCarriage = document.getElementById('btnOnCarriage');
-                    var btnTerminal = document.getElementById('btnTerminal');
-                    var btnForeignCustoms = document.getElementById('btnForeignCustoms');
-                    var btnMyRates = document.getElementById('btnMyRates');
-                    
-                    if (btnSeaFreight) btnSeaFreight.className = 'rates-tab';
-                    if (btnPreCarriage) btnPreCarriage.className = 'rates-tab';
-                    if (btnOnCarriage) btnOnCarriage.className = 'rates-tab';
-                    if (btnTerminal) btnTerminal.className = 'rates-tab';
-                    if (btnForeignCustoms) btnForeignCustoms.className = 'rates-tab';
-                    if (btnMyRates) btnMyRates.className = 'rates-tab';
-                    
-                    // Tüm tab içeriklerini gizle
-                    var seaFreightTab = document.getElementById('seaFreightTab');
-                    var preCarriageTab = document.getElementById('preCarriageTab');
-                    var onCarriageTab = document.getElementById('onCarriageTab');
-                    var terminalTab = document.getElementById('terminalTab');
-                    var foreignCustomsTab = document.getElementById('foreignCustomsTab');
-                    var myRatesTab = document.getElementById('myRatesTab');
-                    
-                    if (seaFreightTab) seaFreightTab.style.display = 'none';
-                    if (preCarriageTab) preCarriageTab.style.display = 'none';
-                    if (onCarriageTab) onCarriageTab.style.display = 'none';
-                    if (terminalTab) terminalTab.style.display = 'none';
-                    if (foreignCustomsTab) foreignCustomsTab.style.display = 'none';
-                    if (myRatesTab) myRatesTab.style.display = 'none';
-                    
-                    // Seçilen tab'ı göster ve butonu aktif yap
-                    if (tabName === 'seaFreight') {
-                        if (btnSeaFreight) btnSeaFreight.className = 'rates-tab active';
-                        if (seaFreightTab) seaFreightTab.style.display = 'block';
-                        if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                        if (typeof setDefaultDates === 'function') setDefaultDates();
-                    } else if (tabName === 'preCarriage') {
-                        if (btnPreCarriage) btnPreCarriage.className = 'rates-tab active';
-                        if (preCarriageTab) preCarriageTab.style.display = 'block';
-                        if (typeof populateTurkishCities === 'function') populateTurkishCities();
-                        if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                        if (typeof setDefaultDates === 'function') setDefaultDates();
-                    } else if (tabName === 'onCarriage') {
-                        if (btnOnCarriage) btnOnCarriage.className = 'rates-tab active';
-                        if (onCarriageTab) onCarriageTab.style.display = 'block';
-                        if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
-                        if (typeof setDefaultDates === 'function') setDefaultDates();
-                    } else if (tabName === 'terminal') {
-                        if (btnTerminal) btnTerminal.className = 'rates-tab active';
-                        if (terminalTab) terminalTab.style.display = 'block';
-                        if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                        if (typeof setDefaultDates === 'function') setDefaultDates();
-                    } else if (tabName === 'foreignCustoms') {
-                        if (btnForeignCustoms) btnForeignCustoms.className = 'rates-tab active';
-                        if (foreignCustomsTab) foreignCustomsTab.style.display = 'block';
-                        if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
-                        if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                        if (typeof setDefaultDates === 'function') setDefaultDates();
-                    } else if (tabName === 'myRates') {
-                        if (btnMyRates) btnMyRates.className = 'rates-tab active';
-                        if (myRatesTab) myRatesTab.style.display = 'block';
-                        if (typeof renderSavedRatesListNew === 'function') {
-                            renderSavedRatesListNew();
-                        } else if (typeof updateMyRatesList === 'function') {
-                            updateMyRatesList();
-                        }
-                    }
-                    
-                    console.log('Tab shown:', tabName);
-                } catch (err) {
-                    console.error('switchRateTab error:', err);
-                }
-            }
-            </script>
-            
             <!-- DENİZ NAVLUN FİYATI GİRİŞİ -->
             <div id="seaFreightTab" class="rates-tab-content active" style="display:block;">
                 
@@ -35029,6 +34947,20 @@ console.log('Supabase client initialized');
 async function checkSession() {
     console.log('Checking session...');
     
+    // Eğer kullanıcı zaten bir dashboard'da ise session kontrolü yapma
+    var clientDash = document.getElementById('clientDashboard');
+    var forwarderDash = document.getElementById('forwarderDashboard');
+    var carrierDash = document.getElementById('carrierDashboard');
+    
+    var isInDashboard = (clientDash && !clientDash.classList.contains('hidden')) ||
+                        (forwarderDash && !forwarderDash.classList.contains('hidden')) ||
+                        (carrierDash && !carrierDash.classList.contains('hidden'));
+    
+    if (isInDashboard) {
+        console.log('User already in dashboard, skipping session check');
+        return true;
+    }
+    
     try {
         // Supabase session kontrolü
         if (typeof supabase !== 'undefined') {
@@ -35274,8 +35206,8 @@ async function saveSeaFreightRateNew(event) {
             if (typeof setDefaultDates === 'function') setDefaultDates();
             if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
             // Switch to Saved Rates tab after successful save
-            if (typeof switchRateTab === 'function') {
-                setTimeout(function() { switchRateTab('myRates'); }, 500);
+            if (typeof window.switchRateTab === 'function') {
+                setTimeout(function() { window.switchRateTab('myRates'); }, 500);
             }
         } else {
             showRateNotification('Error: ' + (result.error || 'Unknown error'), 'error');
@@ -35317,8 +35249,11 @@ async function savePreCarriageRateNew(event) {
         if (result.success) {
             showRateNotification('✅ Pre-Carriage rate saved! ' + rateData.origin_city + ' → ' + rateData.destination_port_name, 'success');
             document.getElementById('preCarriageForm')?.reset();
-            setDefaultDates();
-            await renderSavedRatesListNew();
+            if (typeof setDefaultDates === 'function') setDefaultDates();
+            // Switch to Saved Rates tab after successful save
+            if (typeof window.switchRateTab === 'function') {
+                setTimeout(function() { window.switchRateTab('myRates'); }, 500);
+            }
         } else {
             showRateNotification('Error: ' + result.error, 'error');
         }
@@ -35356,8 +35291,11 @@ async function saveOnCarriageRateNew(event) {
         if (result.success) {
             showRateNotification('✅ On-Carriage rate saved!', 'success');
             document.getElementById('onCarriageForm')?.reset();
-            setDefaultDates();
-            await renderSavedRatesListNew();
+            if (typeof setDefaultDates === 'function') setDefaultDates();
+            // Switch to Saved Rates tab after successful save
+            if (typeof window.switchRateTab === 'function') {
+                setTimeout(function() { window.switchRateTab('myRates'); }, 500);
+            }
         } else {
             showRateNotification('Error: ' + result.error, 'error');
         }
@@ -35390,8 +35328,11 @@ async function saveTerminalRateNew(event) {
         if (result.success) {
             showRateNotification('✅ Terminal rate saved!', 'success');
             document.getElementById('terminalForm')?.reset();
-            setDefaultDates();
-            await renderSavedRatesListNew();
+            if (typeof setDefaultDates === 'function') setDefaultDates();
+            // Switch to Saved Rates tab after successful save
+            if (typeof window.switchRateTab === 'function') {
+                setTimeout(function() { window.switchRateTab('myRates'); }, 500);
+            }
         } else {
             showRateNotification('Error: ' + result.error, 'error');
         }
@@ -35427,8 +35368,11 @@ async function saveForeignCustomsRateNew(event) {
         if (result.success) {
             showRateNotification('✅ Customs rate saved!', 'success');
             document.getElementById('foreignCustomsForm')?.reset();
-            setDefaultDates();
-            await renderSavedRatesListNew();
+            if (typeof setDefaultDates === 'function') setDefaultDates();
+            // Switch to Saved Rates tab after successful save
+            if (typeof window.switchRateTab === 'function') {
+                setTimeout(function() { window.switchRateTab('myRates'); }, 500);
+            }
         } else {
             showRateNotification('Error: ' + result.error, 'error');
         }
@@ -35577,7 +35521,112 @@ window.updateMyRatesList = renderSavedRatesListNew;
 window.deleteRateNew = deleteRateNew;
 window.filterSavedRatesNew = filterSavedRatesNew;
 
+// ============================================
+// RATE TAB SWITCHING - GLOBAL FUNCTION
+// ============================================
+// Robust tab switching - UI first, then populate
+function openRateTab(tabName) {
+    console.log('openRateTab called:', tabName);
+    
+    // STEP 1: UI DEĞİŞİKLİĞİ (ÖNCE - GARANTİLİ ÇALIŞIR)
+    // Tab button IDs
+    var buttonIds = ['btnSeaFreight', 'btnPreCarriage', 'btnOnCarriage', 'btnTerminal', 'btnForeignCustoms', 'btnMyRates'];
+    
+    // Tab content IDs
+    var contentIds = ['seaFreightTab', 'preCarriageTab', 'onCarriageTab', 'terminalTab', 'foreignCustomsTab', 'myRatesTab'];
+    
+    // Button-Tab mapping
+    var tabMapping = {
+        'seaFreight': { btn: 'btnSeaFreight', tab: 'seaFreightTab' },
+        'preCarriage': { btn: 'btnPreCarriage', tab: 'preCarriageTab' },
+        'onCarriage': { btn: 'btnOnCarriage', tab: 'onCarriageTab' },
+        'terminal': { btn: 'btnTerminal', tab: 'terminalTab' },
+        'foreignCustoms': { btn: 'btnForeignCustoms', tab: 'foreignCustomsTab' },
+        'myRates': { btn: 'btnMyRates', tab: 'myRatesTab' }
+    };
+    
+    // Remove active class from all buttons
+    for (var i = 0; i < buttonIds.length; i++) {
+        var btn = document.getElementById(buttonIds[i]);
+        if (btn) {
+            btn.className = 'rates-tab';
+        }
+    }
+    
+    // Hide all tab contents
+    for (var j = 0; j < contentIds.length; j++) {
+        var tab = document.getElementById(contentIds[j]);
+        if (tab) {
+            tab.style.display = 'none';
+            tab.classList.remove('active');
+        }
+    }
+    
+    // Get target IDs
+    var mapping = tabMapping[tabName];
+    if (!mapping) {
+        console.error('Unknown tab:', tabName);
+        return;
+    }
+    
+    // Activate button
+    var targetBtn = document.getElementById(mapping.btn);
+    if (targetBtn) {
+        targetBtn.className = 'rates-tab active';
+    }
+    
+    // Show tab content
+    var targetTab = document.getElementById(mapping.tab);
+    if (targetTab) {
+        targetTab.style.display = 'block';
+        targetTab.classList.add('active');
+    }
+    
+    console.log('UI updated for tab:', tabName);
+    
+    // STEP 2: VERİ DOLDURMA (SONRA - HATA OLSA BİLE TAB AÇIK KALIR)
+    setTimeout(function() {
+        try {
+            if (tabName === 'seaFreight') {
+                try { if (typeof populatePortDropdowns === 'function') populatePortDropdowns(); } catch(e) { console.warn('populatePortDropdowns error:', e); }
+                try { if (typeof setDefaultDates === 'function') setDefaultDates(); } catch(e) { console.warn('setDefaultDates error:', e); }
+            } else if (tabName === 'preCarriage') {
+                try { if (typeof populateTurkishCities === 'function') populateTurkishCities(); } catch(e) { console.warn('populateTurkishCities error:', e); }
+                try { if (typeof populatePortDropdowns === 'function') populatePortDropdowns(); } catch(e) { console.warn('populatePortDropdowns error:', e); }
+                try { if (typeof setDefaultDates === 'function') setDefaultDates(); } catch(e) { console.warn('setDefaultDates error:', e); }
+            } else if (tabName === 'onCarriage') {
+                try { if (typeof populateCountryDropdown === 'function') populateCountryDropdown(); } catch(e) { console.warn('populateCountryDropdown error:', e); }
+                try { if (typeof setDefaultDates === 'function') setDefaultDates(); } catch(e) { console.warn('setDefaultDates error:', e); }
+            } else if (tabName === 'terminal') {
+                try { if (typeof populatePortDropdowns === 'function') populatePortDropdowns(); } catch(e) { console.warn('populatePortDropdowns error:', e); }
+                try { if (typeof setDefaultDates === 'function') setDefaultDates(); } catch(e) { console.warn('setDefaultDates error:', e); }
+            } else if (tabName === 'foreignCustoms') {
+                try { if (typeof populateCountryDropdown === 'function') populateCountryDropdown(); } catch(e) { console.warn('populateCountryDropdown error:', e); }
+                try { if (typeof populatePortDropdowns === 'function') populatePortDropdowns(); } catch(e) { console.warn('populatePortDropdowns error:', e); }
+                try { if (typeof setDefaultDates === 'function') setDefaultDates(); } catch(e) { console.warn('setDefaultDates error:', e); }
+            } else if (tabName === 'myRates') {
+                try {
+                    if (typeof renderSavedRatesListNew === 'function') {
+                        renderSavedRatesListNew();
+                    } else if (typeof updateMyRatesList === 'function') {
+                        updateMyRatesList();
+                    }
+                } catch(e) { console.warn('renderSavedRatesListNew error:', e); }
+            }
+            console.log('Tab data populated:', tabName);
+        } catch (err) {
+            console.error('Tab populate error:', err);
+        }
+    }, 50);
+}
+
+// Global aliases - HER İKİ İSİMLE DE ERİŞİLEBİLİR
+window.openRateTab = openRateTab;
+window.switchRateTab = openRateTab;
+var switchRateTab = openRateTab;
+
 console.log('✅ Freight Rates Module loaded - Supabase + localStorage fallback');
+console.log('✅ openRateTab/switchRateTab function available globally');
 </script>
 
 </body>
