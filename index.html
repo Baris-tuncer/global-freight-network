@@ -17159,7 +17159,7 @@
             </div>
             <h3>Create Shipping Request</h3>
             
-            <form onsubmit="return submitQuote(event)">
+            <form onsubmit="submitQuote(event); return false;">
                 <!-- FREIGHT TYPE -->
                 <div class="section-label">Transport Type</div>
                 <div class="freight-options">
@@ -24826,7 +24826,7 @@ async function doLogout() {
     console.log('User logged out successfully');
 }
 
-function submitQuote(e) {
+async function submitQuote(e) {
     e.preventDefault();
     var freight = document.getElementById('freightType').value;
     var loadType = document.getElementById('loadType').value;
@@ -24855,19 +24855,19 @@ function submitQuote(e) {
     document.getElementById('summaryCargo').textContent = incoterm + ' - ' + cargoCategory.charAt(0).toUpperCase() + cargoCategory.slice(1);
     document.getElementById('clientNameDisplay2').textContent = currentUser;
     
-    // Yeni talebi networkRequests'e ekle (Forwarder'ların görmesi için)
+    // Yeni talebi oluştur
     var newRequestId = 'REQ-' + Date.now();
     
     // Profildeki ismi al
     var clientContact = getUserContact(currentUser, 'client');
-    var shipperName = (clientContact && clientContact.contactPerson) ? clientContact.contactPerson : (currentUser || 'Demo Müşteri');
-    var companyName = (clientContact && clientContact.companyName) ? clientContact.companyName : ((currentUser || 'Demo') + ' Companyi');
+    var shipperName = (clientContact && clientContact.contactPerson) ? clientContact.contactPerson : (currentUser || 'Demo Client');
+    var companyName = (clientContact && clientContact.companyName) ? clientContact.companyName : ((currentUser || 'Demo') + ' Company');
     
     var newRequest = {
         id: newRequestId,
         shipper: shipperName,
         shipperCompany: companyName,
-        clientId: currentUser || 'demo-client', // Gerçek kullanıcı ID'si
+        clientId: currentUser || 'demo-client',
         origin: originCity,
         destination: destCity,
         freight: freight,
@@ -24878,7 +24878,7 @@ function submitQuote(e) {
         cargoCategory: cargoCategory,
         cargoType: cargoType || 'General Cargo',
         incoterm: incoterm,
-        loadDate: new Date(Date.now() + 14*24*60*60*1000).toISOString().split('T')[0], // 2 hafta sonra
+        loadDate: new Date(Date.now() + 14*24*60*60*1000).toISOString().split('T')[0],
         targetDate: new Date(Date.now() + 14*24*60*60*1000).toISOString().split('T')[0],
         budget: '$2,000 - $4,000',
         status: 'open',
@@ -24887,17 +24887,14 @@ function submitQuote(e) {
         notes: 'Created via online request form'
     };
     
-    // En başa ekle (en yeni önce)
-    networkRequests.unshift(newRequest);
-    
-    // localStorage'a kaydet
-    saveNetworkToStorage();
-    
-    // Debug bilgisi
-    console.log('New request created:', newRequestId);
-    console.log(' Talep sahibi (clientId):', newRequest.clientId);
-    console.log('🗺️ Rota:', newRequest.origin, '→', newRequest.destination);
-    console.log('networkRequests sayısı:', networkRequests.length);
+    // Supabase DAL ile kaydet (localStorage fallback dahil)
+    try {
+        var result = await saveRequestToSupabase(newRequest);
+        console.log('Request saved:', result.source, newRequestId);
+    } catch(e) {
+        // Fallback: localStorage'a zaten kaydedildi
+        console.log('Request saved to localStorage');
+    }
     
     generateAIRecommendation(freight, weight, cargoCategory, incoterm, loadType);
     generateQuotes(freight, weight, loadType, containerSize);
@@ -24906,7 +24903,7 @@ function submitQuote(e) {
     try {
         updateClientAIPanel(originCity, destCity, freight);
     } catch(e) {
-        console.log('AI Panel error:', e);
+        console.log('AI Panel update skipped');
     }
     
     return false;
@@ -30441,7 +30438,7 @@ function submitForwarderQuote() {
                 status: 'pending'
             });
             
-            // Add to quotesDB (for client view)
+            // Create proposal object for quotesDB and Supabase
             var newProposal = {
                 id: 'PROP-' + Date.now(),
                 requestId: selectedRequestId,
@@ -30465,19 +30462,18 @@ function submitForwarderQuote() {
                 notes: notes,
                 createdAt: new Date().toISOString()
             };
-            quotesDB.push(newProposal);
-            saveQuotesToStorage();
+            
+            // Save to Supabase DAL (with localStorage fallback)
+            saveQuoteToSupabase(newProposal).then(function(result) {
+                console.log('Quote saved:', result.source, newProposal.id);
+            }).catch(function(e) {
+                console.log('Quote saved to localStorage');
+            });
+            
             saveNetworkToStorage();
             
             // Mark proposal as submitted for this forwarder
             markProposalSubmitted(selectedRequestId);
-            
-            // Debug info
-            console.log('Proposal submitted:', newProposal.id);
-            console.log('Client (clientId):', newProposal.clientId);
-            console.log('Forwarder (forwarderId):', newProposal.forwarderId);
-            console.log('Price:', newProposal.totalPrice);
-            console.log('quotesDB count:', quotesDB.length);
             
             // Show success and close modal
             closeQuoteModal();
@@ -33386,21 +33382,357 @@ function closeLegalModal(event) {
 // ============================================
 // SUPABASE INITIALIZATION (SAFE)
 // ============================================
-// Replace these with your actual Supabase credentials
 var SUPABASE_URL = 'https://teljolppqncevuzlhsoq.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbGpvbHBwcW5jZXZ1emxoc29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0OTI2NzQsImV4cCI6MjA4MjA2ODY3NH0.Sly-MJBAkLhse2Yd4Pe_-M85LfXujWRZ7ZiMy__qLr4';
 
 // Initialize Supabase client SAFELY
 var supabase = null;
+var supabaseReady = false;
+
 try {
     if (window.supabase && typeof window.supabase.createClient === 'function') {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log('Supabase client initialized');
+        supabaseReady = true;
+        console.log('Supabase client initialized successfully');
     } else {
-        console.log('Supabase SDK not available - using localStorage');
+        console.log('Supabase SDK not available - using localStorage fallback');
     }
 } catch (e) {
     console.log('Using localStorage fallback');
+}
+
+// ============================================
+// SUPABASE DATA ACCESS LAYER (DAL)
+// ============================================
+
+// --- REQUESTS (Talepler) ---
+
+// Tüm talepleri Supabase'den çek
+async function loadRequestsFromSupabase() {
+    if (!supabase) {
+        console.log('DAL: Using localStorage for requests');
+        return loadNetworkFromStorageSync();
+    }
+    
+    try {
+        var result = await supabase
+            .from('requests')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (result.error) {
+            console.log('Supabase requests error, using localStorage:', result.error.message);
+            return loadNetworkFromStorageSync();
+        }
+        
+        console.log('Loaded', result.data.length, 'requests from Supabase');
+        
+        // Supabase formatını uygulama formatına dönüştür
+        return result.data.map(function(r) {
+            return {
+                id: r.id || r.request_id,
+                shipper: r.shipper_name || r.shipper,
+                shipperCompany: r.shipper_company,
+                clientId: r.client_id,
+                origin: r.origin,
+                destination: r.destination,
+                freight: r.freight_type || r.freight,
+                loadType: r.load_type,
+                containerType: r.container_type,
+                containerSize: r.container_size,
+                weight: r.weight,
+                volume: r.volume,
+                cargoCategory: r.cargo_category,
+                cargoType: r.cargo_type,
+                incoterm: r.incoterm,
+                loadDate: r.load_date,
+                targetDate: r.target_date,
+                budget: r.budget,
+                status: r.status || 'open',
+                notes: r.notes,
+                createdAt: r.created_at,
+                quotes: [] // Quotes ayrı tablodan yüklenecek
+            };
+        });
+    } catch (e) {
+        console.log('Supabase connection error, using localStorage');
+        return loadNetworkFromStorageSync();
+    }
+}
+
+// Yeni talep kaydet
+async function saveRequestToSupabase(requestData) {
+    // Her zaman localStorage'a da kaydet (yedek)
+    networkRequests.unshift(requestData);
+    saveNetworkToStorage();
+    
+    if (!supabase) {
+        console.log('DAL: Request saved to localStorage only');
+        return { success: true, source: 'localStorage', data: requestData };
+    }
+    
+    try {
+        // Supabase formatına dönüştür
+        var supabaseData = {
+            request_id: requestData.id,
+            client_id: requestData.clientId,
+            shipper_name: requestData.shipper,
+            shipper_company: requestData.shipperCompany,
+            origin: requestData.origin,
+            destination: requestData.destination,
+            freight_type: requestData.freight,
+            load_type: requestData.loadType,
+            container_type: requestData.containerType,
+            container_size: requestData.containerSize,
+            weight: parseInt(requestData.weight) || 0,
+            volume: requestData.volume,
+            cargo_category: requestData.cargoCategory,
+            cargo_type: requestData.cargoType,
+            incoterm: requestData.incoterm,
+            load_date: requestData.loadDate,
+            target_date: requestData.targetDate,
+            budget: requestData.budget,
+            status: requestData.status || 'open',
+            notes: requestData.notes
+        };
+        
+        var result = await supabase
+            .from('requests')
+            .insert([supabaseData])
+            .select();
+        
+        if (result.error) {
+            console.log('Supabase insert error:', result.error.message);
+            return { success: true, source: 'localStorage', data: requestData };
+        }
+        
+        console.log('Request saved to Supabase:', result.data[0].id);
+        return { success: true, source: 'supabase', data: result.data[0] };
+    } catch (e) {
+        console.log('Supabase save error, data in localStorage:', e.message);
+        return { success: true, source: 'localStorage', data: requestData };
+    }
+}
+
+// --- QUOTES (Teklifler) ---
+
+// Tüm teklifleri Supabase'den çek
+async function loadQuotesFromSupabase(requestId) {
+    if (!supabase) {
+        return quotesDB.filter(function(q) { 
+            return !requestId || q.requestId === requestId; 
+        });
+    }
+    
+    try {
+        var query = supabase
+            .from('quotes')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (requestId) {
+            query = query.eq('request_id', requestId);
+        }
+        
+        var result = await query;
+        
+        if (result.error) {
+            console.log('Supabase quotes error:', result.error.message);
+            return quotesDB;
+        }
+        
+        console.log('Loaded', result.data.length, 'quotes from Supabase');
+        
+        // Supabase formatını uygulama formatına dönüştür
+        return result.data.map(function(q) {
+            return {
+                id: q.id || q.quote_id,
+                requestId: q.request_id,
+                clientId: q.client_id,
+                forwarderId: q.forwarder_id,
+                forwarderName: q.forwarder_name,
+                forwarderCompany: q.forwarder_company,
+                origin: q.origin,
+                destination: q.destination,
+                containerType: q.container_type,
+                incoterm: q.incoterm,
+                freightRate: q.freight_rate,
+                thcOrigin: q.thc_origin,
+                thcDest: q.thc_dest,
+                totalPrice: q.total_price,
+                currency: q.currency || 'USD',
+                transitDays: q.transit_days,
+                validUntil: q.valid_until,
+                status: q.status || 'pending',
+                notes: q.notes,
+                createdAt: q.created_at
+            };
+        });
+    } catch (e) {
+        console.log('Supabase quotes connection error');
+        return quotesDB;
+    }
+}
+
+// Yeni teklif kaydet
+async function saveQuoteToSupabase(quoteData) {
+    // Her zaman localStorage'a da kaydet (yedek)
+    quotesDB.push(quoteData);
+    saveQuotesToStorage();
+    
+    if (!supabase) {
+        console.log('DAL: Quote saved to localStorage only');
+        return { success: true, source: 'localStorage', data: quoteData };
+    }
+    
+    try {
+        // Supabase formatına dönüştür
+        var supabaseData = {
+            quote_id: quoteData.id,
+            request_id: quoteData.requestId,
+            client_id: quoteData.clientId,
+            forwarder_id: quoteData.forwarderId,
+            forwarder_name: quoteData.forwarderName,
+            forwarder_company: quoteData.forwarderCompany,
+            origin: quoteData.origin,
+            destination: quoteData.destination,
+            container_type: quoteData.containerType,
+            incoterm: quoteData.incoterm,
+            freight_rate: quoteData.freightRate,
+            thc_origin: quoteData.thcOrigin,
+            thc_dest: quoteData.thcDest,
+            total_price: quoteData.totalPrice,
+            currency: quoteData.currency || 'USD',
+            transit_days: quoteData.transitDays,
+            valid_until: quoteData.validUntil,
+            status: quoteData.status || 'pending',
+            notes: quoteData.notes
+        };
+        
+        var result = await supabase
+            .from('quotes')
+            .insert([supabaseData])
+            .select();
+        
+        if (result.error) {
+            console.log('Supabase quote insert error:', result.error.message);
+            return { success: true, source: 'localStorage', data: quoteData };
+        }
+        
+        console.log('Quote saved to Supabase:', result.data[0].id);
+        return { success: true, source: 'supabase', data: result.data[0] };
+    } catch (e) {
+        console.log('Supabase quote save error:', e.message);
+        return { success: true, source: 'localStorage', data: quoteData };
+    }
+}
+
+// Teklif durumunu güncelle
+async function updateQuoteStatus(quoteId, newStatus) {
+    // localStorage güncelle
+    var localQuote = quotesDB.find(function(q) { return q.id === quoteId; });
+    if (localQuote) {
+        localQuote.status = newStatus;
+        saveQuotesToStorage();
+    }
+    
+    if (!supabase) return { success: true, source: 'localStorage' };
+    
+    try {
+        var result = await supabase
+            .from('quotes')
+            .update({ status: newStatus, updated_at: new Date().toISOString() })
+            .eq('quote_id', quoteId);
+        
+        if (result.error) {
+            console.log('Supabase update error:', result.error.message);
+        }
+        return { success: true };
+    } catch (e) {
+        return { success: true, source: 'localStorage' };
+    }
+}
+
+// --- PROFILES (Kullanıcı Profilleri) ---
+
+// Profil kaydet/güncelle
+async function saveProfileToSupabase(profileData) {
+    if (!supabase) {
+        console.log('DAL: Profile saved to localStorage only');
+        return { success: true, source: 'localStorage' };
+    }
+    
+    try {
+        var supabaseData = {
+            user_id: profileData.userId || currentUser,
+            user_type: profileData.userType,
+            company_name: profileData.companyName,
+            contact_person: profileData.contactPerson,
+            email: profileData.email,
+            phone: profileData.phone,
+            address: profileData.address,
+            city: profileData.city,
+            country: profileData.country
+        };
+        
+        var result = await supabase
+            .from('profiles')
+            .upsert([supabaseData], { onConflict: 'user_id' })
+            .select();
+        
+        if (result.error) {
+            console.log('Supabase profile error:', result.error.message);
+            return { success: false, error: result.error.message };
+        }
+        
+        console.log('Profile saved to Supabase');
+        return { success: true, source: 'supabase', data: result.data[0] };
+    } catch (e) {
+        console.log('Profile save error:', e.message);
+        return { success: false, error: e.message };
+    }
+}
+
+// Profil yükle
+async function loadProfileFromSupabase(userId) {
+    if (!supabase) return null;
+    
+    try {
+        var result = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+        
+        if (result.error || !result.data) return null;
+        
+        return {
+            userId: result.data.user_id,
+            userType: result.data.user_type,
+            companyName: result.data.company_name,
+            contactPerson: result.data.contact_person,
+            email: result.data.email,
+            phone: result.data.phone,
+            address: result.data.address,
+            city: result.data.city,
+            country: result.data.country
+        };
+    } catch (e) {
+        return null;
+    }
+}
+
+// --- HELPER: localStorage sync load ---
+function loadNetworkFromStorageSync() {
+    try {
+        var stored = localStorage.getItem('networkRequests');
+        if (stored) {
+            return JSON.parse(stored);
+        }
+    } catch(e) {
+        console.log('localStorage parse error');
+    }
+    return networkRequests || [];
 }
 
 // ============================================
@@ -33424,12 +33756,20 @@ async function checkSession() {
     }
     
     try {
-        // Supabase session kontrolü - NULL KONTROLÜ EKLENDİ
+        // Supabase session kontrolü
         if (supabase && supabase.auth) {
             var sessionResult = await supabase.auth.getSession();
             if (sessionResult && sessionResult.data && sessionResult.data.session) {
-                console.log('Active Supabase session found:', sessionResult.data.session.user.email);
-                localStorage.setItem('currentUserEmail', sessionResult.data.session.user.email);
+                var user = sessionResult.data.session.user;
+                console.log('Active Supabase session found:', user.email);
+                localStorage.setItem('currentUserEmail', user.email);
+                
+                // Kullanıcı meta verisinden type al
+                var userType = user.user_metadata ? user.user_metadata.user_type : null;
+                if (userType) {
+                    localStorage.setItem('currentUser', user.email.split('@')[0]);
+                    localStorage.setItem('currentUserType', userType);
+                }
             }
         }
         
@@ -33446,6 +33786,21 @@ async function checkSession() {
             // Dashboard'a yönlendir
             hideAllPages();
             redirectToDashboard(savedUser, savedUserType);
+            
+            // Supabase'den verileri yükle (arka planda)
+            if (supabaseReady) {
+                loadRequestsFromSupabase().then(function(requests) {
+                    if (requests && requests.length > 0) {
+                        // Merge with local data
+                        requests.forEach(function(r) {
+                            var exists = networkRequests.find(function(nr) { return nr.id === r.id; });
+                            if (!exists) networkRequests.push(r);
+                        });
+                        console.log('Synced', requests.length, 'requests from Supabase');
+                    }
+                });
+            }
+            
             return true;
         }
     } catch (error) {
@@ -33486,6 +33841,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 500);
 });
 
+console.log('Supabase DAL ready - supabaseReady:', supabaseReady);
 </script>
 
 </body>
