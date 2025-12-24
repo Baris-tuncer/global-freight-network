@@ -18574,25 +18574,75 @@
             
             <!-- Tab Navigation -->
             <div class="rates-tabs">
-                <button class="rates-tab active" onclick="showRatesTab('seaFreight')">
-                    <span data-i18n="rates.seaFreight">Sea Freight</span>
+                <button class="rates-tab active" id="btnSeaFreight" onclick="switchRateTab('seaFreight')">
+                    Sea Freight
                 </button>
-                <button class="rates-tab" onclick="showRatesTab('preCarriage')">
+                <button class="rates-tab" id="btnPreCarriage" onclick="switchRateTab('preCarriage')">
                     Pre-Carriage
                 </button>
-                <button class="rates-tab" onclick="showRatesTab('onCarriage')">
+                <button class="rates-tab" id="btnOnCarriage" onclick="switchRateTab('onCarriage')">
                     On-Carriage
                 </button>
-                <button class="rates-tab" onclick="showRatesTab('terminal')">
+                <button class="rates-tab" id="btnTerminal" onclick="switchRateTab('terminal')">
                     Terminal/THC
                 </button>
-                <button class="rates-tab" onclick="showRatesTab('foreignCustoms')">
-                    <span data-i18n="rates.foreignCustoms">Foreign Customs</span>
+                <button class="rates-tab" id="btnForeignCustoms" onclick="switchRateTab('foreignCustoms')">
+                    Foreign Customs
                 </button>
-                <button class="rates-tab" onclick="showRatesTab('myRates')">
-                    <span data-i18n="rates.savedRates">Saved Rates</span>
+                <button class="rates-tab" id="btnMyRates" onclick="switchRateTab('myRates')">
+                    Saved Rates
                 </button>
             </div>
+            
+            <script>
+            // Basit tab switching - doğrudan burada tanımlı
+            function switchRateTab(tabName) {
+                console.log('switchRateTab called:', tabName);
+                
+                // Tüm butonlardan active kaldır
+                document.getElementById('btnSeaFreight').classList.remove('active');
+                document.getElementById('btnPreCarriage').classList.remove('active');
+                document.getElementById('btnOnCarriage').classList.remove('active');
+                document.getElementById('btnTerminal').classList.remove('active');
+                document.getElementById('btnForeignCustoms').classList.remove('active');
+                document.getElementById('btnMyRates').classList.remove('active');
+                
+                // Tıklanan butona active ekle
+                var btnId = 'btn' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
+                var btn = document.getElementById(btnId);
+                if (btn) btn.classList.add('active');
+                
+                // Tüm tab içeriklerini gizle
+                document.getElementById('seaFreightTab').style.cssText = 'display: none !important';
+                document.getElementById('preCarriageTab').style.cssText = 'display: none !important';
+                document.getElementById('onCarriageTab').style.cssText = 'display: none !important';
+                document.getElementById('terminalTab').style.cssText = 'display: none !important';
+                document.getElementById('foreignCustomsTab').style.cssText = 'display: none !important';
+                document.getElementById('myRatesTab').style.cssText = 'display: none !important';
+                
+                // Seçilen tab'ı göster
+                var targetTab = document.getElementById(tabName + 'Tab');
+                if (targetTab) {
+                    targetTab.style.cssText = 'display: block !important';
+                    console.log('Tab shown:', tabName + 'Tab');
+                }
+                
+                // Dropdown'ları doldur
+                if (tabName === 'preCarriage' && typeof populateTurkishCities === 'function') {
+                    populateTurkishCities();
+                    populatePortDropdowns();
+                    setDefaultDates();
+                } else if (tabName === 'onCarriage' && typeof populateCountryDropdown === 'function') {
+                    populateCountryDropdown();
+                    setDefaultDates();
+                } else if (tabName === 'seaFreight' && typeof populatePortDropdowns === 'function') {
+                    populatePortDropdowns();
+                    setDefaultDates();
+                } else if (tabName === 'myRates' && typeof updateMyRatesList === 'function') {
+                    updateMyRatesList();
+                }
+            }
+            </script>
             
             <!-- DENİZ NAVLUN FİYATI GİRİŞİ -->
             <div id="seaFreightTab" class="rates-tab-content active" style="display:block;">
