@@ -16367,6 +16367,9 @@
             .customs-demo-result { grid-template-columns: 1fr; }
         }
     </style>
+    
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -18567,6 +18570,9 @@
              FİYAT TARİFELERİM - FORWARDER NAVLUN GİRİŞ SİSTEMİ
              ═══════════════════════════════════════════════════════════════════════════ -->
         <div id="forwarderRatesSection" class="forwarder-tab-content forwarder-rates-section" style="display:none;">
+            
+                
+            </div>
             <div class="rates-header">
                 <h2 data-i18n="rates.myRatesTitle">My Rate Tariffs</h2>
                 <p data-i18n="rates.myRatesDesc">Enter your freight, land transport, terminal and customs charges for automatic pricing</p>
@@ -18599,13 +18605,19 @@
             function switchRateTab(tabName) {
                 console.log('switchRateTab called:', tabName);
                 
+                // ÖNCE: Parent section'ın görünür olduğundan emin ol
+                var parentSection = document.getElementById('forwarderRatesSection');
+                if (parentSection) {
+                    parentSection.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
+                    console.log('Parent section made visible');
+                }
+                
                 // Tüm butonlardan active kaldır
-                document.getElementById('btnSeaFreight').classList.remove('active');
-                document.getElementById('btnPreCarriage').classList.remove('active');
-                document.getElementById('btnOnCarriage').classList.remove('active');
-                document.getElementById('btnTerminal').classList.remove('active');
-                document.getElementById('btnForeignCustoms').classList.remove('active');
-                document.getElementById('btnMyRates').classList.remove('active');
+                var btns = ['btnSeaFreight', 'btnPreCarriage', 'btnOnCarriage', 'btnTerminal', 'btnForeignCustoms', 'btnMyRates'];
+                btns.forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) el.classList.remove('active');
+                });
                 
                 // Tıklanan butona active ekle
                 var btnId = 'btn' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
@@ -18613,12 +18625,11 @@
                 if (btn) btn.classList.add('active');
                 
                 // Tüm tab içeriklerini gizle
-                document.getElementById('seaFreightTab').style.cssText = 'display: none !important';
-                document.getElementById('preCarriageTab').style.cssText = 'display: none !important';
-                document.getElementById('onCarriageTab').style.cssText = 'display: none !important';
-                document.getElementById('terminalTab').style.cssText = 'display: none !important';
-                document.getElementById('foreignCustomsTab').style.cssText = 'display: none !important';
-                document.getElementById('myRatesTab').style.cssText = 'display: none !important';
+                var tabs = ['seaFreightTab', 'preCarriageTab', 'onCarriageTab', 'terminalTab', 'foreignCustomsTab', 'myRatesTab'];
+                tabs.forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) el.style.cssText = 'display: none !important';
+                });
                 
                 // Seçilen tab'ı göster
                 var targetTab = document.getElementById(tabName + 'Tab');
@@ -18627,19 +18638,31 @@
                     console.log('Tab shown:', tabName + 'Tab');
                 }
                 
-                // Dropdown'ları doldur
-                if (tabName === 'preCarriage' && typeof populateTurkishCities === 'function') {
-                    populateTurkishCities();
-                    populatePortDropdowns();
-                    setDefaultDates();
-                } else if (tabName === 'onCarriage' && typeof populateCountryDropdown === 'function') {
-                    populateCountryDropdown();
-                    setDefaultDates();
-                } else if (tabName === 'seaFreight' && typeof populatePortDropdowns === 'function') {
-                    populatePortDropdowns();
-                    setDefaultDates();
-                } else if (tabName === 'myRates' && typeof updateMyRatesList === 'function') {
-                    updateMyRatesList();
+                // Tab'a göre dropdown'ları doldur ve data yükle
+                if (tabName === 'seaFreight') {
+                    if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                    if (typeof setDefaultDates === 'function') setDefaultDates();
+                } else if (tabName === 'preCarriage') {
+                    if (typeof populateTurkishCities === 'function') populateTurkishCities();
+                    if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                    if (typeof setDefaultDates === 'function') setDefaultDates();
+                } else if (tabName === 'onCarriage') {
+                    if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
+                    if (typeof setDefaultDates === 'function') setDefaultDates();
+                } else if (tabName === 'terminal') {
+                    if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                    if (typeof setDefaultDates === 'function') setDefaultDates();
+                } else if (tabName === 'foreignCustoms') {
+                    if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
+                    if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                    if (typeof setDefaultDates === 'function') setDefaultDates();
+                } else if (tabName === 'myRates') {
+                    // Load saved rates using the new function
+                    if (typeof renderSavedRatesListNew === 'function') {
+                        renderSavedRatesListNew();
+                    } else if (typeof updateMyRatesList === 'function') {
+                        updateMyRatesList();
+                    }
                 }
             }
             </script>
@@ -18809,8 +18832,8 @@
             
             <!-- PRE-CARRIAGE (Fabrika → Liman) -->
             <div id="preCarriageTab" class="rates-tab-content" style="display:none;">
-                <div style="background: #fff3e0; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
-                    <strong>🚛 Pre-Carriage tab is visible!</strong>
+                
+                    
                 </div>
                 
                 <!-- Manual Entry Form -->
@@ -18823,7 +18846,7 @@
                         </div>
                     </div>
                     
-                    <form id="preCarriageForm" onsubmit="return savePreCarriageRate(event)" style="padding: 24px;">
+                    <form id="preCarriageForm" onsubmit="return savePreCarriageRateNew(event)" style="padding: 24px;">
                         <div class="form-row">
                             <div class="form-group">
                                 <label><span data-i18n="rates.originCity">Origin City</span></label>
@@ -18876,8 +18899,8 @@
             
             <!-- ON-CARRIAGE (Liman → Depo) -->
             <div id="onCarriageTab" class="rates-tab-content" style="display:none;">
-                <div style="background: #e3f2fd; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
-                    <strong>🚚 On-Carriage tab is visible!</strong>
+                
+                    
                 </div>
                 <div class="rate-form-card">
                     <div class="form-card-header on-carriage">
@@ -18888,7 +18911,7 @@
                         </div>
                     </div>
                     
-                    <form id="onCarriageForm" onsubmit="return saveOnCarriageRate(event)" style="padding: 24px;">
+                    <form id="onCarriageForm" onsubmit="return saveOnCarriageRateNew(event)" style="padding: 24px;">
                         <div class="form-row">
                             <div class="form-group">
                                 <label data-i18n="rates.country">Country</label>
@@ -18960,7 +18983,7 @@
                         </div>
                     </div>
                     
-                    <form id="terminalForm" onsubmit="return saveTerminalRate(event)" style="padding: 24px;">
+                    <form id="terminalForm" onsubmit="return saveTerminalRateNew(event)" style="padding: 24px;">
                         <div class="form-row">
                             <div class="form-group">
                                 <label data-i18n="rates.port">Port</label>
@@ -19030,7 +19053,7 @@
                         <p data-i18n="rates.foreignCustomsNote">Enter the rates your foreign customs partner provides. These rates will be used in DDP quotes.</p>
                     </div>
                     
-                    <form id="foreignCustomsForm" onsubmit="return saveForeignCustomsRate(event)">
+                    <form id="foreignCustomsForm" onsubmit="return saveForeignCustomsRateNew(event)">
                         <div class="form-row">
                             <div class="form-group">
                                 <label data-i18n="rates.country">Country</label>
@@ -19157,19 +19180,16 @@
             
             <!-- KAYITLI TARİFELER -->
             <div id="myRatesTab" class="rates-tab-content" style="display:none;">
-                <div style="background: #e8f5e9; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
-                    <strong>✅ Saved Rates tab is visible!</strong>
-                </div>
                 <div class="my-rates-container">
                     <div class="my-rates-header">
                         <h3 data-i18n="rates.mySavedRates">My Saved Rates</h3>
                         <div class="my-rates-filters">
-                            <button class="filter-btn active" onclick="filterMyRates('all')">All</button>
-                            <button class="filter-btn" onclick="filterMyRates('sea')">Sea</button>
-                            <button class="filter-btn" onclick="filterMyRates('pre')">Pre</button>
-                            <button class="filter-btn" onclick="filterMyRates('on')">On</button>
-                            <button class="filter-btn" onclick="filterMyRates('thc')">THC</button>
-                            <button class="filter-btn" onclick="filterMyRates('fc')">Customs</button>
+                            <button class="filter-btn active" onclick="filterSavedRatesNew('all')">All</button>
+                            <button class="filter-btn" onclick="filterSavedRatesNew('sea')">Sea</button>
+                            <button class="filter-btn" onclick="filterSavedRatesNew('pre_carriage')">Pre</button>
+                            <button class="filter-btn" onclick="filterSavedRatesNew('on_carriage')">On</button>
+                            <button class="filter-btn" onclick="filterSavedRatesNew('terminal')">THC</button>
+                            <button class="filter-btn" onclick="filterSavedRatesNew('customs')">Customs</button>
                         </div>
                     </div>
                     
@@ -34865,6 +34885,501 @@ function closeLegalModal(event) {
 </style>
 
 <!-- Floating Chatbot Kaldırıldı - AI Asistan butonu zaten mevcut -->
+
+<!-- ============================================
+     SUPABASE CONFIGURATION & FREIGHT RATES MODULE
+     ============================================ -->
+<script>
+// ============================================
+// SUPABASE INITIALIZATION
+// ============================================
+// Replace these with your actual Supabase credentials
+const SUPABASE_URL = 'https://teljolppqncevuzlhsoq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbGpvbHBwcW5jZXZ1emxoc29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0OTI2NzQsImV4cCI6MjA4MjA2ODY3NH0.Sly-MJBAkLhse2Yd4Pe_-M85LfXujWRZ7ZiMy__qLr4';
+
+// Initialize Supabase client
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+console.log('Supabase client initialized');
+
+// ============================================
+// FREIGHT RATES - DATA ACCESS LAYER
+// ============================================
+
+/**
+ * Save a freight rate to Supabase
+ */
+async function saveRateToSupabase(rateData) {
+    try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+            console.warn('User not authenticated, using localStorage fallback');
+            return saveRateToLocalStorage(rateData);
+        }
+
+        const dataToInsert = { ...rateData, user_id: user.id };
+        const { data, error } = await supabase
+            .from('freight_rates')
+            .insert([dataToInsert])
+            .select()
+            .single();
+
+        if (error) throw error;
+        console.log('Rate saved to Supabase:', data);
+        return { success: true, data };
+    } catch (error) {
+        console.error('Supabase save error:', error);
+        // Fallback to localStorage
+        return saveRateToLocalStorage(rateData);
+    }
+}
+
+/**
+ * Load freight rates from Supabase
+ */
+async function loadRatesFromSupabase(rateType = 'all') {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            console.warn('User not authenticated, using localStorage fallback');
+            return loadRatesFromLocalStorage(rateType);
+        }
+
+        let query = supabase
+            .from('freight_rates')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+        if (rateType !== 'all') {
+            query = query.eq('rate_type', rateType);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        
+        console.log(`Loaded ${data.length} rates from Supabase`);
+        return { success: true, data: data || [] };
+    } catch (error) {
+        console.error('Supabase load error:', error);
+        return loadRatesFromLocalStorage(rateType);
+    }
+}
+
+/**
+ * Delete a freight rate from Supabase
+ */
+async function deleteRateFromSupabase(rateId) {
+    try {
+        const { error } = await supabase
+            .from('freight_rates')
+            .delete()
+            .eq('id', rateId);
+
+        if (error) throw error;
+        return { success: true };
+    } catch (error) {
+        console.error('Supabase delete error:', error);
+        return deleteRateFromLocalStorage(rateId);
+    }
+}
+
+// ============================================
+// LOCAL STORAGE FALLBACK
+// ============================================
+
+function saveRateToLocalStorage(rateData) {
+    try {
+        const rates = JSON.parse(localStorage.getItem('freight_rates') || '[]');
+        const newRate = {
+            ...rateData,
+            id: 'local-' + Date.now(),
+            created_at: new Date().toISOString()
+        };
+        rates.unshift(newRate);
+        localStorage.setItem('freight_rates', JSON.stringify(rates));
+        console.log('Rate saved to localStorage:', newRate);
+        return { success: true, data: newRate };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+function loadRatesFromLocalStorage(rateType = 'all') {
+    try {
+        let rates = JSON.parse(localStorage.getItem('freight_rates') || '[]');
+        if (rateType !== 'all') {
+            rates = rates.filter(r => r.rate_type === rateType);
+        }
+        return { success: true, data: rates };
+    } catch (error) {
+        return { success: false, data: [], error: error.message };
+    }
+}
+
+function deleteRateFromLocalStorage(rateId) {
+    try {
+        let rates = JSON.parse(localStorage.getItem('freight_rates') || '[]');
+        rates = rates.filter(r => r.id !== rateId);
+        localStorage.setItem('freight_rates', JSON.stringify(rates));
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+// ============================================
+// SAVE RATE FUNCTIONS (Override existing)
+// ============================================
+
+// Current filter state
+let currentRateFilter = 'all';
+
+async function saveSeaFreightRateNew(event) {
+    if (event) event.preventDefault();
+    console.log('Saving Sea Freight Rate (New System)...');
+    
+    try {
+        const originPortSelect = document.getElementById('sfOriginPort');
+        const destPortSelect = document.getElementById('sfDestPort');
+        const containerSelect = document.getElementById('sfContainerType');
+        const incotermSelect = document.getElementById('sfIncoterm');
+        
+        if (!originPortSelect?.value || originPortSelect.selectedIndex < 1) {
+            showRateNotification('Please select origin port', 'error');
+            return false;
+        }
+        if (!destPortSelect?.value || destPortSelect.selectedIndex < 1) {
+            showRateNotification('Please select destination port', 'error');
+            return false;
+        }
+        
+        const rateData = {
+            rate_type: 'sea',
+            origin_port: originPortSelect.value,
+            origin_port_name: originPortSelect.options[originPortSelect.selectedIndex]?.text || '',
+            destination_port: destPortSelect.value,
+            destination_port_name: destPortSelect.options[destPortSelect.selectedIndex]?.text || '',
+            shipment_type: document.getElementById('sfShipmentType')?.value || 'fcl',
+            container_type: containerSelect?.value || '40HC',
+            incoterm: incotermSelect?.value || 'FOB',
+            price: parseFloat(document.getElementById('sfBaseRate')?.value) || 0,
+            currency: 'USD',
+            transit_days: parseInt(document.getElementById('sfTransit')?.value) || 0,
+            valid_until: document.getElementById('sfValidUntil')?.value || null,
+            notes: document.getElementById('sfNotes')?.value || ''
+        };
+        
+        const result = await saveRateToSupabase(rateData);
+        
+        if (result.success) {
+            showRateNotification('✅ Sea Freight rate saved! ' + rateData.origin_port_name + ' → ' + rateData.destination_port_name, 'success');
+            document.getElementById('seaFreightForm')?.reset();
+            setDefaultDates();
+            populatePortDropdowns();
+            await renderSavedRatesListNew();
+        } else {
+            showRateNotification('Error: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Save error:', error);
+        showRateNotification('Error: ' + error.message, 'error');
+    }
+    return false;
+}
+
+async function savePreCarriageRateNew(event) {
+    if (event) event.preventDefault();
+    console.log('Saving Pre-Carriage Rate (New System)...');
+    
+    try {
+        const originCitySelect = document.getElementById('pcOriginCity');
+        const destPortSelect = document.getElementById('pcDestPort');
+        
+        if (!originCitySelect?.value) {
+            showRateNotification('Please select origin city', 'error');
+            return false;
+        }
+        
+        const rateData = {
+            rate_type: 'pre_carriage',
+            origin_city: originCitySelect.value,
+            destination_port: destPortSelect?.value || '',
+            destination_port_name: destPortSelect?.options[destPortSelect.selectedIndex]?.text || '',
+            container_type: document.getElementById('pcContainerType')?.value || '',
+            price: parseFloat(document.getElementById('pcRate')?.value) || 0,
+            currency: 'USD',
+            transit_days: parseInt(document.getElementById('pcTransit')?.value) || 1,
+            valid_until: document.getElementById('pcValidUntil')?.value || null
+        };
+        
+        const result = await saveRateToSupabase(rateData);
+        
+        if (result.success) {
+            showRateNotification('✅ Pre-Carriage rate saved! ' + rateData.origin_city + ' → ' + rateData.destination_port_name, 'success');
+            document.getElementById('preCarriageForm')?.reset();
+            setDefaultDates();
+            await renderSavedRatesListNew();
+        } else {
+            showRateNotification('Error: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Save error:', error);
+        showRateNotification('Error: ' + error.message, 'error');
+    }
+    return false;
+}
+
+async function saveOnCarriageRateNew(event) {
+    if (event) event.preventDefault();
+    console.log('Saving On-Carriage Rate (New System)...');
+    
+    try {
+        const countrySelect = document.getElementById('ocCountry');
+        const originPortSelect = document.getElementById('ocOriginPort');
+        
+        const rateData = {
+            rate_type: 'on_carriage',
+            country_code: countrySelect?.value || '',
+            country_name: countrySelect?.options[countrySelect.selectedIndex]?.text || '',
+            origin_port: originPortSelect?.value || '',
+            origin_port_name: originPortSelect?.options[originPortSelect.selectedIndex]?.text || '',
+            destination_city: document.getElementById('ocDestCity')?.value || '',
+            container_type: document.getElementById('ocContainerType')?.value || '',
+            price: parseFloat(document.getElementById('ocRate')?.value) || 0,
+            currency: document.getElementById('ocCurrency')?.value || 'USD',
+            transit_days: parseInt(document.getElementById('ocTransit')?.value) || 1,
+            valid_until: document.getElementById('ocValidUntil')?.value || null
+        };
+        
+        const result = await saveRateToSupabase(rateData);
+        
+        if (result.success) {
+            showRateNotification('✅ On-Carriage rate saved!', 'success');
+            document.getElementById('onCarriageForm')?.reset();
+            setDefaultDates();
+            await renderSavedRatesListNew();
+        } else {
+            showRateNotification('Error: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Save error:', error);
+        showRateNotification('Error: ' + error.message, 'error');
+    }
+    return false;
+}
+
+async function saveTerminalRateNew(event) {
+    if (event) event.preventDefault();
+    console.log('Saving Terminal Rate (New System)...');
+    
+    try {
+        const portSelect = document.getElementById('thcPort');
+        
+        const rateData = {
+            rate_type: 'terminal',
+            origin_port: portSelect?.value || '',
+            origin_port_name: portSelect?.options[portSelect.selectedIndex]?.text || '',
+            container_type: document.getElementById('thcContainerType')?.value || '',
+            price: parseFloat(document.getElementById('thcRate')?.value) || 0,
+            currency: 'USD',
+            valid_until: document.getElementById('thcValidUntil')?.value || null
+        };
+        
+        const result = await saveRateToSupabase(rateData);
+        
+        if (result.success) {
+            showRateNotification('✅ Terminal rate saved!', 'success');
+            document.getElementById('terminalForm')?.reset();
+            setDefaultDates();
+            await renderSavedRatesListNew();
+        } else {
+            showRateNotification('Error: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Save error:', error);
+        showRateNotification('Error: ' + error.message, 'error');
+    }
+    return false;
+}
+
+async function saveForeignCustomsRateNew(event) {
+    if (event) event.preventDefault();
+    console.log('Saving Foreign Customs Rate (New System)...');
+    
+    try {
+        const countrySelect = document.getElementById('fcCountry');
+        const portSelect = document.getElementById('fcPort');
+        
+        const rateData = {
+            rate_type: 'customs',
+            country_code: countrySelect?.value || '',
+            country_name: countrySelect?.options[countrySelect.selectedIndex]?.text || '',
+            origin_port: portSelect?.value || '',
+            origin_port_name: portSelect?.options[portSelect.selectedIndex]?.text || '',
+            container_type: document.getElementById('fcContainerType')?.value || '',
+            price: parseFloat(document.getElementById('fcClearanceFee')?.value) || 0,
+            currency: document.getElementById('fcCurrency')?.value || 'EUR',
+            valid_until: document.getElementById('fcValidUntil')?.value || null
+        };
+        
+        const result = await saveRateToSupabase(rateData);
+        
+        if (result.success) {
+            showRateNotification('✅ Customs rate saved!', 'success');
+            document.getElementById('foreignCustomsForm')?.reset();
+            setDefaultDates();
+            await renderSavedRatesListNew();
+        } else {
+            showRateNotification('Error: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Save error:', error);
+        showRateNotification('Error: ' + error.message, 'error');
+    }
+    return false;
+}
+
+// ============================================
+// RENDER SAVED RATES LIST
+// ============================================
+
+async function renderSavedRatesListNew(filterType = 'all') {
+    console.log('Rendering saved rates, filter:', filterType);
+    currentRateFilter = filterType;
+    
+    const container = document.getElementById('myRatesList');
+    if (!container) {
+        console.warn('myRatesList container not found');
+        return;
+    }
+    
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:#64748b;">Loading rates...</div>';
+    
+    const result = await loadRatesFromSupabase(filterType === 'all' ? 'all' : filterType);
+    
+    if (!result.success) {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;">Error: ' + result.error + '</div>';
+        return;
+    }
+    
+    const rates = result.data;
+    updateRateCountsNew(rates);
+    
+    if (rates.length === 0) {
+        container.innerHTML = '<div class="empty-rates"><span style="font-size:48px;display:block;margin-bottom:16px;">📋</span><p>No saved rates yet</p><small>Start by adding rates from the tabs above</small></div>';
+        return;
+    }
+    
+    let html = '';
+    rates.forEach(function(rate) {
+        const typeLabel = { sea: 'SEA', pre_carriage: 'PRE', on_carriage: 'ON', terminal: 'THC', customs: 'CUST' }[rate.rate_type] || rate.rate_type;
+        const typeColor = { sea: '#dbeafe', pre_carriage: '#fef3c7', on_carriage: '#dcfce7', terminal: '#f3e8ff', customs: '#fee2e2' }[rate.rate_type] || '#f1f5f9';
+        const textColor = { sea: '#1e40af', pre_carriage: '#92400e', on_carriage: '#166534', terminal: '#6b21a8', customs: '#991b1b' }[rate.rate_type] || '#334155';
+        
+        let routeText = '';
+        if (rate.rate_type === 'sea') {
+            routeText = (rate.origin_port_name || rate.origin_port || '') + ' → ' + (rate.destination_port_name || rate.destination_port || '');
+        } else if (rate.rate_type === 'pre_carriage') {
+            routeText = (rate.origin_city || '') + ' → ' + (rate.destination_port_name || '');
+        } else if (rate.rate_type === 'on_carriage') {
+            routeText = (rate.origin_port_name || '') + ' → ' + (rate.destination_city || '');
+        } else if (rate.rate_type === 'terminal') {
+            routeText = rate.origin_port_name || rate.origin_port || 'Terminal';
+        } else if (rate.rate_type === 'customs') {
+            routeText = (rate.country_name || '') + ' - ' + (rate.origin_port_name || '');
+        }
+        
+        const currencySymbol = { USD: '$', EUR: '€', GBP: '£', TRY: '₺' }[rate.currency] || rate.currency + ' ';
+        const priceText = currencySymbol + (rate.price || 0).toLocaleString();
+        
+        html += '<div style="display:flex;align-items:center;padding:12px 16px;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);margin-bottom:8px;gap:16px;">';
+        html += '<div style="font-size:11px;font-weight:600;padding:4px 8px;border-radius:4px;min-width:50px;text-align:center;background:' + typeColor + ';color:' + textColor + ';">' + typeLabel + '</div>';
+        html += '<div style="flex:2;font-weight:500;">' + routeText + '</div>';
+        html += '<div style="flex:1;color:#64748b;font-size:13px;">' + (rate.container_type || '-') + '</div>';
+        html += '<div style="flex:1;color:#64748b;font-size:13px;">' + (rate.incoterm || '-') + '</div>';
+        html += '<div style="flex:1;font-weight:600;color:#059669;">' + priceText + '</div>';
+        html += '<button onclick="deleteRateNew(\'' + rate.id + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;padding:4px 8px;border-radius:4px;font-size:16px;" title="Delete">×</button>';
+        html += '</div>';
+    });
+    
+    container.innerHTML = html;
+}
+
+function updateRateCountsNew(allRates) {
+    if (!allRates) return;
+    
+    const counts = { sea: 0, pre_carriage: 0, on_carriage: 0, terminal: 0, customs: 0 };
+    allRates.forEach(function(rate) {
+        if (counts.hasOwnProperty(rate.rate_type)) {
+            counts[rate.rate_type]++;
+        }
+    });
+    
+    var seaCount = document.getElementById('seaRatesCount');
+    var preCount = document.getElementById('preRatesCount');
+    var onCount = document.getElementById('onRatesCount');
+    var thcCount = document.getElementById('thcRatesCount');
+    var fcCount = document.getElementById('fcRatesCount');
+    
+    if (seaCount) seaCount.textContent = counts.sea;
+    if (preCount) preCount.textContent = counts.pre_carriage;
+    if (onCount) onCount.textContent = counts.on_carriage;
+    if (thcCount) thcCount.textContent = counts.terminal;
+    if (fcCount) fcCount.textContent = counts.customs;
+}
+
+async function deleteRateNew(rateId) {
+    if (!confirm('Are you sure you want to delete this rate?')) return;
+    
+    console.log('Deleting rate:', rateId);
+    const result = await deleteRateFromSupabase(rateId);
+    
+    if (result.success) {
+        showRateNotification('Rate deleted', 'success');
+        await renderSavedRatesListNew(currentRateFilter);
+    } else {
+        showRateNotification('Error: ' + result.error, 'error');
+    }
+}
+
+function filterSavedRatesNew(filterType) {
+    console.log('Filtering rates by:', filterType);
+    
+    document.querySelectorAll('.my-rates-filters .filter-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        var text = btn.textContent.toLowerCase();
+        if ((filterType === 'all' && text.includes('all')) ||
+            (filterType === 'sea' && text.includes('sea')) ||
+            (filterType === 'pre_carriage' && text.includes('pre')) ||
+            (filterType === 'on_carriage' && text.includes('on')) ||
+            (filterType === 'terminal' && text.includes('thc')) ||
+            (filterType === 'customs' && text.includes('customs'))) {
+            btn.classList.add('active');
+        }
+    });
+    
+    renderSavedRatesListNew(filterType);
+}
+
+// ============================================
+// OVERRIDE OLD FUNCTIONS
+// ============================================
+
+// Override the old save function
+var _oldSaveSeaFreightRate = window.saveSeaFreightRate;
+window.saveSeaFreightRate = saveSeaFreightRateNew;
+
+// Override update list function
+var _oldUpdateMyRatesList = window.updateMyRatesList;
+window.updateMyRatesList = renderSavedRatesListNew;
+
+// Add delete function
+window.deleteRateNew = deleteRateNew;
+window.filterSavedRatesNew = filterSavedRatesNew;
+
+console.log('✅ Freight Rates Module loaded - Supabase + localStorage fallback');
+</script>
 
 </body>
 </html>
