@@ -18597,6 +18597,109 @@
                 </button>
             </div>
             
+            <!-- INLINE TAB SWITCHING - DEFENSIVE CODING -->
+            <script>
+            // ============================================
+            // TAB SWITCHING - INLINE & BULLETPROOF
+            // ============================================
+            (function() {
+                console.log('🚀 Inline tab script loading...');
+                
+                // Ana tab switching fonksiyonu
+                function switchRateTab(tabName) {
+                    console.log('📌 switchRateTab called:', tabName);
+                    
+                    // ═══════════════════════════════════════════════════
+                    // ADIM 1: UI DEĞİŞİKLİĞİ (TRY-CATCH DIŞINDA - GARANTİLİ)
+                    // ═══════════════════════════════════════════════════
+                    
+                    // 1a. Tüm butonlardan active kaldır
+                    var allBtns = document.querySelectorAll('.rates-tabs .rates-tab');
+                    for (var i = 0; i < allBtns.length; i++) {
+                        allBtns[i].classList.remove('active');
+                    }
+                    
+                    // 1b. Tıklanan butona active ekle
+                    var btnMap = {
+                        'seaFreight': 'btnSeaFreight',
+                        'preCarriage': 'btnPreCarriage', 
+                        'onCarriage': 'btnOnCarriage',
+                        'terminal': 'btnTerminal',
+                        'foreignCustoms': 'btnForeignCustoms',
+                        'myRates': 'btnMyRates'
+                    };
+                    var targetBtn = document.getElementById(btnMap[tabName]);
+                    if (targetBtn) {
+                        targetBtn.classList.add('active');
+                    }
+                    
+                    // 1c. Tüm tab içeriklerini gizle
+                    var allTabs = document.querySelectorAll('.rates-tab-content');
+                    for (var j = 0; j < allTabs.length; j++) {
+                        allTabs[j].style.cssText = 'display: none !important;';
+                        allTabs[j].classList.remove('active');
+                    }
+                    
+                    // 1d. Hedef tab'ı göster
+                    var tabMap = {
+                        'seaFreight': 'seaFreightTab',
+                        'preCarriage': 'preCarriageTab',
+                        'onCarriage': 'onCarriageTab', 
+                        'terminal': 'terminalTab',
+                        'foreignCustoms': 'foreignCustomsTab',
+                        'myRates': 'myRatesTab'
+                    };
+                    var targetTab = document.getElementById(tabMap[tabName]);
+                    if (targetTab) {
+                        targetTab.style.cssText = 'display: block !important;';
+                        targetTab.classList.add('active');
+                        console.log('✅ Tab gösterildi:', tabMap[tabName]);
+                    } else {
+                        console.error('❌ Tab bulunamadı:', tabMap[tabName]);
+                    }
+                    
+                    // ═══════════════════════════════════════════════════
+                    // ADIM 2: VERİ DOLDURMA (AYRI TRY-CATCH - HATA OLSA DA UI AÇIK KALIR)
+                    // ═══════════════════════════════════════════════════
+                    setTimeout(function() {
+                        try {
+                            if (tabName === 'seaFreight') {
+                                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                                if (typeof setDefaultDates === 'function') setDefaultDates();
+                            } else if (tabName === 'preCarriage') {
+                                if (typeof populateTurkishCities === 'function') populateTurkishCities();
+                                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                                if (typeof setDefaultDates === 'function') setDefaultDates();
+                            } else if (tabName === 'onCarriage') {
+                                if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
+                                if (typeof setDefaultDates === 'function') setDefaultDates();
+                            } else if (tabName === 'terminal') {
+                                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                                if (typeof setDefaultDates === 'function') setDefaultDates();
+                            } else if (tabName === 'foreignCustoms') {
+                                if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
+                                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
+                                if (typeof setDefaultDates === 'function') setDefaultDates();
+                            } else if (tabName === 'myRates') {
+                                if (typeof renderSavedRatesListNew === 'function') renderSavedRatesListNew();
+                                else if (typeof updateMyRatesList === 'function') updateMyRatesList();
+                            }
+                            console.log('✅ Veri doldurma tamamlandı:', tabName);
+                        } catch (e) {
+                            console.warn('⚠️ Veri doldurma hatası (UI etkilenmez):', e);
+                        }
+                    }, 50);
+                }
+                
+                // Global scope'a ata
+                window.switchRateTab = switchRateTab;
+                window.openRateTab = switchRateTab;
+                
+                console.log('✅ switchRateTab fonksiyonu hazır!');
+                console.log('Test: window.switchRateTab =', typeof window.switchRateTab);
+            })();
+            </script>
+            
             <!-- DENİZ NAVLUN FİYATI GİRİŞİ -->
             <div id="seaFreightTab" class="rates-tab-content active" style="display:block;">
                 
@@ -34951,95 +35054,9 @@ try {
 }
 
 // ============================================
-// GLOBAL TAB SWITCHING FUNCTION (ÖNCE TANIMLA)
+// NOTE: Tab switching function is now defined INLINE
+// in HTML right after tab buttons for guaranteed loading
 // ============================================
-function openRateTab(tabName) {
-    console.log('openRateTab called:', tabName);
-    
-    // Tab button IDs
-    var buttonIds = ['btnSeaFreight', 'btnPreCarriage', 'btnOnCarriage', 'btnTerminal', 'btnForeignCustoms', 'btnMyRates'];
-    
-    // Tab content IDs
-    var contentIds = ['seaFreightTab', 'preCarriageTab', 'onCarriageTab', 'terminalTab', 'foreignCustomsTab', 'myRatesTab'];
-    
-    // Button-Tab mapping
-    var tabMap = {
-        'seaFreight': { btn: 'btnSeaFreight', tab: 'seaFreightTab' },
-        'preCarriage': { btn: 'btnPreCarriage', tab: 'preCarriageTab' },
-        'onCarriage': { btn: 'btnOnCarriage', tab: 'onCarriageTab' },
-        'terminal': { btn: 'btnTerminal', tab: 'terminalTab' },
-        'foreignCustoms': { btn: 'btnForeignCustoms', tab: 'foreignCustomsTab' },
-        'myRates': { btn: 'btnMyRates', tab: 'myRatesTab' }
-    };
-    
-    // STEP 1: UI DEĞİŞİKLİĞİ (GARANTİLİ)
-    try {
-        // Remove active from all buttons
-        for (var i = 0; i < buttonIds.length; i++) {
-            var btn = document.getElementById(buttonIds[i]);
-            if (btn) btn.className = 'rates-tab';
-        }
-        
-        // Hide all tabs
-        for (var j = 0; j < contentIds.length; j++) {
-            var tab = document.getElementById(contentIds[j]);
-            if (tab) {
-                tab.style.display = 'none';
-                tab.classList.remove('active');
-            }
-        }
-        
-        // Show target tab
-        var target = tabMap[tabName];
-        if (target) {
-            var targetBtn = document.getElementById(target.btn);
-            var targetTab = document.getElementById(target.tab);
-            if (targetBtn) targetBtn.className = 'rates-tab active';
-            if (targetTab) {
-                targetTab.style.display = 'block';
-                targetTab.classList.add('active');
-            }
-        }
-        console.log('✅ Tab UI updated:', tabName);
-    } catch (uiError) {
-        console.error('Tab UI error:', uiError);
-    }
-    
-    // STEP 2: VERİ DOLDURMA (AYRI TRY-CATCH)
-    setTimeout(function() {
-        try {
-            if (tabName === 'seaFreight') {
-                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                if (typeof setDefaultDates === 'function') setDefaultDates();
-            } else if (tabName === 'preCarriage') {
-                if (typeof populateTurkishCities === 'function') populateTurkishCities();
-                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                if (typeof setDefaultDates === 'function') setDefaultDates();
-            } else if (tabName === 'onCarriage') {
-                if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
-                if (typeof setDefaultDates === 'function') setDefaultDates();
-            } else if (tabName === 'terminal') {
-                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                if (typeof setDefaultDates === 'function') setDefaultDates();
-            } else if (tabName === 'foreignCustoms') {
-                if (typeof populateCountryDropdown === 'function') populateCountryDropdown();
-                if (typeof populatePortDropdowns === 'function') populatePortDropdowns();
-                if (typeof setDefaultDates === 'function') setDefaultDates();
-            } else if (tabName === 'myRates') {
-                if (typeof renderSavedRatesListNew === 'function') renderSavedRatesListNew();
-            }
-        } catch (dataError) {
-            console.warn('Tab data populate error:', dataError);
-        }
-    }, 100);
-}
-
-// GLOBAL SCOPE'A ATA (KRITIK!)
-window.openRateTab = openRateTab;
-window.switchRateTab = openRateTab;
-var switchRateTab = openRateTab;
-
-console.log('✅ openRateTab/switchRateTab registered globally');
 
 // ============================================
 // SESSION CHECK ON PAGE LOAD
