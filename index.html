@@ -8595,16 +8595,7 @@
             box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
         }
         
-        /* Rates Tab Content - Hide all by default */
-        #forwarderRatesSection .rates-tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        /* Show active tab content */
-        #forwarderRatesSection .rates-tab-content.active {
-            display: block;
-        }
+        /* Rates Tab Content - controlled by JavaScript inline styles */
         
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -18604,7 +18595,7 @@
             </div>
             
             <!-- DENİZ NAVLUN FİYATI GİRİŞİ -->
-            <div id="seaFreightTab" class="rates-tab-content active">
+            <div id="seaFreightTab" class="rates-tab-content active" style="display:block;">
                 
                 <!-- Alt Tab Navigation -->
                 <!-- Simplified Rate Entry (No AI, No Calculations) -->
@@ -18767,7 +18758,7 @@
             </div>
             
             <!-- PRE-CARRIAGE (Fabrika → Liman) -->
-            <div id="preCarriageTab" class="rates-tab-content">
+            <div id="preCarriageTab" class="rates-tab-content" style="display:none;">
                 
                 <!-- Manual Entry Form -->
                 <div class="rate-form-card">
@@ -18831,7 +18822,7 @@
             </div>
             
             <!-- ON-CARRIAGE (Liman → Depo) -->
-            <div id="onCarriageTab" class="rates-tab-content">
+            <div id="onCarriageTab" class="rates-tab-content" style="display:none;">
                 <div class="rate-form-card">
                     <div class="form-card-header on-carriage">
                         <span class="form-icon">🚚</span>
@@ -18903,7 +18894,7 @@
             </div>
             
             <!--  TERMINAL / THC ÜCRETLERİ -->
-            <div id="terminalTab" class="rates-tab-content">
+            <div id="terminalTab" class="rates-tab-content" style="display:none;">
                 <div class="rate-form-card">
                     <div class="form-card-header terminal">
                         <span class="form-icon">🏗️</span>
@@ -18968,7 +18959,7 @@
             </div>
             
             <!-- YURTDIŞI GÜMRÜK ÜCRETİ -->
-            <div id="foreignCustomsTab" class="rates-tab-content">
+            <div id="foreignCustomsTab" class="rates-tab-content" style="display:none;">
                 <div class="rate-form-card">
                     <div class="form-card-header foreign-customs">
                         <span class="form-icon"></span>
@@ -19109,7 +19100,7 @@
             </div>
             
             <!-- KAYITLI TARİFELER -->
-            <div id="myRatesTab" class="rates-tab-content">
+            <div id="myRatesTab" class="rates-tab-content" style="display:none;">
                 <div class="my-rates-container">
                     <div class="my-rates-header">
                         <h3 data-i18n="rates.mySavedRates">My Saved Rates</h3>
@@ -27280,7 +27271,8 @@ function resetCalculator() {
 
 // Rates Tab Switching
 function showRatesTab(tabName) {
-    console.log('showRatesTab:', tabName);
+    console.log('=== showRatesTab called ===');
+    console.log('Tab name:', tabName);
     
     // Tab butonlarını güncelle
     document.querySelectorAll('.rates-tab').forEach(function(tab) {
@@ -27291,16 +27283,26 @@ function showRatesTab(tabName) {
         event.target.classList.add('active');
     }
     
-    // Tüm içerikleri gizle
-    document.querySelectorAll('.rates-tab-content').forEach(function(content) {
+    // Tüm içerikleri gizle (hem class hem style ile)
+    var allTabs = document.querySelectorAll('.rates-tab-content');
+    console.log('Found tabs:', allTabs.length);
+    allTabs.forEach(function(content) {
         content.classList.remove('active');
+        content.style.display = 'none';
     });
     
-    // Aktif içeriği göster
-    var activeContent = document.getElementById(tabName + 'Tab');
+    // Aktif içeriği göster (hem class hem style ile)
+    var targetId = tabName + 'Tab';
+    var activeContent = document.getElementById(targetId);
+    console.log('Looking for:', targetId);
+    console.log('Found element:', activeContent ? 'YES' : 'NO');
+    
     if (activeContent) {
         activeContent.classList.add('active');
-        console.log('Tab activated:', tabName + 'Tab');
+        activeContent.style.display = 'block';
+        console.log('Activated:', targetId);
+    } else {
+        console.error('Element not found:', targetId);
     }
     
     // Dropdown'ları doldur
@@ -28749,7 +28751,6 @@ function saveSeaFreightRate(e) {
         
         // Formu temizle
         document.getElementById('seaFreightForm').reset();
-        document.getElementById('sfProfitPercent').value = 10;
         setDefaultDates();
         
         // Alanları sıfırla
