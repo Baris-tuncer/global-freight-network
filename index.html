@@ -28395,89 +28395,23 @@ function updateShipmentTypeFields() {
     updatePriceSummary();
 }
 
-// Service Type değiştiğinde
+// Service Type değiştiğinde (simplified - no longer needed)
 function updateServiceTypeFields() {
-    var serviceType = document.getElementById('sfServiceType').value;
-    
-    // Şehir seçim alanları
-    var citySelectRow = document.getElementById('citySelectRow');
-    var originCityGroup = document.getElementById('originCityGroup');
-    var destCityGroup = document.getElementById('destCityGroup');
-    
-    // Breakdown satırları
-    var preCarriageBreakdown = document.getElementById('preCarriageBreakdown');
-    var onCarriageBreakdown = document.getElementById('onCarriageBreakdown');
-    var thcDestBreakdown = document.getElementById('thcDestBreakdown');
-    var customsDestBreakdown = document.getElementById('customsDestBreakdown');
-    
-    // Tümünü gizle (null kontrolü ile)
-    if (citySelectRow) citySelectRow.classList.add('hidden');
-    if (originCityGroup) originCityGroup.classList.add('hidden');
-    if (destCityGroup) destCityGroup.classList.add('hidden');
-    if (preCarriageBreakdown) preCarriageBreakdown.classList.add('hidden');
-    if (onCarriageBreakdown) onCarriageBreakdown.classList.add('hidden');
-    if (thcDestBreakdown) thcDestBreakdown.classList.add('hidden');
-    if (customsDestBreakdown) customsDestBreakdown.classList.add('hidden');
-    
-    // Servis tipine göre göster
-    switch(serviceType) {
-        case 'port-to-port':
-            // Sadece freight + THC Origin
-            break;
-        case 'door-to-port':
-            if (citySelectRow) citySelectRow.classList.remove('hidden');
-            if (originCityGroup) originCityGroup.classList.remove('hidden');
-            if (preCarriageBreakdown) preCarriageBreakdown.classList.remove('hidden');
-            break;
-        case 'port-to-door':
-            if (citySelectRow) citySelectRow.classList.remove('hidden');
-            if (destCityGroup) destCityGroup.classList.remove('hidden');
-            if (onCarriageBreakdown) onCarriageBreakdown.classList.remove('hidden');
-            if (thcDestBreakdown) thcDestBreakdown.classList.remove('hidden');
-            if (customsDestBreakdown) customsDestBreakdown.classList.remove('hidden');
-            break;
-        case 'door-to-door':
-            if (citySelectRow) citySelectRow.classList.remove('hidden');
-            if (originCityGroup) originCityGroup.classList.remove('hidden');
-            if (destCityGroup) destCityGroup.classList.remove('hidden');
-            if (preCarriageBreakdown) preCarriageBreakdown.classList.remove('hidden');
-            if (onCarriageBreakdown) onCarriageBreakdown.classList.remove('hidden');
-            if (thcDestBreakdown) thcDestBreakdown.classList.remove('hidden');
-            if (customsDestBreakdown) customsDestBreakdown.classList.remove('hidden');
-            break;
-    }
-    
-    updatePriceSummary();
+    // Simplified form - no service type selection
+    return;
 }
 
-// AI Fiyat Hesaplama tetikleyici
+// AI Fiyat Hesaplama tetikleyici (disabled)
 function triggerAICalculation() {
-    // Otomatik hesaplama için gerekli alanlar dolu mu kontrol et
-    var originPort = document.getElementById('sfOriginPort').value;
-    var destPort = document.getElementById('sfDestPort').value;
-    var containerType = document.getElementById('sfContainerType').value;
-    
-    if (originPort && destPort && containerType) {
-        // Otomatik hesapla
-        // calculateAIPrice(); // İsteğe bağlı otomatik hesaplama
-    }
+    // Disabled in simplified form
+    return;
 }
 
-// AI Fiyat Hesaplama
+// AI Fiyat Hesaplama (disabled)
 function calculateAIPrice() {
-    var originPort = document.getElementById('sfOriginPort').value;
-    var destPort = document.getElementById('sfDestPort').value;
-    var containerType = document.getElementById('sfContainerType').value;
-    var serviceType = document.getElementById('sfServiceType').value;
-    var originCity = document.getElementById('sfOriginCity').value;
-    var destCity = document.getElementById('sfDestCity').value;
-    
-    if (!originPort || !destPort) {
-        alert('Please select origin and destination ports first.');
-        return;
-    }
-    
-    if (!containerType) {
+    // Disabled in simplified form
+    return;
+}
         alert('Please select container type.');
         return;
     }
@@ -28611,54 +28545,10 @@ function calculateAIPrice() {
     showRateNotification('AI rate hesaplaması tamamlandı! You can make manual adjustments.', 'success');
 }
 
-// Fiyat Özeti Güncelle (Kâr marjı dahil)
+// Fiyat Özeti Güncelle (Simplified - not used in current form)
 function updatePriceSummary() {
-    var serviceTypeEl = document.getElementById('sfServiceType');
-    if (!serviceTypeEl) return;
-    var serviceType = serviceTypeEl.value;
-    
-    // Maliyet kalemleri (null kontrolü ile)
-    var freightEl = document.getElementById('sfFreightRate');
-    var thcOriginEl = document.getElementById('sfTHCOrigin');
-    var preCarriageEl = document.getElementById('sfPreCarriage');
-    var onCarriageEl = document.getElementById('sfOnCarriage');
-    var thcDestEl = document.getElementById('sfTHCDest');
-    var customsDestEl = document.getElementById('sfCustomsDest');
-    
-    var freight = freightEl ? parseFloat(freightEl.value) || 0 : 0;
-    var thcOrigin = thcOriginEl ? parseFloat(thcOriginEl.value) || 0 : 0;
-    var preCarriage = preCarriageEl ? parseFloat(preCarriageEl.value) || 0 : 0;
-    var onCarriage = onCarriageEl ? parseFloat(onCarriageEl.value) || 0 : 0;
-    var thcDest = thcDestEl ? parseFloat(thcDestEl.value) || 0 : 0;
-    var customsDest = customsDestEl ? parseFloat(customsDestEl.value) || 0 : 0;
-    
-    // Ara toplam (maliyet)
-    var subtotal = freight + thcOrigin;
-    
-    if (serviceType === 'door-to-port' || serviceType === 'door-to-door') {
-        subtotal += preCarriage;
-    }
-    
-    if (serviceType === 'port-to-door' || serviceType === 'door-to-door') {
-        subtotal += onCarriage + thcDest + customsDest;
-    }
-    
-    // Kâr marjı
-    var profitPercentEl = document.getElementById('sfProfitPercent');
-    var profitPercent = profitPercentEl ? parseFloat(profitPercentEl.value) || 0 : 0;
-    var profitAmount = Math.round(subtotal * profitPercent / 100);
-    
-    // Genel toplam
-    var grandTotal = subtotal + profitAmount;
-    
-    // UI güncelle (null kontrolü ile)
-    var subtotalValueEl = document.getElementById('subtotalValue');
-    var profitValueEl = document.getElementById('profitValue');
-    var grandTotalValueEl = document.getElementById('grandTotalValue');
-    
-    if (subtotalValueEl) subtotalValueEl.textContent = '$' + subtotal.toLocaleString();
-    if (profitValueEl) profitValueEl.textContent = '+$' + profitAmount.toLocaleString();
-    if (grandTotalValueEl) grandTotalValueEl.textContent = '$' + grandTotal.toLocaleString();
+    // Simplified form doesn't use price summary
+    return;
 }
 
 // Deniz Navlun Kaydet
@@ -28700,8 +28590,12 @@ function saveSeaFreightRate(e) {
             return false;
         }
         
-        // Base rate (simplified - no breakdown)
+        // Base rate
         var baseRate = parseFloat(document.getElementById('sfBaseRate').value) || 0;
+        
+        // Incoterm
+        var incotermSelect = document.getElementById('sfIncoterm');
+        var incoterm = incotermSelect ? incotermSelect.value : 'FOB';
         
         // Included services (scope tags)
         var includedServices = [];
@@ -28725,59 +28619,42 @@ function saveSeaFreightRate(e) {
             id: 'SF-' + Date.now(),
             type: 'sea',
             shipmentType: shipmentType,
-            serviceType: 'port-to-port', // Always port-to-port in simplified form
+            incoterm: incoterm,
             originPort: originPortSelect.value,
             originPortName: originPortSelect.options[originPortSelect.selectedIndex].text,
             destPort: destPortSelect.value,
             destPortName: destPortSelect.options[destPortSelect.selectedIndex].text,
             containerType: containerSelect ? containerSelect.value : '',
-            // Simplified pricing - base rate only
             baseRate: baseRate,
             totalRate: baseRate,
-            // Scope clarity
             includedServices: includedServices,
-            // Other
             transit: parseInt(document.getElementById('sfTransit').value) || 0,
             validUntil: document.getElementById('sfValidUntil').value,
-            notes: document.getElementById('sfNotes').value || '',
+            notes: document.getElementById('sfNotes') ? document.getElementById('sfNotes').value : '',
             createdAt: new Date().toISOString()
         };
         
         // Kaydet
         forwarderRatesDB.seaFreight.push(rate);
-        
-        // localStorage'a kaydet
         saveForwarderRatesToStorage();
         
         // Formu temizle
         document.getElementById('seaFreightForm').reset();
         setDefaultDates();
-        
-        // Alanları sıfırla
-        updateShipmentTypeFields();
-        updateServiceTypeFields();
+        populatePortDropdowns();
         
         // Bildirim
-        var serviceNames = {
-            'port-to-port': 'Port-to-Port',
-            'door-to-port': 'Door-to-Port',
-            'port-to-door': 'Port-to-Door',
-            'door-to-door': 'Door-to-Door'
-        };
-        showRateNotification(
-            serviceNames[serviceType] + ' quote saved! Customer rate: $' + grandTotal.toLocaleString() + ' (Profit: $' + profitAmount.toLocaleString() + ')', 
-            'success'
-        );
+        alert('Sea Freight rate saved successfully!\nRoute: ' + rate.originPortName + ' → ' + rate.destPortName + '\nRate: $' + baseRate);
         
         // Listeyi güncelle
         updateMyRatesList();
         
     } catch (error) {
-        console.error('Kaydetme hatası:', error);
+        console.error('Save error:', error);
         alert('An error occurred: ' + error.message);
     }
     
-    return false;
+    return false;;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
