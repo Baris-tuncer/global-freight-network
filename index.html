@@ -24231,6 +24231,15 @@ async function doLogout() {
 
 async function submitQuote(e) {
     e.preventDefault();
+    
+    // Profile validation for cargo owner
+    var clientContact = getUserContact(currentUser, 'client');
+    if (!clientContact || !clientContact.email || !clientContact.companyName) {
+        alert('Please complete your profile before creating a quote request.\n\nGo to Profile tab and fill in your Company Name, Contact Person, Email, and Phone.');
+        showClientTab('profile');
+        return false;
+    }
+    
     var freight = document.getElementById('freightType').value;
     var loadType = document.getElementById('loadType').value;
     var containerSize = document.getElementById('containerSize').value;
@@ -24252,19 +24261,14 @@ async function submitQuote(e) {
         if (opt.value === loadType) loadTypeLabel = opt.label;
     });
     
-    document.getElementById('summaryRoute').textContent = originCity.split(',')[0] + ' → ' + destCity.split(',')[0];
-    document.getElementById('summaryFreight').textContent = freight.charAt(0).toUpperCase() + freight.slice(1) + ' / ' + (loadTypeLabel || loadType);
-    document.getElementById('summaryWeight').textContent = weight + ' kg';
-    document.getElementById('summaryCargo').textContent = incoterm + ' - ' + cargoCategory.charAt(0).toUpperCase() + cargoCategory.slice(1);
     document.getElementById('clientNameDisplay2').textContent = currentUser;
     
     // Yeni talebi oluştur
     var newRequestId = 'REQ-' + Date.now();
     
-    // Profiledeki ismi al
-    var clientContact = getUserContact(currentUser, 'client');
-    var shipperName = (clientContact && clientContact.contactPerson) ? clientContact.contactPerson : (currentUser || 'Demo Client');
-    var companyName = (clientContact && clientContact.companyName) ? clientContact.companyName : ((currentUser || 'Demo') + ' Company');
+    // Profiledeki ismi al - already validated above
+    var shipperName = clientContact.contactPerson || currentUser;
+    var companyName = clientContact.companyName || (currentUser + ' Company');
     
     var newRequest = {
         id: newRequestId,
@@ -26864,12 +26868,16 @@ async function renderClientRequests() {
         // Load requests from Supabase
         var requests = await loadRequestsFromSupabase();
         
-        // Filter requests for this client
+        console.log('All requests from Supabase:', requests.length);
+        
+        // Filter requests for this client - check multiple possible field names
         var myRequests = requests.filter(function(req) {
-            return req.client_id === clientId || req.clientId === clientId;
+            var matchClientId = req.client_id === clientId || req.clientId === clientId;
+            var matchShipper = req.shipper === clientId || req.shipper_name === clientId;
+            return matchClientId || matchShipper;
         });
         
-        console.log('Found requests:', myRequests.length);
+        console.log('Filtered requests for', clientId, ':', myRequests.length);
         
         if (myRequests.length === 0) {
             container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 60px 20px;">' +
@@ -29040,12 +29048,24 @@ function markQuoteSubmitted(reqId) {
     saveSubmittedQuotes();
 }
 
-function renderForwarderRequests() {
+async function renderForwarderRequests() {
     var container = document.getElementById('requestsContainer');
     if (!container) return;
     
     var lang = currentLanguage || 'tr';
     var tr = translations[lang] || translations['tr'];
+    
+    // Show loading
+    container.innerHTML = '<div style="text-align: center; padding: 40px;"><p>Loading requests...</p></div>';
+    
+    // Load fresh data from Supabase
+    try {
+        var freshRequests = await loadRequestsFromSupabase();
+        networkRequests = freshRequests;
+        console.log('Loaded', freshRequests.length, 'requests from Supabase for forwarder');
+    } catch(e) {
+        console.log('Using localStorage requests:', e.message);
+    }
     
     var html = '';
     var requestCount = 0;
@@ -29890,6 +29910,15 @@ function showPreSubmitSummary() {
 // User's AI tier (stored in localStorage or user profile)
 // Submit quote
 function submitForwarderQuote() {
+    // Profile validation for forwarder
+    var forwarderContact = getUserContact(currentUser, 'forwarder');
+    if (!forwarderContact || !forwarderContact.email || !forwarderContact.companyName) {
+        alert('Please complete your profile before submitting a quote.\n\nGo to Profile tab and fill in your Company Name, Contact Person, Email, and Phone.');
+        closeQuoteModal();
+        showForwarderTab('profile');
+        return;
+    }
+    
     var btn = document.getElementById('quoteSubmitBtn');
     var originalText = btn ? btn.textContent : t('submitQuote');
     
@@ -29931,10 +29960,9 @@ function submitForwarderQuote() {
             validUntil.setDate(validUntil.getDate() + parseInt(validDays));
             var validUntilStr = validUntil.toISOString().split('T')[0];
             
-            // Get forwarder profile info
-            var forwarderContact = getUserContact(currentUser, 'forwarder');
-            var forwarderDisplayName = (forwarderContact && forwarderContact.contactPerson) ? forwarderContact.contactPerson : (currentUser || 'Demo Forwarder');
-            var forwarderCompanyName = (forwarderContact && forwarderContact.companyName) ? forwarderContact.companyName : forwarderDisplayName;
+            // Get forwarder profile info - already validated above
+            var forwarderDisplayName = forwarderContact.contactPerson || currentUser;
+            var forwarderCompanyName = forwarderContact.companyName || forwarderDisplayName;
             
             // Add quote to request (do NOT change request.status)
             request.quotes.push({
