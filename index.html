@@ -26754,7 +26754,27 @@ function saveClientContact(e) {
     
     console.log('Kaydedilecek veri:', contactData);
     
+    // Save to localStorage
     saveUserContact(clientId, 'client', contactData);
+    
+    // Save to Supabase
+    var profileData = {
+        userId: clientId,
+        userType: 'client',
+        companyName: contactData.companyName,
+        contactPerson: contactData.contactPerson,
+        email: contactData.email,
+        phone: contactData.phone,
+        address: contactData.address,
+        city: contactData.city,
+        country: contactData.country
+    };
+    
+    saveProfileToSupabase(profileData).then(function(result) {
+        console.log('Profile saved to Supabase:', result);
+    }).catch(function(err) {
+        console.log('Profile Supabase save error:', err);
+    });
     
     console.log('Success: userContactsDB updated:', userContactsDB);
     
@@ -26825,7 +26845,27 @@ function saveForwarderContact(e) {
         website: document.getElementById('forwarderWebsite').value
     };
     
+    // Save to localStorage
     saveUserContact(forwarderId, 'forwarder', contactData);
+    
+    // Save to Supabase
+    var profileData = {
+        userId: forwarderId,
+        userType: 'forwarder',
+        companyName: contactData.companyName,
+        contactPerson: contactData.contactPerson,
+        email: contactData.email,
+        phone: contactData.phone,
+        address: contactData.address,
+        city: contactData.city,
+        country: contactData.country
+    };
+    
+    saveProfileToSupabase(profileData).then(function(result) {
+        console.log('Forwarder profile saved to Supabase:', result);
+    }).catch(function(err) {
+        console.log('Forwarder profile Supabase save error:', err);
+    });
     
     // Dashboard'daki isimleri profildeki isimle güncelle
     var displayName = contactData.contactPerson || contactData.companyName || currentUser;
@@ -34190,30 +34230,49 @@ async function saveProfileToSupabase(profileData) {
     }
     
     try {
+        // Match the actual profiles table structure
         var supabaseData = {
-            user_id: profileData.userId || currentUser,
+            email: profileData.email,
             user_type: profileData.userType,
             company_name: profileData.companyName,
-            contact_person: profileData.contactPerson,
-            email: profileData.email,
-            phone: profileData.phone,
-            address: profileData.address,
-            city: profileData.city,
-            country: profileData.country
+            contact_person: profileData.contactPerson || profileData.companyName,
+            phone: profileData.phone || '',
+            city: profileData.city || '',
+            country: profileData.country || ''
         };
         
-        var result = await supabase
+        console.log('Saving profile to Supabase:', supabaseData);
+        
+        // First try to find existing profile by email
+        var existing = await supabase
             .from('profiles')
-            .upsert([supabaseData], { onConflict: 'user_id' })
-            .select();
+            .select('id')
+            .eq('email', profileData.email)
+            .single();
+        
+        var result;
+        if (existing.data && existing.data.id) {
+            // Update existing
+            result = await supabase
+                .from('profiles')
+                .update(supabaseData)
+                .eq('id', existing.data.id)
+                .select();
+        } else {
+            // Insert new
+            result = await supabase
+                .from('profiles')
+                .insert([supabaseData])
+                .select();
+        }
         
         if (result.error) {
             console.log('Supabase profile error:', result.error.message);
             return { success: false, error: result.error.message };
         }
         
-        console.log('Profile saved to Supabase');
-        return { success: true, source: 'supabase', data: result.data[0] };
+        console.log('Profile saved to Supabase successfully');
+        return { success: true, source: 'supabase', data: result.data ? result.data[0] : null };
     } catch (e) {
         console.log('Profile save error:', e.message);
         return { success: false, error: e.message };
@@ -34221,20 +34280,20 @@ async function saveProfileToSupabase(profileData) {
 }
 
 // Profile yükle
-async function loadProfileFromSupabase(userId) {
+async function loadProfileFromSupabase(email) {
     if (!supabase) return null;
     
     try {
         var result = await supabase
             .from('profiles')
             .select('*')
-            .eq('user_id', userId)
+            .eq('email', email)
             .single();
         
         if (result.error || !result.data) return null;
         
         return {
-            userId: result.data.user_id,
+            email: result.data.email,
             userType: result.data.user_type,
             companyName: result.data.company_name,
             contactPerson: result.data.contact_person,
