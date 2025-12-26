@@ -33857,75 +33857,36 @@ function closeLegalModal(event) {
 <!-- Floating Chatbot Kaldırıldı - AI Asistan butonu zaten mevcut -->
 
 <!-- ============================================
-     SUPABASE SDK - Official CDN
-     ============================================ -->
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
-<!-- ============================================
-     SUPABASE CONFIGURATION & FREIGHT RATES MODULE
+     SUPABASE SDK with onload initialization
      ============================================ -->
 <script>
-// ============================================
-// SUPABASE INITIALIZATION
-// ============================================
+// Supabase configuration - defined before SDK loads
 var SUPABASE_URL = 'https://teljolppqncevuzlhsoq.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbGpvbHBwcW5jZXZ1emxoc29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0OTI2NzQsImV4cCI6MjA4MjA2ODY3NH0.Sly-MJBAkLhse2Yd4Pe_-M85LfXujWRZ7ZiMy__qLr4';
-
-// Initialize Supabase client - will be set when ready
 var supabase = null;
 var supabaseReady = false;
 
-// Function to initialize Supabase
-function initializeSupabase() {
-    console.log('Initializing Supabase...');
-    console.log('window.supabase:', window.supabase);
-    console.log('window.supabase keys:', window.supabase ? Object.keys(window.supabase) : 'N/A');
-    
+function onSupabaseLoad() {
+    console.log('Supabase SDK loaded, initializing...');
     try {
-        // Supabase v2 exposes createClient directly on window.supabase
-        if (window.supabase && typeof window.supabase.createClient === 'function') {
+        if (window.supabase && window.supabase.createClient) {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             supabaseReady = true;
-            console.log('✅ Supabase client initialized successfully!');
-            return true;
+            console.log('✅ Supabase ready!');
+        } else {
+            console.log('❌ createClient not available');
         }
-        
-        // Alternative: check if it's the module export
-        if (window.supabase && window.supabase.supabase && typeof window.supabase.supabase.createClient === 'function') {
-            supabase = window.supabase.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            supabaseReady = true;
-            console.log('✅ Supabase client initialized (nested)!');
-            return true;
-        }
-        
-        console.log('❌ createClient not found in window.supabase');
-        return false;
-    } catch (e) {
-        console.log('❌ Supabase init error:', e.message);
-        return false;
+    } catch(e) {
+        console.log('❌ Error:', e.message);
     }
 }
+</script>
+<script src="https://unpkg.com/@supabase/supabase-js@2" onload="onSupabaseLoad()"></script>
 
-// Try immediately
-if (!initializeSupabase()) {
-    // Retry after DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-        if (!supabaseReady) {
-            console.log('Retrying Supabase init after DOMContentLoaded...');
-            initializeSupabase();
-        }
-    });
-    
-    // Also retry after window load (when all scripts are done)
-    window.addEventListener('load', function() {
-        if (!supabaseReady) {
-            console.log('Retrying Supabase init after window.load...');
-            if (!initializeSupabase()) {
-                console.log('⚠️ Supabase not available - using localStorage fallback');
-            }
-        }
-    });
-}
+<!-- ============================================
+     SUPABASE DATA ACCESS LAYER
+     ============================================ -->
+<script>
 
 // ============================================
 // SUPABASE DATA ACCESS LAYER (DAL)
