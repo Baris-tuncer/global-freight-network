@@ -17952,255 +17952,46 @@
     </div>
 </div>
 <div id="quoteResults" class="dashboard-container hidden">
-    <div class="dashboard-nav client-nav-premium">
-        <div class="nav-logo">Global Freight Network</div>
-        <div class="nav-menu">
-            <div class="nav-menu-item active" onclick="goBackToClientDashboard()">← Back to RFQ Form</div>
-        </div>
-        <div class="nav-user">
+    <div class="dashboard-nav client-nav-premium" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 24px;">
+        <div class="nav-logo" style="font-weight: 700; font-size: 18px;">Global Freight Network</div>
+        <div class="nav-user" style="display: flex; align-items: center; gap: 16px;">
             <span id="clientNameDisplay2">User</span>
-            <button class="btn-logout" onclick="doLogout()">Logout</button>
+            <button class="btn-logout" onclick="doLogout()" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Logout</button>
         </div>
     </div>
     
-    <div class="dashboard-content">
-        <div class="results-header-premium">
-            <h2>Commercial Quotes</h2>
-            <p>For your route <strong id="quoteCount">5</strong> verified forwarders shared quotes</p>
-        </div>
-
-        <div class="shipment-summary">
-            <div class="summary-item">
-                <span class="summary-label">ROTA</span>
-                <span class="summary-value" id="summaryRoute">Istanbul → Shanghai</span>
+    <div class="dashboard-content" style="padding: 40px; text-align: center;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; padding: 48px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
             </div>
-            <div class="summary-item">
-                <span class="summary-label">TRANSPORT</span>
-                <span class="summary-value" id="summaryFreight">Sea</span>
+            <h2 style="color: #1e293b; margin: 0 0 16px; font-size: 28px;">Request Submitted!</h2>
+            <p style="color: #64748b; margin: 0 0 32px; font-size: 16px; line-height: 1.6;">
+                Your quote request has been shared with verified freight forwarders on our network. 
+                You'll receive commercial quotes directly in your dashboard.
+            </p>
+            
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin-bottom: 32px;">
+                <h4 style="color: #166534; margin: 0 0 8px; font-size: 14px;">What happens next?</h4>
+                <p style="color: #15803d; margin: 0; font-size: 14px;">
+                    Verified forwarders will review your request and submit their commercial quotes. 
+                    Most quotes arrive within 24 hours.
+                </p>
             </div>
-            <div class="summary-item">
-                <span class="summary-label">WEIGHT</span>
-                <span class="summary-value" id="summaryWeight">2000 kg</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">CARGO</span>
-                <span class="summary-value" id="summaryCargo">General</span>
-            </div>
-        </div>
-        <!-- Forwarder Quotes Başlığı -->
-        <div class="quotes-section-header">
-            <h3>Commercial Quotes</h3>
-            <p>For your trade lane <strong>5 verified forwarders</strong> have shared quotes</p>
-        </div>
-
-        <div id="quotesContainer">
-            <!-- Varsayılan 5 Forwarder Kartı -->
-            <div class="forwarder-quotes-grid">
-                <!-- 1. Global Express -->
-                <div class="forwarder-quote-card">
-                    <div class="card-ribbon verified">✓ VERIFIED</div>
-                    <div class="fq-header">
-                        <div class="fq-logo">GE</div>
-                        <div class="fq-info">
-                            <h4>Global Express Logistics</h4>
-                            <div class="fq-rating">★ 4.9 <span>(2,847 reviews)</span></div>
-                        </div>
-                        <div class="fq-price">
-                            <span class="price-amount">$2,375</span>
-                            <span class="price-label">Total</span>
-                        </div>
-                    </div>
-                    <div class="fq-details">
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Transit</span>
-                            <span class="detail-value">18-22 days</span>
-                        </div>
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Capacity</span>
-                            <span class="detail-value">Available</span>
-                        </div>
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Insurance</span>
-                            <span class="detail-value">Included</span>
-                        </div>
-                    </div>
-                    <div class="fq-badges">
-                        <span class="fq-badge verified">✓ Verified</span>
-                        <span class="fq-badge fast">Fast</span>
-                        <span class="fq-badge tracking">📍 Live Tracking</span>
-                    </div>
-                    <div class="fq-ai-note">
-                        <span class="ai-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="#667eea"><path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.996.996 0 0 0-1.41 0L1.29 18.96a.996.996 0 0 0 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05a.996.996 0 0 0 0-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"/></svg></span>
-                        <span>AI-Assisted Insight: Suitable match based on profile compatibility</span>
-                    </div>
-                    <button class="btn-select-forwarder" onclick="selectQuote('Global Express Logistics', 2375)">Proceed with Introduction</button>
-                </div>
-
-                <!-- 2. Pacific Trade -->
-                <div class="forwarder-quote-card">
-                    <div class="card-ribbon lane-match">LANE MATCH</div>
-                    <div class="fq-header">
-                        <div class="fq-logo">PT</div>
-                        <div class="fq-info">
-                            <h4>Pacific Trade Solutions</h4>
-                            <div class="fq-rating">★ 4.6 <span>(987 reviews)</span></div>
-                        </div>
-                        <div class="fq-price">
-                            <span class="price-amount">$2,300</span>
-                            <span class="price-label">Total</span>
-                        </div>
-                    </div>
-                    <div class="fq-details">
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Transit</span>
-                            <span class="detail-value">22-28 days</span>
-                        </div>
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Capacity</span>
-                            <span class="detail-value">Available</span>
-                        </div>
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Insurance</span>
-                            <span class="detail-value">Optional</span>
-                        </div>
-                    </div>
-                    <div class="fq-badges">
-                        <span class="fq-badge verified">✓ Verified</span>
-                        <span class="fq-badge eco">🌿 Ekonomik</span>
-                    </div>
-                    <div class="fq-ai-note">
-                        <span class="ai-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="#667eea"><path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.996.996 0 0 0-1.41 0L1.29 18.96a.996.996 0 0 0 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05a.996.996 0 0 0 0-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"/></svg></span>
-                        <span>AI Insight: Cost-effective option, longer transit</span>
-                    </div>
-                    <button class="btn-select-forwarder" onclick="selectQuote('Pacific Trade Solutions', 2300)">Proceed with Introduction</button>
-                </div>
-
-                <!-- 3. Swift Cargo -->
-                <div class="forwarder-quote-card">
-                    <div class="card-ribbon verified">✓ VERIFIED</div>
-                    <div class="fq-header">
-                        <div class="fq-logo">SC</div>
-                        <div class="fq-info">
-                            <h4>Swift Cargo International</h4>
-                            <div class="fq-rating">★ 4.7 <span>(1,456 reviews)</span></div>
-                        </div>
-                        <div class="fq-price">
-                            <span class="price-amount">$2,700</span>
-                            <span class="price-label">Total</span>
-                        </div>
-                    </div>
-                    <div class="fq-details">
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Transit</span>
-                            <span class="detail-value">16-20 days</span>
-                        </div>
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Capacity</span>
-                            <span class="detail-value">Premium</span>
-                        </div>
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Insurance</span>
-                            <span class="detail-value">Included</span>
-                        </div>
-                    </div>
-                    <div class="fq-badges">
-                        <span class="fq-badge verified">✓ Verified</span>
-                        <span class="fq-badge fast">Express</span>
-                        <span class="fq-badge tracking">📍 Live Tracking</span>
-                    </div>
-                    <div class="fq-ai-note">
-                        <span class="ai-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="#667eea"><path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.996.996 0 0 0-1.41 0L1.29 18.96a.996.996 0 0 0 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05a.996.996 0 0 0 0-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"/></svg></span>
-                        <span>AI Insight: Ideal for time-sensitive shipments</span>
-                    </div>
-                    <button class="btn-select-forwarder" onclick="selectQuote('Swift Cargo International', 2700)">Proceed with Introduction</button>
-                </div>
-
-                <!-- 4. Ocean Star -->
-                <div class="forwarder-quote-card">
-                    <div class="fq-header">
-                        <div class="fq-logo">OS</div>
-                        <div class="fq-info">
-                            <h4>Ocean Star Shipping</h4>
-                            <div class="fq-rating">★ 4.8 <span>(1,923 reviews)</span></div>
-                        </div>
-                        <div class="fq-price">
-                            <span class="price-amount">$2,500</span>
-                            <span class="price-label">Total</span>
-                        </div>
-                    </div>
-                    <div class="fq-details">
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Transit</span>
-                            <span class="detail-value">20-25 days</span>
-                        </div>
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Capacity</span>
-                            <span class="detail-value">Available</span>
-                        </div>
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Insurance</span>
-                            <span class="detail-value">Included</span>
-                        </div>
-                    </div>
-                    <div class="fq-badges">
-                        <span class="fq-badge verified">✓ Verified</span>
-                        <span class="fq-badge eco">🌿 Çevre Dostu</span>
-                    </div>
-                    <button class="btn-select-forwarder" onclick="selectQuote('Ocean Star Shipping', 2500)">Proceed with Introduction</button>
-                </div>
-
-                <!-- 5. Euro Freight -->
-                <div class="forwarder-quote-card">
-                    <div class="fq-header">
-                        <div class="fq-logo">EF</div>
-                        <div class="fq-info">
-                            <h4>Euro Freight Partners</h4>
-                            <div class="fq-rating">★ 4.8 <span>(2,156 reviews)</span></div>
-                        </div>
-                        <div class="fq-price">
-                            <span class="price-amount">$2,625</span>
-                            <span class="price-label">Total</span>
-                        </div>
-                    </div>
-                    <div class="fq-details">
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Transit</span>
-                            <span class="detail-value">19-24 days</span>
-                        </div>
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Capacity</span>
-                            <span class="detail-value">Available</span>
-                        </div>
-                        <div class="fq-detail">
-                            <span class="detail-icon"></span>
-                            <span class="detail-label">Insurance</span>
-                            <span class="detail-value">Included</span>
-                        </div>
-                    </div>
-                    <div class="fq-badges">
-                        <span class="fq-badge verified">✓ Verified</span>
-                        <span class="fq-badge tracking">📍 Live Tracking</span>
-                    </div>
-                    <button class="btn-select-forwarder" onclick="selectQuote('Euro Freight Partners', 2625)">Proceed with Introduction</button>
-                </div>
+            
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                <button onclick="goBackToClientDashboard(); setTimeout(function(){ showClientTab('myQuotes'); }, 100);" 
+                    style="padding: 14px 28px; background: #1e40af; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 15px;">
+                    View Received Quotes
+                </button>
+                <button onclick="goBackToClientDashboard();" 
+                    style="padding: 14px 28px; background: white; color: #1e40af; border: 2px solid #1e40af; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 15px;">
+                    Create Another Request
+                </button>
             </div>
         </div>
-
-        <button class="btn-back" onclick="backToDashboard()">← New Request</button>
     </div>
 </div>
 
@@ -26908,6 +26699,19 @@ function closeContactInfoModal() {
 // Client profil sayfasını yükle
 function loadClientProfile() {
     var clientId = currentUser || 'demo-client';
+    
+    // Clear all fields first
+    document.getElementById('clientCompanyName').value = '';
+    document.getElementById('clientContactPerson').value = '';
+    document.getElementById('clientEmail').value = '';
+    document.getElementById('clientPhone').value = '';
+    document.getElementById('clientAddress').value = '';
+    document.getElementById('clientCity').value = '';
+    document.getElementById('clientTaxNumber').value = '';
+    document.getElementById('clientWebsite').value = '';
+    document.getElementById('clientProfileStatus').textContent = '';
+    document.getElementById('clientProfileStatus').className = '';
+    
     var contact = getUserContact(clientId, 'client');
     
     if (contact) {
@@ -26970,6 +26774,19 @@ function saveClientContact(e) {
 // Forwarder profil sayfasını yükle
 function loadForwarderProfile() {
     var forwarderId = currentUser || 'demo-forwarder';
+    
+    // Clear all fields first
+    document.getElementById('forwarderCompanyName').value = '';
+    document.getElementById('forwarderContactPerson').value = '';
+    document.getElementById('forwarderEmail').value = '';
+    document.getElementById('forwarderPhone').value = '';
+    document.getElementById('forwarderAddress').value = '';
+    document.getElementById('forwarderCity').value = '';
+    document.getElementById('forwarderTaxNumber').value = '';
+    document.getElementById('forwarderWebsite').value = '';
+    document.getElementById('forwarderProfileStatus').textContent = '';
+    document.getElementById('forwarderProfileStatus').className = '';
+    
     var contact = getUserContact(forwarderId, 'forwarder');
     
     if (contact) {
@@ -29235,6 +29052,18 @@ function renderForwarderRequests() {
     
     // Filter list based on requestsFilter
     var list = networkRequests || [];
+    
+    // Deduplicate requests by id
+    var uniqueRequests = [];
+    var seenIds = {};
+    list.forEach(function(r) {
+        var key = r.id || r.request_id;
+        if (key && !seenIds[key]) {
+            seenIds[key] = true;
+            uniqueRequests.push(r);
+        }
+    });
+    list = uniqueRequests;
     
     if (requestsFilter === 'open') {
         list = list.filter(function(r) { 
