@@ -17396,7 +17396,7 @@
         </div>
         
         <!-- ═══════════════════════════════════════════════════════════════════════════════
-             TEKLİF TALEPLERİM SEKMESİ
+             MY REQUESTS TAB
         ═══════════════════════════════════════════════════════════════════════════════ -->
         <div id="clientMyRequestsTab" class="client-tab-content hidden">
             <div class="section-header">
@@ -17409,193 +17409,25 @@
                 </div>
             </div>
             
-            <div class="my-requests-section">
-                <!-- Request 1 - Quotes Received -->
-                <div class="request-card">
-                    <div class="request-card-header">
-                        <div class="request-route">
-                            <h3>TR - İstanbul → DE - Hamburg</h3>
-                        </div>
-                        <span class="request-status quoted">3 Quotes Received</span>
+            <div class="my-requests-section" id="clientRequestsContainer">
+                <!-- Requests will be loaded dynamically from Supabase -->
+                <div class="empty-state" style="text-align: center; padding: 60px 20px;">
+                    <div style="width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
                     </div>
-                    <div class="request-details">
-                        <div class="request-detail-item">
-                            <label>Transport</label>
-                            <span>Sea - FCL</span>
-                        </div>
-                        <div class="request-detail-item">
-                            <label>Container</label>
-                            <span>40' HC</span>
-                        </div>
-                        <div class="request-detail-item">
-                            <label>Incoterm</label>
-                            <span>CIF</span>
-                        </div>
-                        <div class="request-detail-item">
-                            <label>Request Date</label>
-                            <span>December 18, 2025</span>
-                        </div>
-                    </div>
-                    <div class="request-offers">
-                        <h4>Received Quotes</h4>
-                        
-                        <div class="offer-card best" onclick="viewOfferDetails('offer1')">
-                            <div class="offer-company">
-                                <div class="offer-logo">AL</div>
-                                <div class="offer-company-info">
-                                    <h5>ABC Logistics</h5>
-                                    <div class="rating"><span>★★★★★</span> 4.9 (127 reviews)</div>
-                                </div>
-                            </div>
-                            <div class="offer-details">
-                                <div class="offer-detail">
-                                    <label>Transit</label>
-                                    <span>18 days</span>
-                                </div>
-                                <div class="offer-detail">
-                                    <label>Validity</label>
-                                    <span>25 December</span>
-                                </div>
-                            </div>
-                            <div class="offer-price">
-                                <div class="price">$2,450</div>
-                                <span class="best-tag">SUITABLE MATCH</span>
-                            </div>
-                            <div class="offer-actions">
-                                <button class="btn-accept" onclick="event.stopPropagation(); acceptOffer('offer1')" data-i18n="common.accept">Proceed</button>
-                            </div>
-                        </div>
-                        
-                        <div class="offer-card" onclick="viewOfferDetails('offer2')">
-                            <div class="offer-company">
-                                <div class="offer-logo">XY</div>
-                                <div class="offer-company-info">
-                                    <h5>XYZ Shipping</h5>
-                                    <div class="rating"><span>★★★★☆</span> 4.6 (89 reviews)</div>
-                                </div>
-                            </div>
-                            <div class="offer-details">
-                                <div class="offer-detail">
-                                    <label>Transit</label>
-                                    <span>15 days</span>
-                                </div>
-                                <div class="offer-detail">
-                                    <label>Validity</label>
-                                    <span>23 December</span>
-                                </div>
-                            </div>
-                            <div class="offer-price">
-                                <div class="price">$2,680</div>
-                            </div>
-                            <div class="offer-actions">
-                                <button class="btn-accept" onclick="event.stopPropagation(); acceptOffer('offer2')" data-i18n="common.accept">Accept</button>
-                            </div>
-                        </div>
-                        
-                        <div class="offer-card" onclick="viewOfferDetails('offer3')">
-                            <div class="offer-company">
-                                <div class="offer-logo">GL</div>
-                                <div class="offer-company-info">
-                                    <h5>Global Lines</h5>
-                                    <div class="rating"><span>★★★★★</span> 4.8 (156 reviews)</div>
-                                </div>
-                            </div>
-                            <div class="offer-details">
-                                <div class="offer-detail">
-                                    <label>Transit</label>
-                                    <span>12 days</span>
-                                </div>
-                                <div class="offer-detail">
-                                    <label>Validity</label>
-                                    <span>22 December</span>
-                                </div>
-                            </div>
-                            <div class="offer-price">
-                                <div class="price">$2,890</div>
-                            </div>
-                            <div class="offer-actions">
-                                <button class="btn-accept" onclick="event.stopPropagation(); acceptOffer('offer3')" data-i18n="common.accept">Accept</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Request 2 - Pending -->
-                <div class="request-card">
-                    <div class="request-card-header">
-                        <div class="request-route">
-                            <h3>TR - İzmir → NL - Rotterdam</h3>
-                        </div>
-                        <span class="request-status pending">Awaiting Quotes</span>
-                    </div>
-                    <div class="request-details">
-                        <div class="request-detail-item">
-                            <label>Transport</label>
-                            <span>Sea - LCL</span>
-                        </div>
-                        <div class="request-detail-item">
-                            <label>Volume</label>
-                            <span>8 CBM</span>
-                        </div>
-                        <div class="request-detail-item">
-                            <label>Incoterm</label>
-                            <span>FOB</span>
-                        </div>
-                        <div class="request-detail-item">
-                            <label>Request Date</label>
-                            <span>December 19, 2025</span>
-                        </div>
-                    </div>
-                    <div class="request-offers">
-                        <div class="empty-offers waiting-state">
-                            <div class="waiting-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.5">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <path d="M12 6v6l4 2"/>
-                                </svg>
-                            </div>
-                            <h4 style="margin: 12px 0 8px; color: #334155; font-weight: 600;">Waiting for quotes</h4>
-                            <p style="color: #64748b; margin: 0 0 8px;">Your request has been shared with verified freight forwarders matching this route.</p>
-                            <small style="color: #94a3b8;">Most quotes are received within 24 hours</small>
-                            <div style="margin-top: 12px;">
-                                <span style="background: #f0fdf4; color: #166534; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500;">Only verified forwarders can respond</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Request 3 - Kabul Edilmiş -->
-                <div class="request-card">
-                    <div class="request-card-header">
-                        <div class="request-route">
-                            <h3>TR - Mersin → GB - Felixstowe</h3>
-                        </div>
-                        <span class="request-status accepted">✓ Accepted</span>
-                    </div>
-                    <div class="request-details">
-                        <div class="request-detail-item">
-                            <label>Transport</label>
-                            <span>Sea - FCL</span>
-                        </div>
-                        <div class="request-detail-item">
-                            <label>Container</label>
-                            <span>20' DC</span>
-                        </div>
-                        <div class="request-detail-item">
-                            <label>Accepted</label>
-                            <span>ABC Logistics - $1,850</span>
-                        </div>
-                        <div class="request-detail-item">
-                            <label>Shipment No</label>
-                            <span>GFN-2024-78542</span>
-                        </div>
-                    </div>
+                    <h3 style="color: #334155; margin: 0 0 12px;">No Requests Yet</h3>
+                    <p style="color: #64748b; margin: 0;">Create a quote request to get started.</p>
                 </div>
             </div>
         </div>
         
         <!-- ═══════════════════════════════════════════════════════════════════════════════
-              MESAJLAR SEKMESİ
+              MESSAGES TAB
         ═══════════════════════════════════════════════════════════════════════════════ -->
         <div id="clientMessagesTab" class="client-tab-content hidden">
             <div class="section-header">
@@ -23449,6 +23281,9 @@ function showClientTab(tab) {
         if (tab === 'myQuotes' && typeof renderClientQuotes === 'function') {
             renderClientQuotes();
         }
+        if (tab === 'myRequests' && typeof renderClientRequests === 'function') {
+            renderClientRequests();
+        }
         if (tab === 'profile' && typeof loadClientProfile === 'function') {
             loadClientProfile();
         }
@@ -24552,6 +24387,23 @@ async function doSignUp(e) {
         
     }
     // Note: Insurance, Customs, Warehouse, Packaging removed for MVP
+    
+    // Save profile to Supabase
+    var companyName = document.getElementById('companyName') ? document.getElementById('companyName').value : '';
+    var profileData = {
+        userId: name,
+        userType: userType,
+        companyName: companyName || name,
+        contactPerson: name,
+        email: email,
+        phone: '',
+        city: '',
+        country: ''
+    };
+    
+    saveProfileToSupabase(profileData).then(function(result) {
+        console.log('Profile saved:', result);
+    });
     
     return false;
 }
@@ -27172,6 +27024,99 @@ function saveForwarderContact(e) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// CLIENT REQUESTS MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Render client's requests from Supabase
+async function renderClientRequests() {
+    var container = document.getElementById('clientRequestsContainer');
+    if (!container) return;
+    
+    var clientId = currentUser;
+    if (!clientId) {
+        container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 60px 20px;"><p>Please log in to view your requests.</p></div>';
+        return;
+    }
+    
+    console.log('Loading requests for client:', clientId);
+    
+    // Show loading state
+    container.innerHTML = '<div class="loading-state" style="text-align: center; padding: 40px;"><p>Loading your requests...</p></div>';
+    
+    try {
+        // Load requests from Supabase
+        var requests = await loadRequestsFromSupabase();
+        
+        // Filter requests for this client
+        var myRequests = requests.filter(function(req) {
+            return req.client_id === clientId || req.clientId === clientId;
+        });
+        
+        console.log('Found requests:', myRequests.length);
+        
+        if (myRequests.length === 0) {
+            container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 60px 20px;">' +
+                '<div style="width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">' +
+                '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">' +
+                '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>' +
+                '<polyline points="14 2 14 8 20 8"/>' +
+                '</svg></div>' +
+                '<h3 style="color: #334155; margin: 0 0 12px;">No Requests Yet</h3>' +
+                '<p style="color: #64748b; margin: 0;">Create a quote request to get started.</p>' +
+                '</div>';
+            return;
+        }
+        
+        // Sort by date (newest first)
+        myRequests.sort(function(a, b) {
+            return new Date(b.created_at || b.createdAt) - new Date(a.created_at || a.createdAt);
+        });
+        
+        var html = '';
+        myRequests.forEach(function(req) {
+            var origin = req.origin_port || req.originPort || req.origin || 'N/A';
+            var dest = req.destination_port || req.destPort || req.destination || 'N/A';
+            var status = req.status || 'open';
+            var statusClass = status === 'quoted' ? 'quoted' : status === 'accepted' ? 'accepted' : 'pending';
+            var statusText = status === 'quoted' ? 'Quotes Received' : status === 'accepted' ? 'Accepted' : 'Awaiting Quotes';
+            var transport = req.transport_mode || req.transportMode || 'Sea';
+            var container_type = req.container_type || req.containerType || '';
+            var requestDate = req.created_at || req.createdAt;
+            var dateStr = requestDate ? new Date(requestDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+            
+            html += '<div class="request-card">' +
+                '<div class="request-card-header">' +
+                '<div class="request-route"><h3>' + origin + ' → ' + dest + '</h3></div>' +
+                '<span class="request-status ' + statusClass + '">' + statusText + '</span>' +
+                '</div>' +
+                '<div class="request-details">' +
+                '<div class="request-detail-item"><label>Transport</label><span>' + transport + '</span></div>' +
+                (container_type ? '<div class="request-detail-item"><label>Container</label><span>' + container_type + '</span></div>' : '') +
+                '<div class="request-detail-item"><label>Request Date</label><span>' + dateStr + '</span></div>' +
+                '</div>';
+            
+            if (status === 'open') {
+                html += '<div class="request-offers">' +
+                    '<div class="empty-offers waiting-state">' +
+                    '<div class="waiting-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>' +
+                    '<h4 style="margin: 12px 0 8px; color: #334155; font-weight: 600;">Waiting for quotes</h4>' +
+                    '<p style="color: #64748b; margin: 0 0 8px;">Your request has been shared with verified freight forwarders.</p>' +
+                    '</div></div>';
+            }
+            
+            html += '</div>';
+        });
+        
+        container.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error loading requests:', error);
+        container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 60px 20px;">' +
+            '<p style="color: #ef4444;">Error loading requests. Please try again.</p></div>';
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // CLIENT QUOTE MANAGEMENT
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -27316,12 +27261,24 @@ function handleAcceptQuote(quoteId) {
     }
     
     if (confirm('Are you sure you want to accept this quote?\n\nAfter accepting, your contact information will be shared with the forwarder.')) {
+        // Update quote status locally
         var quote = acceptQuote(quoteId);
         if (quote) {
-            showRateNotification(' Quote kabul edildi! Forwarder ile iletişime geçebilirsiniz.', 'success');
+            showRateNotification('Quote accepted! Creating shipment...', 'success');
+            
+            // Update in Supabase
+            updateQuoteStatus(quoteId, 'accepted').then(function() {
+                console.log('Quote status updated in Supabase');
+            });
+            
+            // Create shipment in Supabase
+            createShipmentInSupabase(quote).then(function(result) {
+                console.log('Shipment created:', result);
+            });
+            
             renderClientQuotes();
             
-            // İletişim bilgilerini göster
+            // Show contact info
             setTimeout(function() {
                 showContactInfoModal(quoteId);
             }, 500);
@@ -27334,6 +27291,11 @@ function handleRejectQuote(quoteId) {
     if (confirm('Are you sure you want to reject this quote?')) {
         var quote = rejectQuote(quoteId);
         if (quote) {
+            // Update in Supabase
+            updateQuoteStatus(quoteId, 'rejected').then(function() {
+                console.log('Quote status updated to rejected in Supabase');
+            });
+            
             showRateNotification('Quote rejected', 'success');
             renderClientQuotes();
         }
@@ -34309,6 +34271,55 @@ async function updateQuoteStatus(quoteId, newStatus) {
         return { success: true };
     } catch (e) {
         return { success: true, source: 'localStorage' };
+    }
+}
+
+// --- SHIPMENTS ---
+
+// Create shipment when quote is accepted
+async function createShipmentInSupabase(quote) {
+    console.log('Creating shipment for quote:', quote.id);
+    
+    var shipmentId = 'SHP-' + Date.now();
+    var shipmentData = {
+        shipment_id: shipmentId,
+        quote_id: quote.id || quote.quote_id,
+        request_id: quote.requestId || quote.request_id,
+        client_id: quote.clientId || quote.client_id,
+        forwarder_id: quote.forwarderId || quote.forwarder_id,
+        origin: quote.origin,
+        destination: quote.destination,
+        container_type: quote.containerType || quote.container_type,
+        status: 'booked',
+        created_at: new Date().toISOString()
+    };
+    
+    // Save to localStorage
+    var shipments = JSON.parse(localStorage.getItem('gfn_shipments') || '[]');
+    shipments.push(shipmentData);
+    localStorage.setItem('gfn_shipments', JSON.stringify(shipments));
+    
+    if (!supabase) {
+        console.log('Shipment saved to localStorage only');
+        return { success: true, source: 'localStorage', data: shipmentData };
+    }
+    
+    try {
+        var result = await supabase
+            .from('shipments')
+            .insert([shipmentData])
+            .select();
+        
+        if (result.error) {
+            console.log('Supabase shipment insert error:', result.error.message);
+            return { success: true, source: 'localStorage', data: shipmentData };
+        }
+        
+        console.log('Shipment created in Supabase:', result.data[0].id);
+        return { success: true, source: 'supabase', data: result.data[0] };
+    } catch (e) {
+        console.log('Shipment create error:', e.message);
+        return { success: true, source: 'localStorage', data: shipmentData };
     }
 }
 
