@@ -27331,7 +27331,7 @@ function renderClientQuotes() {
     var html = '';
     quotes.forEach(function(quote) {
         var statusClass = quote.status === 'accepted' ? 'accepted' : quote.status === 'rejected' ? 'rejected' : 'pending';
-        var statusText = quote.status === 'accepted' ? 'Success: Accepted' : quote.status === 'rejected' ? 'Error: Rejected' : ' Pending';
+        var statusText = quote.status === 'accepted' ? 'Accepted' : quote.status === 'rejected' ? 'Rejected' : ' Pending';
         var timeAgo = getTimeAgo(quote.createdAt);
         
         html += '<div class="quote-card-client ' + statusClass + '">' +
@@ -27484,7 +27484,7 @@ function renderForwarderQuotes() {
     var html = '';
     myQuotes.forEach(function(quote) {
         var statusClass = quote.status === 'accepted' ? 'accepted' : quote.status === 'rejected' ? 'rejected' : 'pending';
-        var statusText = quote.status === 'accepted' ? 'Success: Accepted' : quote.status === 'rejected' ? 'Error: Rejected' : ' Awaiting Response';
+        var statusText = quote.status === 'accepted' ? 'Accepted' : quote.status === 'rejected' ? 'Rejected' : ' Awaiting Response';
         var statusIcon = quote.status === 'accepted' ? '' : quote.status === 'rejected' ? '😔' : '';
         var timeAgo = getTimeAgo(quote.createdAt);
         
