@@ -33871,31 +33871,60 @@ function closeLegalModal(event) {
 var SUPABASE_URL = 'https://teljolppqncevuzlhsoq.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbGpvbHBwcW5jZXZ1emxoc29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0OTI2NzQsImV4cCI6MjA4MjA2ODY3NH0.Sly-MJBAkLhse2Yd4Pe_-M85LfXujWRZ7ZiMy__qLr4';
 
-// Initialize Supabase client
+// Initialize Supabase client - will be set when ready
 var supabase = null;
 var supabaseReady = false;
 
-// Debug: Check what's available
-console.log('Checking Supabase SDK...');
-console.log('window.supabase:', typeof window.supabase);
-
-// Try multiple ways to access the SDK
-try {
-    var sb = window.supabase || window.Supabase;
-    if (sb && sb.createClient) {
-        supabase = sb.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        supabaseReady = true;
-        console.log('✅ Supabase client initialized successfully');
-    } else if (typeof createClient === 'function') {
-        supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        supabaseReady = true;
-        console.log('✅ Supabase client initialized (global createClient)');
-    } else {
-        console.log('❌ Supabase SDK not found');
-        console.log('Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('supa')));
+// Function to initialize Supabase
+function initializeSupabase() {
+    console.log('Initializing Supabase...');
+    console.log('window.supabase:', window.supabase);
+    console.log('window.supabase keys:', window.supabase ? Object.keys(window.supabase) : 'N/A');
+    
+    try {
+        // Supabase v2 exposes createClient directly on window.supabase
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            supabaseReady = true;
+            console.log('✅ Supabase client initialized successfully!');
+            return true;
+        }
+        
+        // Alternative: check if it's the module export
+        if (window.supabase && window.supabase.supabase && typeof window.supabase.supabase.createClient === 'function') {
+            supabase = window.supabase.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            supabaseReady = true;
+            console.log('✅ Supabase client initialized (nested)!');
+            return true;
+        }
+        
+        console.log('❌ createClient not found in window.supabase');
+        return false;
+    } catch (e) {
+        console.log('❌ Supabase init error:', e.message);
+        return false;
     }
-} catch (e) {
-    console.log('❌ Supabase init error:', e.message);
+}
+
+// Try immediately
+if (!initializeSupabase()) {
+    // Retry after DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!supabaseReady) {
+            console.log('Retrying Supabase init after DOMContentLoaded...');
+            initializeSupabase();
+        }
+    });
+    
+    // Also retry after window load (when all scripts are done)
+    window.addEventListener('load', function() {
+        if (!supabaseReady) {
+            console.log('Retrying Supabase init after window.load...');
+            if (!initializeSupabase()) {
+                console.log('⚠️ Supabase not available - using localStorage fallback');
+            }
+        }
+    });
 }
 
 // ============================================
