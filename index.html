@@ -16369,7 +16369,7 @@
     </style>
     
     <!-- Supabase Client Library -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="console.log('✅ Supabase SDK loaded from CDN')"></script>
 </head>
 <body>
 
@@ -33871,16 +33871,32 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 var supabase = null;
 var supabaseReady = false;
 
-try {
-    if (window.supabase && typeof window.supabase.createClient === 'function') {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        supabaseReady = true;
-        console.log('Supabase client initialized successfully');
-    } else {
-        console.log('Supabase SDK not available - using localStorage fallback');
+function initSupabase() {
+    try {
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            supabaseReady = true;
+            console.log('✅ Supabase client initialized successfully');
+            console.log('Supabase URL:', SUPABASE_URL);
+            return true;
+        } else {
+            console.log('⚠️ Supabase SDK not loaded yet');
+            return false;
+        }
+    } catch (e) {
+        console.log('❌ Supabase init error:', e.message);
+        return false;
     }
-} catch (e) {
-    console.log('Using localStorage fallback');
+}
+
+// Try to initialize immediately
+if (!initSupabase()) {
+    // Retry after a short delay if not loaded yet
+    setTimeout(function() {
+        if (!initSupabase()) {
+            console.log('⚠️ Using localStorage fallback - Supabase not available');
+        }
+    }, 1000);
 }
 
 // ============================================
