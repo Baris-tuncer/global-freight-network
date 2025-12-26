@@ -2154,6 +2154,31 @@
             font-size: 0.8em;
             font-weight: 600;
         }
+        
+        .menu-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #3b82f6;
+            color: white;
+            margin-left: 6px;
+        }
+        
+        .menu-badge.rfq-badge {
+            background: #ef4444;
+            animation: badgePulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
 
         .badge-verified { background: #e8f5e9; color: #27ae60; }
         .badge-fast { background: #fff3e0; color: #f39c12; }
@@ -13937,6 +13962,11 @@
             color: #15803d;
         }
         
+        .request-status.booked {
+            background: #c7d2fe;
+            color: #4338ca;
+        }
+        
         .request-status.expired {
             background: #f1f5f9;
             color: #64748b;
@@ -18146,6 +18176,7 @@
                 <div class="nav-menu-item" data-tab="requests" onclick="showForwarderTab('requests')">
                     <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
                     <span data-i18n="menu.rfqInbox">RFQ Inbox</span>
+                    <span class="menu-badge rfq-badge" id="rfqInboxBadge" style="display:none;">0</span>
                 </div>
                 <div class="nav-menu-item" data-tab="profile" onclick="showForwarderTab('profile')">
                     <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
@@ -26569,6 +26600,24 @@ function acceptQuote(quoteId) {
         quote.acceptedAt = new Date().toISOString();
         quote.updatedAt = new Date().toISOString();
         saveQuotesToStorage();
+        
+        // Update request status to 'booked' when quote is accepted
+        var request = networkRequests.find(function(r) { 
+            return r.id === quote.requestId || r.request_id === quote.requestId; 
+        });
+        if (request) {
+            request.status = 'booked';
+            localStorage.setItem('networkRequests', JSON.stringify(networkRequests));
+            // Also update in Supabase if available
+            if (supabase) {
+                supabase.from('requests').update({ status: 'booked' })
+                    .eq('request_id', quote.requestId)
+                    .then(function(result) {
+                        console.log('Request status updated to booked:', result);
+                    });
+            }
+        }
+        
         return quote;
     }
     return null;
@@ -26942,8 +26991,8 @@ async function renderClientRequests() {
             var origin = req.origin_port || req.originPort || req.origin || 'N/A';
             var dest = req.destination_port || req.destPort || req.destination || 'N/A';
             var status = req.status || 'open';
-            var statusClass = status === 'quoted' ? 'quoted' : status === 'accepted' ? 'accepted' : 'pending';
-            var statusText = status === 'quoted' ? 'Quotes Received' : status === 'accepted' ? 'Accepted' : 'Awaiting Quotes';
+            var statusClass = status === 'quoted' ? 'quoted' : status === 'accepted' ? 'accepted' : status === 'booked' ? 'booked' : 'pending';
+            var statusText = status === 'quoted' ? 'Quotes Received' : status === 'accepted' ? 'Accepted' : status === 'booked' ? 'Booked' : 'Awaiting Quotes';
             var transport = req.transport_mode || req.transportMode || 'Sea';
             var container_type = req.container_type || req.containerType || '';
             var requestDate = req.created_at || req.createdAt;
@@ -27199,12 +27248,12 @@ function renderForwarderQuotes() {
     
     console.log('Found quotes:', myQuotes.length);
     
-    // Update badge
-    var pendingCount = myQuotes.filter(function(q) { return q.status === 'pending'; }).length;
+    // Update badge - show count of newly accepted quotes
+    var acceptedCount = myQuotes.filter(function(q) { return q.status === 'accepted'; }).length;
     var badge = document.getElementById('forwarderQuotesBadge');
     if (badge) {
-        badge.textContent = pendingCount;
-        badge.style.display = pendingCount > 0 ? 'inline-flex' : 'none';
+        badge.textContent = acceptedCount;
+        badge.style.display = acceptedCount > 0 ? 'inline-flex' : 'none';
     }
     
     if (myQuotes.length === 0) {
@@ -27224,7 +27273,7 @@ function renderForwarderQuotes() {
     var html = '';
     myQuotes.forEach(function(quote) {
         var statusClass = quote.status === 'accepted' ? 'accepted' : quote.status === 'rejected' ? 'rejected' : 'pending';
-        var statusText = quote.status === 'accepted' ? 'Accepted' : quote.status === 'rejected' ? 'Rejected' : ' Awaiting Response';
+        var statusText = quote.status === 'accepted' ? 'Accepted' : quote.status === 'rejected' ? 'Rejected' : 'Submitted';
         var timeAgo = getTimeAgo(quote.createdAt);
         
         html += '<div class="quote-card-forwarder ' + statusClass + '">' +
@@ -29208,6 +29257,16 @@ async function renderForwarderRequests() {
     }
     
     container.innerHTML = html;
+    
+    // Update RFQ Inbox badge with open requests count
+    var openRequests = (networkRequests || []).filter(function(r) { 
+        return r.status === 'open' && !hasMyQuote(r.id); 
+    });
+    var rfqBadge = document.getElementById('rfqInboxBadge');
+    if (rfqBadge) {
+        rfqBadge.textContent = openRequests.length;
+        rfqBadge.style.display = openRequests.length > 0 ? 'inline-flex' : 'none';
+    }
     
     // Update filter button labels
     updateFilterLabels();
