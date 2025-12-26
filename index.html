@@ -19802,14 +19802,14 @@ var translations = {
         'profile.website': 'Web Sitesi',
         'profile.whyContactInfo': 'Neden iletişim bilgilerim gerekli?',
         'profile.contactInfoDesc': 'Tanıştırma onaylandığında, doğrudan iletişime geçebilmeniz için bu bilgiler paylaşılır.',
-        'profile.myProfileTitle': 'Profileim & İletişim Bilgileri',
-        'profile.clientProfileDesc': 'İletişim bilgilerinizi güncelleyin - Tanıştırma onaylandığında forwarder bu bilgilere erişebilir',
-        'profile.forwarderProfileDesc': 'İletişim bilgilerinizi güncelleyin - Tanıştırma onaylandığında yük sahibi bu bilgilere erişebilir',
-        'common.backHome': '← Ana Sayfa',
+        'profile.myProfileTitle': 'My Profile & Contact Info',
+        'profile.clientProfileDesc': 'Update your contact information - Forwarders can access this when introduction is approved',
+        'profile.forwarderProfileDesc': 'Update your contact information - Cargo owners can access this when introduction is approved',
+        'common.backHome': '← Home',
         
         // Menu
-        'menu.roleSelect': 'Rol Seçimi',
-        'menu.home': 'Ana Sayfa',
+        'menu.roleSelect': 'Role Selection',
+        'menu.home': 'Home',
         'menu.myRates': 'My Rates',
         'menu.containerTracking': 'Container Tracking',
         'menu.completedRequests': 'Completed RFQs',
@@ -24276,17 +24276,17 @@ function goToSignUp() {
     document.getElementById('signUpPage').classList.remove('hidden');
     
     var signUpTitles = {
-        'client': 'Müşteri Kaydı',
-        'forwarder': 'Freight Forwarder Kaydı',
-        'seaCarrier': 'Sea Carrier Kaydı',
-        'airCarrier': 'Air Carrier Kaydı',
-        'landCarrier': 'Kara Carriersi Kaydı',
-        'insurance': 'Insurance Companyi Kaydı',
-        'customs': 'Customs Müşaviri Kaydı',
-        'warehouse': 'Warehouse Sağlayıcı Kaydı',
-        'packaging': 'Paketleme Companyi Kaydı'
+        'client': 'Cargo Owner Registration',
+        'forwarder': 'Freight Forwarder Registration',
+        'seaCarrier': 'Sea Carrier Registration',
+        'airCarrier': 'Air Carrier Registration',
+        'landCarrier': 'Land Carrier Registration',
+        'insurance': 'Insurance Company Registration',
+        'customs': 'Customs Broker Registration',
+        'warehouse': 'Warehouse Provider Registration',
+        'packaging': 'Packaging Company Registration'
     };
-    document.getElementById('signUpTitle').textContent = signUpTitles[userType] || 'Kayıt';
+    document.getElementById('signUpTitle').textContent = signUpTitles[userType] || 'Registration';
     
     // Show extra fields for carriers and forwarders
     var showExtra = ['forwarder', 'seaCarrier', 'airCarrier', 'landCarrier'].includes(userType);
@@ -27172,16 +27172,16 @@ function saveForwarderContact(e) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CLIENT TEKLİF YÖNETİMİ
+// CLIENT QUOTE MANAGEMENT
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Demo quoteler (ilk yüklemede)
+// Demo quotes (disabled in production)
 function initDemoQuotes() {
     // Production mode - no demo data
     return;
 }
 
-// Client için gelen quoteleri render et
+// Render quotes received by client
 function renderClientQuotes() {
     initDemoQuotes();
     
@@ -27195,13 +27195,24 @@ function renderClientQuotes() {
     console.log('Looking for clientId:', clientId);
     
     var quotes = quotesDB.filter(function(q) { 
-        var match = q.clientId === clientId || q.clientId === 'demo-client';
-        return match; 
+        return q.clientId === clientId;
     });
+    
+    // Remove duplicates by quote_id or id
+    var uniqueQuotes = [];
+    var seenIds = {};
+    quotes.forEach(function(q) {
+        var key = q.quote_id || q.id;
+        if (!seenIds[key]) {
+            seenIds[key] = true;
+            uniqueQuotes.push(q);
+        }
+    });
+    quotes = uniqueQuotes;
     
     console.log('Found quotes:', quotes.length);
     
-    // Badge güncelle
+    // Update badge
     var pendingCount = quotes.filter(function(q) { return q.status === 'pending'; }).length;
     var badge = document.getElementById('quotesBadge');
     if (badge) {
@@ -27213,12 +27224,12 @@ function renderClientQuotes() {
         container.innerHTML = '<div class="empty-state">' +
             '<div class="empty-icon"></div>' +
             '<p>No quotes received yet</p>' +
-            '<p style="font-size:14px;color:#94a3b8;">When you create RFQs, forwarders will send you quotes.</p>' +
+            '<p style="font-size:14px;color:#94a3b8;">When you create RFQs, forwarders will send you.</p>' +
             '</div>';
         return;
     }
     
-    // Tarihe göre sırala (en yeni önce)
+    // Sort by date (newest first)
     quotes.sort(function(a, b) {
         return new Date(b.createdAt) - new Date(a.createdAt);
     });
@@ -27323,7 +27334,7 @@ function handleRejectQuote(quoteId) {
     if (confirm('Are you sure you want to reject this quote?')) {
         var quote = rejectQuote(quoteId);
         if (quote) {
-            showRateNotification('Quote reddedildi', 'success');
+            showRateNotification('Quote rejected', 'success');
             renderClientQuotes();
         }
     }
@@ -27339,22 +27350,29 @@ function renderForwarderQuotes() {
     
     var forwarderId = currentUser || 'demo-forwarder';
     
-    console.log('renderForwarderQuotes çağrıldı');
-    console.log('Aranıyor: Aranan forwarderId:', forwarderId);
-    console.log('quotesDB içeriği:', quotesDB);
+    console.log('renderForwarderQuotes called');
+    console.log('Looking for forwarderId:', forwarderId);
     
-    // Forwarder'ın verdiği quoteleri bul (hem forwarderId hem forwarderName ile eşleştir)
+    // Find quotes submitted by this forwarder
     var myQuotes = quotesDB.filter(function(q) {
-        var match = q.forwarderId === forwarderId || 
-               q.forwarderName === forwarderId || 
-               q.forwarderId === 'demo-forwarder';
-        if (match) console.log('Success: Matching quote:', q.id, 'forwarderId:', q.forwarderId);
-        return match;
+        return q.forwarderId === forwarderId || q.forwarderName === forwarderId;
     });
     
-    console.log('Bulunan quote sayısı:', myQuotes.length);
+    // Remove duplicates by quote_id or id
+    var uniqueQuotes = [];
+    var seenIds = {};
+    myQuotes.forEach(function(q) {
+        var key = q.quote_id || q.id;
+        if (!seenIds[key]) {
+            seenIds[key] = true;
+            uniqueQuotes.push(q);
+        }
+    });
+    myQuotes = uniqueQuotes;
     
-    // Badge güncelle
+    console.log('Found quotes:', myQuotes.length);
+    
+    // Update badge
     var pendingCount = myQuotes.filter(function(q) { return q.status === 'pending'; }).length;
     var badge = document.getElementById('forwarderQuotesBadge');
     if (badge) {
@@ -27365,13 +27383,13 @@ function renderForwarderQuotes() {
     if (myQuotes.length === 0) {
         container.innerHTML = '<div class="empty-state">' +
             '<div class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>' +
-            '<h3>Henüz quote göndermediniz</h3>' +
-            '<p>"RFQ Inbox" tab to submit quotes to RFQs submit</p>' +
+            '<h3>No quotes submitted yet</h3>' +
+            '<p>Go to "RFQ Inbox" to submit quotes</p>' +
             '</div>';
         return;
     }
     
-    // Tarihe göre sırala (en yeni önce)
+    // Sort by date (newest first)
     myQuotes.sort(function(a, b) {
         return new Date(b.createdAt) - new Date(a.createdAt);
     });
@@ -31206,7 +31224,7 @@ function generateAIResponse(message) {
                '• <strong>CIF:</strong> Liman-liman, sigorta dahil<br>' +
                '• <strong>FOB:</strong> Yükleme limanında teslim<br>' +
                '• <strong>EXW:</strong> Fabrikadan teslim (En ucuz)<br><br>' +
-               'İlk kez shipmentsm yapıyorsanız <strong>DDP</strong> quoteyorum! 👍';
+               'For first-time shippers, I recommend <strong>DDP</strong>!';
     }
     
     if (msg.includes('süre') || msg.includes('zaman') || msg.includes('transit') || msg.includes('kaç gün')) {
