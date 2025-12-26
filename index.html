@@ -18583,123 +18583,20 @@
             <h3 data-i18n="completedShipments.title">Completed Shipments</h3>
             <p style="color: #64748b; margin-bottom: 20px;" data-i18n="completed.subtitle">Your successfully completed shipments</p>
             <div id="completedContainer">
-                <div class="completed-list">
-                    <!-- Completed Request 1 -->
-                    <div class="completed-item">
-                        <div class="completed-header">
-                            <div class="completed-status">
-                                <span class="status-badge success" data-i18n="completed.delivered">Delivered</span>
-                                <span class="completed-date">1December 5, 2025</span>
-                            </div>
-                            <div class="completed-id">#TLP-2024-0847</div>
-                        </div>
-                        <div class="completed-route">
-                            <div class="route-info">
-                                <span class="route-from">TR - İstanbul → DE - Hamburg</span>
-                                <span class="route-container">40' HC</span>
-                            </div>
-                            <div class="customer-info">
-                                <span class="customer-name">ABC Tekstil Ltd.</span>
-                            </div>
-                        </div>
-                        <div class="completed-details">
-                            <div class="detail-item">
-                                <span class="detail-label" data-i18n="completed.freight">Freight</span>
-                                <span class="detail-value">$1,850</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label" data-i18n="completed.transit">Transit</span>
-                                <span class="detail-value">12 days</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label" data-i18n="completed.carrier">Carrier</span>
-                                <span class="detail-value">MSC</span>
-                            </div>
-                            <div class="detail-item profit">
-                                <span class="detail-label" data-i18n="completed.profit">Profit</span>
-                                <span class="detail-value">+$285</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Completed Request 2 -->
-                    <div class="completed-item">
-                        <div class="completed-header">
-                            <div class="completed-status">
-                                <span class="status-badge success">Delivered</span>
-                                <span class="completed-date">December 10, 2025</span>
-                            </div>
-                            <div class="completed-id">#TLP-2024-0831</div>
-                        </div>
-                        <div class="completed-route">
-                            <div class="route-info">
-                                <span class="route-from">TR - Mersin → GB - Felixstowe</span>
-                                <span class="route-container">20' DC</span>
-                            </div>
-                            <div class="customer-info">
-                                <span class="customer-name">XYZ Machinery Co.</span>
-                            </div>
-                        </div>
-                        <div class="completed-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Freight</span>
-                                <span class="detail-value">$1,420</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Transit</span>
-                                <span class="detail-value">14 days</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Carrier</span>
-                                <span class="detail-value">Maersk</span>
-                            </div>
-                            <div class="detail-item profit">
-                                <span class="detail-label">Profit</span>
-                                <span class="detail-value">+$198</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Completed Request 3 -->
-                    <div class="completed-item">
-                        <div class="completed-header">
-                            <div class="completed-status">
-                                <span class="status-badge success">Delivered</span>
-                                <span class="completed-date">December 5, 2025</span>
-                            </div>
-                            <div class="completed-id">#TLP-2024-0819</div>
-                        </div>
-                        <div class="completed-route">
-                            <div class="route-info">
-                                <span class="route-from">TR - İzmir → NL - Rotterdam</span>
-                                <span class="route-container">40' HC</span>
-                            </div>
-                            <div class="customer-info">
-                                <span class="customer-name">Ege Furniture Co.</span>
-                            </div>
-                        </div>
-                        <div class="completed-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Freight</span>
-                                <span class="detail-value">$1,680</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Transit</span>
-                                <span class="detail-value">10 days</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Carrier</span>
-                                <span class="detail-value">Arkas</span>
-                            </div>
-                            <div class="detail-item profit">
-                                <span class="detail-label">Profit</span>
-                                <span class="detail-value">+$312</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="completed-list" id="completedShipmentsList">
+                    <!-- Completed shipments will be dynamically loaded from Supabase -->
                 </div>
                 
-                <!-- Özet kaldırıldı - gerçek veriler backend'den gelecek -->
+                <!-- Empty State -->
+                <div id="noCompletedShipmentsMessage">
+                    <div class="empty-state">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <h3>No Completed Shipments Yet</h3>
+                        <p>When shipments are delivered, they will appear here.</p>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- ═══════════════════════════════════════════════════════════════════════════════
@@ -27291,20 +27188,18 @@ function renderClientQuotes() {
     var container = document.getElementById('clientQuotesList');
     if (!container) return;
     
-    // Demo modda tüm client quotelerini göster (hem 'demo-client' hem currentUser)
+    // Get quotes for current client
     var clientId = currentUser || 'demo-client';
     
-    console.log('renderClientQuotes çağrıldı');
-    console.log('Aranıyor: Aranan clientId:', clientId);
-    console.log('quotesDB içeriği:', quotesDB);
+    console.log('renderClientQuotes called');
+    console.log('Looking for clientId:', clientId);
     
     var quotes = quotesDB.filter(function(q) { 
         var match = q.clientId === clientId || q.clientId === 'demo-client';
-        if (match) console.log('Success: Matching quote:', q.id, 'clientId:', q.clientId);
         return match; 
     });
     
-    console.log('Bulunan quote sayısı:', quotes.length);
+    console.log('Found quotes:', quotes.length);
     
     // Badge güncelle
     var pendingCount = quotes.filter(function(q) { return q.status === 'pending'; }).length;
@@ -27318,7 +27213,7 @@ function renderClientQuotes() {
         container.innerHTML = '<div class="empty-state">' +
             '<div class="empty-icon"></div>' +
             '<p>No quotes received yet</p>' +
-            '<p style="font-size:14px;color:#94a3b8;">When you create new RFQs, forwarder\'lardan quoteler gelecek</p>' +
+            '<p style="font-size:14px;color:#94a3b8;">When you create RFQs, forwarders will send you quotes.</p>' +
             '</div>';
         return;
     }
@@ -27485,7 +27380,6 @@ function renderForwarderQuotes() {
     myQuotes.forEach(function(quote) {
         var statusClass = quote.status === 'accepted' ? 'accepted' : quote.status === 'rejected' ? 'rejected' : 'pending';
         var statusText = quote.status === 'accepted' ? 'Accepted' : quote.status === 'rejected' ? 'Rejected' : ' Awaiting Response';
-        var statusIcon = quote.status === 'accepted' ? '' : quote.status === 'rejected' ? '😔' : '';
         var timeAgo = getTimeAgo(quote.createdAt);
         
         html += '<div class="quote-card-forwarder ' + statusClass + '">' +
@@ -27509,21 +27403,20 @@ function renderForwarderQuotes() {
             '</div>';
         
         if (quote.notes) {
-            html += '<div class="quote-notes"><strong>Notunuz:</strong> ' + quote.notes + '</div>';
+            html += '<div class="quote-notes"><strong>Your Note:</strong> ' + quote.notes + '</div>';
         }
         
         if (quote.status === 'accepted') {
             html += '<div class="quote-accepted-info">' +
-                '<div class="accepted-icon">' + statusIcon + '</div>' +
                 '<div class="accepted-text">' +
                 '<strong>Congratulations! Your quote has been accepted.</strong>' +
                 '<p>You can now contact the customer.</p>' +
                 '</div>' +
-                '<button class="btn-contact" onclick="showContactInfoModal(\'' + quote.id + '\')">📞 Customer Contact Information</button>' +
+                '<button class="btn-contact" onclick="showContactInfoModal(\'' + quote.id + '\')">Customer Contact Information</button>' +
                 '</div>';
         } else if (quote.status === 'rejected') {
             html += '<div class="quote-rejected-info">' +
-                '<span>' + statusIcon + ' Quoteniz yük sahibi tarafından reddedildi.</span>' +
+                '<span>Your quote was declined by the cargo owner.</span>' +
                 '</div>';
         }
         
@@ -34157,10 +34050,15 @@ async function loadQuotesForClient(clientId) {
         
         console.log('Loaded', result.data.length, 'quotes for client from Supabase');
         
-        // Supabase formatını uygulama formatına dönüştür ve quotesDB'ye ekle
+        // Clear existing quotes from quotesDB for this client to avoid duplicates
+        quotesDB = quotesDB.filter(function(q) {
+            return q.clientId !== clientId && q.clientId !== 'demo-client';
+        });
+        
+        // Add Supabase quotes
         var quotes = result.data.map(function(q) {
             return {
-                id: q.id || q.quote_id,
+                id: q.quote_id || q.id,
                 requestId: q.request_id,
                 clientId: q.client_id,
                 forwarderId: q.forwarder_id,
@@ -34183,14 +34081,9 @@ async function loadQuotesForClient(clientId) {
             };
         });
         
-        // Merge with existing quotesDB
+        // Add to quotesDB
         quotes.forEach(function(quote) {
-            var exists = quotesDB.some(function(q) { 
-                return q.id === quote.id; 
-            });
-            if (!exists) {
-                quotesDB.push(quote);
-            }
+            quotesDB.push(quote);
         });
         
         return quotes;
