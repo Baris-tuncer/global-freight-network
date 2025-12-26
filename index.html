@@ -16368,8 +16368,7 @@
         }
     </style>
     
-    <!-- Supabase Client Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="console.log('✅ Supabase SDK loaded from CDN')"></script>
+    <!-- Supabase loaded in body for proper timing -->
 </head>
 <body>
 
@@ -33858,6 +33857,11 @@ function closeLegalModal(event) {
 <!-- Floating Chatbot Kaldırıldı - AI Asistan butonu zaten mevcut -->
 
 <!-- ============================================
+     SUPABASE SDK - Must load before configuration
+     ============================================ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<!-- ============================================
      SUPABASE CONFIGURATION & FREIGHT RATES MODULE
      ============================================ -->
 <script>
@@ -33867,36 +33871,21 @@ function closeLegalModal(event) {
 var SUPABASE_URL = 'https://teljolppqncevuzlhsoq.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbGpvbHBwcW5jZXZ1emxoc29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0OTI2NzQsImV4cCI6MjA4MjA2ODY3NH0.Sly-MJBAkLhse2Yd4Pe_-M85LfXujWRZ7ZiMy__qLr4';
 
-// Initialize Supabase client SAFELY
+// Initialize Supabase client
 var supabase = null;
 var supabaseReady = false;
 
-function initSupabase() {
-    try {
-        if (window.supabase && typeof window.supabase.createClient === 'function') {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            supabaseReady = true;
-            console.log('✅ Supabase client initialized successfully');
-            console.log('Supabase URL:', SUPABASE_URL);
-            return true;
-        } else {
-            console.log('⚠️ Supabase SDK not loaded yet');
-            return false;
-        }
-    } catch (e) {
-        console.log('❌ Supabase init error:', e.message);
-        return false;
+// Direct initialization - SDK should be loaded by now
+try {
+    if (window.supabase && window.supabase.createClient) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        supabaseReady = true;
+        console.log('✅ Supabase client initialized successfully');
+    } else {
+        console.log('❌ Supabase SDK not found - check CDN');
     }
-}
-
-// Try to initialize immediately
-if (!initSupabase()) {
-    // Retry after a short delay if not loaded yet
-    setTimeout(function() {
-        if (!initSupabase()) {
-            console.log('⚠️ Using localStorage fallback - Supabase not available');
-        }
-    }, 1000);
+} catch (e) {
+    console.log('❌ Supabase init error:', e.message);
 }
 
 // ============================================
