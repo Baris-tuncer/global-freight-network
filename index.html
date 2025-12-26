@@ -33857,16 +33857,16 @@ function closeLegalModal(event) {
 <!-- Floating Chatbot Kaldırıldı - AI Asistan butonu zaten mevcut -->
 
 <!-- ============================================
-     SUPABASE SDK - Must load before configuration
+     SUPABASE SDK - Official CDN
      ============================================ -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <!-- ============================================
      SUPABASE CONFIGURATION & FREIGHT RATES MODULE
      ============================================ -->
 <script>
 // ============================================
-// SUPABASE INITIALIZATION (SAFE)
+// SUPABASE INITIALIZATION
 // ============================================
 var SUPABASE_URL = 'https://teljolppqncevuzlhsoq.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbGpvbHBwcW5jZXZ1emxoc29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0OTI2NzQsImV4cCI6MjA4MjA2ODY3NH0.Sly-MJBAkLhse2Yd4Pe_-M85LfXujWRZ7ZiMy__qLr4';
@@ -33875,14 +33875,24 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 var supabase = null;
 var supabaseReady = false;
 
-// Direct initialization - SDK should be loaded by now
+// Debug: Check what's available
+console.log('Checking Supabase SDK...');
+console.log('window.supabase:', typeof window.supabase);
+
+// Try multiple ways to access the SDK
 try {
-    if (window.supabase && window.supabase.createClient) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    var sb = window.supabase || window.Supabase;
+    if (sb && sb.createClient) {
+        supabase = sb.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         supabaseReady = true;
         console.log('✅ Supabase client initialized successfully');
+    } else if (typeof createClient === 'function') {
+        supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        supabaseReady = true;
+        console.log('✅ Supabase client initialized (global createClient)');
     } else {
-        console.log('❌ Supabase SDK not found - check CDN');
+        console.log('❌ Supabase SDK not found');
+        console.log('Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('supa')));
     }
 } catch (e) {
     console.log('❌ Supabase init error:', e.message);
