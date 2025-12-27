@@ -18162,7 +18162,7 @@
                 <div class="nav-menu-item" data-tab="tracking" onclick="showForwarderTab('tracking')">
                     <svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
                     <span>Manage Shipments</span>
-                    <span class="menu-badge" id="forwarderShipmentsBadge">1</span>
+                    <span class="menu-badge" id="forwarderShipmentsBadge" style="display:none;">0</span>
                 </div>
                 <div class="nav-menu-item" data-tab="completed" onclick="showForwarderTab('completed')">
                     <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
@@ -24083,6 +24083,8 @@ async function doLogin(e) {
         loadForwarderProfile();
         // Verdiği quoteleri yükle
         renderForwarderQuotes();
+        // Shipments badge'ini güncelle
+        if (typeof loadForwarderShipments === 'function') loadForwarderShipments();
         console.log('Forwarder olarak giriş yapıldı. forwarderId:', currentUser, 'displayName:', displayName);
     } else if (userType === 'seaCarrier') {
         document.getElementById('carrierDashboard').classList.remove('hidden');
@@ -25054,6 +25056,7 @@ function showForwarderTab(tabName) {
             break;
         case 'tracking':
             show('forwarderTrackingTab');
+            if (typeof loadForwarderShipments === 'function') loadForwarderShipments();
             break;
         case 'completed':
             show('forwarderCompletedSection');
@@ -25077,6 +25080,80 @@ function showForwarderTab(tabName) {
 
 // Shipment data storage (would be in database in production)
 var shipmentUpdates = {};
+
+// Load and render forwarder shipments from Supabase
+async function loadForwarderShipments() {
+    var container = document.getElementById('forwarderShipmentsList');
+    var emptyMessage = document.getElementById('noShipmentsMessage');
+    
+    if (!container) return;
+    
+    var forwarderId = currentUser;
+    if (!forwarderId) {
+        console.log('No forwarder ID');
+        return;
+    }
+    
+    console.log('Loading shipments for forwarder:', forwarderId);
+    
+    // Try to load from Supabase
+    var shipments = [];
+    
+    if (supabase) {
+        try {
+            var result = await supabase
+                .from('shipments')
+                .select('*')
+                .eq('forwarder_id', forwarderId)
+                .in('status', ['booked', 'in_transit', 'picked_up', 'at_port'])
+                .order('created_at', { ascending: false });
+            
+            if (!result.error && result.data) {
+                shipments = result.data;
+                console.log('Loaded', shipments.length, 'shipments from Supabase');
+            }
+        } catch (e) {
+            console.log('Supabase shipments error:', e.message);
+        }
+    }
+    
+    // Update badge
+    var badge = document.getElementById('forwarderShipmentsBadge');
+    if (badge) {
+        badge.textContent = shipments.length;
+        badge.style.display = shipments.length > 0 ? 'inline-flex' : 'none';
+    }
+    
+    // Render shipments or show empty state
+    if (shipments.length === 0) {
+        if (emptyMessage) emptyMessage.style.display = 'block';
+        return;
+    }
+    
+    if (emptyMessage) emptyMessage.style.display = 'none';
+    
+    var html = '';
+    shipments.forEach(function(s) {
+        var statusText = s.status === 'booked' ? 'Booked' : 
+                         s.status === 'in_transit' ? 'In Transit' : 
+                         s.status === 'picked_up' ? 'Picked Up' : 'At Port';
+        
+        html += '<div class="shipment-tracking-card" data-shipment-id="' + s.shipment_id + '">';
+        html += '<div class="shipment-header">';
+        html += '<div class="shipment-id-badge">' + s.shipment_id + '</div>';
+        html += '<span class="shipment-status-badge ' + s.status + '">' + statusText + '</span>';
+        html += '</div>';
+        html += '<div class="shipment-route-display">';
+        html += '<span class="route-origin">' + (s.origin || 'Origin') + '</span>';
+        html += '<span class="route-arrow">→</span>';
+        html += '<span class="route-dest">' + (s.destination || 'Destination') + '</span>';
+        html += '</div>';
+        html += '<div class="shipment-client">Client: ' + (s.client_id || 'N/A') + '</div>';
+        html += '</div>';
+    });
+    
+    container.innerHTML = html + (emptyMessage ? emptyMessage.outerHTML : '');
+}
 
 // Update progress label when slider changes
 function updateProgressLabel(shipmentId, value) {
@@ -27194,7 +27271,7 @@ function handleAcceptQuote(quoteId) {
         return;
     }
     
-    if (confirm('Are you sure you want to accept this quote?\n\nAfter accepting, your contact information will be shared with the forwarder.')) {
+    if (confirm('Are you sure you want to accept this quote?\n\nAfter accepting, your contact information will be shared with the forwarder.\nOther quotes for this request will be automatically declined.')) {
         // Update quote status locally
         var quote = acceptQuote(quoteId);
         if (quote) {
@@ -27204,6 +27281,23 @@ function handleAcceptQuote(quoteId) {
             updateQuoteStatus(quoteId, 'accepted').then(function() {
                 console.log('Quote status updated in Supabase');
             });
+            
+            // Auto-reject other quotes for the same request
+            var requestId = quote.requestId;
+            if (requestId) {
+                quotesDB.forEach(function(q) {
+                    if (q.requestId === requestId && q.id !== quoteId && q.status === 'pending') {
+                        q.status = 'rejected';
+                        q.rejectedAt = new Date().toISOString();
+                        q.rejectionReason = 'Another quote was accepted for this request';
+                        // Update in Supabase
+                        updateQuoteStatus(q.id, 'rejected').then(function() {
+                            console.log('Other quote auto-rejected:', q.id);
+                        });
+                    }
+                });
+                saveQuotesToStorage();
+            }
             
             // Create shipment in Supabase
             createShipmentInSupabase(quote).then(function(result) {
@@ -27330,7 +27424,7 @@ function renderForwarderQuotes() {
                 '</div>';
         } else if (quote.status === 'rejected') {
             html += '<div class="quote-rejected-info">' +
-                '<span>Your quote was declined by the cargo owner.</span>' +
+                '<span>The cargo owner has selected another forwarder for this shipment.</span>' +
                 '</div>';
         }
         
