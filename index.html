@@ -19056,6 +19056,8 @@
 // ============================================
 var userType = 'client';
 var currentUser = '';
+var currentUserId = ''; // Supabase Auth UUID - PRIMARY IDENTIFIER
+var currentUserEmail = ''; // Email for reference
 var currentUserType = ''; // client veya forwarder
 var currentRequestId = null;
 var carrierMode = 'all'; // 'all', 'sea', 'air', 'land'
@@ -23984,7 +23986,12 @@ async function doLogin(e) {
                 console.log('Demo mode - continuing without Supabase auth');
             } else if (authResult.data && authResult.data.user) {
                 console.log('Supabase login successful');
-                localStorage.setItem('currentUserEmail', authResult.data.user.email);
+                // KALICI ÇÖZÜM: UUID'yi kaydet - bu PRIMARY identifier
+                currentUserId = authResult.data.user.id;
+                currentUserEmail = authResult.data.user.email;
+                localStorage.setItem('currentUserId', currentUserId);
+                localStorage.setItem('currentUserEmail', currentUserEmail);
+                console.log('User UUID:', currentUserId);
             }
         }
     } catch (authError) {
@@ -24001,6 +24008,7 @@ async function doLogin(e) {
     name = name.charAt(0).toUpperCase() + name.slice(1);
     currentUser = name;
     currentUserType = userType; // Mevcut kullanıcı tipi
+    currentUserEmail = email;
     
     // Session bilgilerini localStorage'a kaydet
     localStorage.setItem('currentUser', currentUser);
@@ -24255,6 +24263,7 @@ async function doLogout() {
     // localStorage'daki session verilerini temizle
     localStorage.removeItem('currentUser');
     localStorage.removeItem('currentUserType');
+    localStorage.removeItem('currentUserId'); // KALICI ÇÖZÜM: UUID temizle
     localStorage.removeItem('currentUserEmail');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('supabaseSession');
@@ -24262,6 +24271,8 @@ async function doLogout() {
     // Global değişkenleri temizle
     hideAllPages();
     currentUser = null;
+    currentUserId = null; // KALICI ÇÖZÜM: UUID temizle
+    currentUserEmail = null;
     userType = null;
     currentUserType = null;
     mySubmittedQuotes = {}; // Clear submitted quotes on logout
@@ -27029,32 +27040,59 @@ async function renderClientRequests() {
     var container = document.getElementById('clientRequestsContainer');
     if (!container) return;
     
-    var clientId = currentUser;
-    if (!clientId) {
+    // KALICI ÇÖZÜM: UUID kullan, yoksa email'e düş
+    var userId = currentUserId;
+    var userEmail = currentUserEmail || localStorage.getItem('currentUserEmail');
+    var clientName = currentUser;
+    
+    if (!userId && !userEmail && !clientName) {
         container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 60px 20px;"><p>Please log in to view your requests.</p></div>';
         return;
     }
     
-    console.log('Loading requests for client:', clientId);
+    console.log('Loading requests for user:', userId || userEmail || clientName);
     
     // Show loading state
     container.innerHTML = '<div class="loading-state" style="text-align: center; padding: 40px;"><p>Loading your requests...</p></div>';
     
-    try {
-        // Load requests directly from Supabase with client_id filter
-        var myRequests = [];
-        
-        if (supabase) {
-            var result = await supabase
-                .from('requests')
-                .select('*')
-                .ilike('client_id', '%' + clientId + '%')
-                .order('created_at', { ascending: false });
+    var myRequests = [];
+    
+    if (supabase) {
+        try {
+            var result;
+            
+            // ÖNCELİK 1: user_id (UUID) ile sorgula - EN GÜVENLİ
+            if (userId) {
+                result = await supabase
+                    .from('requests')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+                
+                if (!result.error && result.data && result.data.length > 0) {
+                    console.log('Found requests by user_id (UUID)');
+                }
+            }
+            
+            // ÖNCELİK 2: Email ile ara (eski kayıtlar için)
+            if ((!result || !result.data || result.data.length === 0) && userEmail) {
+                var emailName = userEmail.split('@')[0].toLowerCase();
+                result = await supabase
+                    .from('requests')
+                    .select('*')
+                    .or('client_id.ilike.' + emailName + ',client_id.ilike.' + emailName + ' %,client_id.ilike.' + emailName + '_%')
+                    .order('created_at', { ascending: false });
+                
+                if (!result.error && result.data && result.data.length > 0) {
+                    console.log('Found requests by email prefix');
+                }
+            }
             
             if (!result.error && result.data) {
                 myRequests = result.data.map(function(r) {
                     return {
                         id: r.request_id || r.id,
+                        userId: r.user_id,
                         clientId: r.client_id,
                         shipper: r.shipper_name,
                         shipperCompany: r.shipper_company,
@@ -27068,32 +27106,40 @@ async function renderClientRequests() {
                         createdAt: r.created_at
                     };
                 });
-                console.log('Loaded', myRequests.length, 'requests for', clientId, 'from Supabase');
+                console.log('Loaded', myRequests.length, 'requests from Supabase');
             }
+        } catch(e) {
+            console.log('Supabase error:', e.message);
         }
-        
-        // Fallback to localStorage
-        if (myRequests.length === 0 && typeof networkRequests !== 'undefined') {
-            myRequests = networkRequests.filter(function(req) {
-                return req.clientId === clientId;
-            });
-            console.log('Using localStorage:', myRequests.length, 'requests');
-        }
-        
-        if (myRequests.length === 0) {
-            container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 60px 20px;">' +
-                '<div style="width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">' +
-                '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">' +
-                '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>' +
-                '<polyline points="14 2 14 8 20 8"/>' +
-                '</svg></div>' +
-                '<h3 style="color: #334155; margin: 0 0 12px;">No Requests Yet</h3>' +
-                '<p style="color: #64748b; margin: 0;">Create a quote request to get started.</p>' +
-                '</div>';
-            return;
-        }
-        
-        // Sort by date (newest first)
+    }
+    
+    // Fallback to localStorage WITH STRICT FILTER
+    if (myRequests.length === 0 && typeof networkRequests !== 'undefined') {
+        var emailName = (userEmail || '').split('@')[0].toLowerCase();
+        myRequests = networkRequests.filter(function(req) {
+            var reqClientId = (req.clientId || '').toLowerCase();
+            return reqClientId === clientName.toLowerCase() || 
+                   reqClientId === emailName ||
+                   reqClientId.startsWith(emailName + ' ') ||
+                   reqClientId.startsWith(emailName + '_');
+        });
+        console.log('Using localStorage:', myRequests.length, 'requests');
+    }
+    
+    if (myRequests.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 60px 20px;">' +
+            '<div style="width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">' +
+            '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">' +
+            '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>' +
+            '<polyline points="14 2 14 8 20 8"/>' +
+            '</svg></div>' +
+            '<h3 style="color: #334155; margin: 0 0 12px;">No Requests Yet</h3>' +
+            '<p style="color: #64748b; margin: 0;">Create a quote request to get started.</p>' +
+            '</div>';
+        return;
+    }
+    
+    // Sort by date (newest first)
         myRequests.sort(function(a, b) {
             return new Date(b.createdAt) - new Date(a.createdAt);
         });
@@ -27134,12 +27180,6 @@ async function renderClientRequests() {
         });
         
         container.innerHTML = html;
-        
-    } catch (error) {
-        console.error('Error loading requests:', error);
-        container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 60px 20px;">' +
-            '<p style="color: #ef4444;">Error loading requests. Please try again.</p></div>';
-    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -34110,6 +34150,7 @@ async function saveRequestToSupabase(requestData) {
         // Supabase formatına dönüştür
         var supabaseData = {
             request_id: requestData.id,
+            user_id: currentUserId || null, // KALICI ÇÖZÜM: UUID kullan
             client_id: requestData.clientId,
             shipper_name: requestData.shipper,
             shipper_company: requestData.shipperCompany,
@@ -34418,6 +34459,7 @@ async function saveQuoteToSupabase(quoteData) {
         var supabaseData = {
             quote_id: quoteData.id,
             request_id: quoteData.requestId,
+            forwarder_user_id: currentUserId || null, // KALICI ÇÖZÜM: Forwarder UUID
             client_id: quoteData.clientId,
             forwarder_id: quoteData.forwarderId,
             forwarder_name: quoteData.forwarderName,
@@ -34710,11 +34752,15 @@ async function checkSession() {
         // localStorage'dan session bilgilerini kontrol et
         var savedUser = localStorage.getItem('currentUser');
         var savedUserType = localStorage.getItem('currentUserType');
+        var savedUserId = localStorage.getItem('currentUserId');
+        var savedUserEmail = localStorage.getItem('currentUserEmail');
         
         if (savedUser && savedUserType) {
             console.log('Restoring session for:', savedUser, savedUserType);
             currentUser = savedUser;
             currentUserType = savedUserType;
+            currentUserId = savedUserId || ''; // KALICI ÇÖZÜM: UUID restore
+            currentUserEmail = savedUserEmail || '';
             userType = savedUserType;
             
             // Dashboard'a yönlendir
