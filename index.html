@@ -24066,6 +24066,10 @@ async function doLogin(e) {
         
         carrierMode = 'all';
         
+        // Clear and reload submitted quotes for new user
+        mySubmittedQuotes = {};
+        loadSubmittedQuotes();
+        
         // Supabase'den tüm talepleri yükle (tüm cargo owner'lardan)
         loadAllRequestsForForwarder().then(function() {
             // Varsayılan tab'ı göster
@@ -24205,6 +24209,11 @@ async function doSignUp(e) {
         document.getElementById('forwarderDashboard').classList.remove('hidden');
         document.getElementById('forwarderNameDisplay').textContent = name;
         document.getElementById('forwarderWelcomeName').textContent = name;
+        
+        // Clear and reload submitted quotes for new user
+        mySubmittedQuotes = {};
+        loadSubmittedQuotes();
+        
         showForwarderTab('home');
         
     }
@@ -24253,6 +24262,7 @@ async function doLogout() {
     currentUser = null;
     userType = null;
     currentUserType = null;
+    mySubmittedQuotes = {}; // Clear submitted quotes on logout
     
     // Landing page'e yönlendir
     document.getElementById('landingPage').classList.remove('hidden');
@@ -29184,16 +29194,27 @@ async function renderForwarderRequests() {
     });
     list = uniqueRequests;
     
+    // Filter: Show to all forwarders until ACCEPTED/BOOKED
+    // Only hide from individual forwarder if they already submitted a quote
     if (requestsFilter === 'open') {
         list = list.filter(function(r) { 
-            return r.status === 'open' && !hasMyQuote(r.id); 
+            // Hide if already accepted or booked
+            if (r.status === 'accepted' || r.status === 'booked') return false;
+            // Hide if I already submitted a quote for this request
+            if (hasMyQuote(r.id)) return false;
+            return true;
         });
     } else if (requestsFilter === 'quoted') {
         list = list.filter(function(r) { 
             return hasMyQuote(r.id); 
         });
     }
-    // 'all' = no filter
+    // 'all' = show everything except accepted/booked
+    if (requestsFilter === 'all') {
+        list = list.filter(function(r) {
+            return r.status !== 'accepted' && r.status !== 'booked';
+        });
+    }
     
     list.forEach(function(req) {
         // Filter by carrier mode
@@ -29268,9 +29289,11 @@ async function renderForwarderRequests() {
     
     container.innerHTML = html;
     
-    // Update RFQ Inbox badge with open requests count
+    // Update RFQ Inbox badge - show count of available requests (not accepted/booked and not quoted by me)
     var openRequests = (networkRequests || []).filter(function(r) { 
-        return r.status === 'open' && !hasMyQuote(r.id); 
+        if (r.status === 'accepted' || r.status === 'booked') return false;
+        if (hasMyQuote(r.id)) return false;
+        return true;
     });
     var rfqBadge = document.getElementById('rfqInboxBadge');
     if (rfqBadge) {
@@ -34477,6 +34500,11 @@ function redirectToDashboard(name, type) {
         document.getElementById('forwarderDashboard').classList.remove('hidden');
         document.getElementById('forwarderNameDisplay').textContent = name;
         document.getElementById('forwarderWelcomeName').textContent = name;
+        
+        // Clear and reload submitted quotes for this user
+        if (typeof mySubmittedQuotes !== 'undefined') mySubmittedQuotes = {};
+        if (typeof loadSubmittedQuotes === 'function') loadSubmittedQuotes();
+        
         if (typeof showForwarderTab === 'function') showForwarderTab('home');
         if (typeof loadForwarderProfile === 'function') loadForwarderProfile();
         if (typeof renderForwarderQuotes === 'function') renderForwarderQuotes();
