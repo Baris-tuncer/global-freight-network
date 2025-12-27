@@ -27334,7 +27334,7 @@ function handleRejectQuote(quoteId) {
 // FORWARDER - VERDİĞİM TEKLİFLER
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function renderForwarderQuotes() {
+async function renderForwarderQuotes() {
     var container = document.getElementById('forwarderQuotesList');
     if (!container) return;
     
@@ -27343,10 +27343,52 @@ function renderForwarderQuotes() {
     console.log('renderForwarderQuotes called');
     console.log('Looking for forwarderId:', forwarderId);
     
-    // Find quotes submitted by this forwarder
-    var myQuotes = quotesDB.filter(function(q) {
-        return q.forwarderId === forwarderId || q.forwarderName === forwarderId;
-    });
+    // Show loading
+    container.innerHTML = '<div style="text-align: center; padding: 40px;"><p>Loading quotes...</p></div>';
+    
+    // Load fresh data from Supabase
+    var myQuotes = [];
+    if (supabase) {
+        try {
+            // Query by forwarder_id OR forwarder_name (using ilike for partial match)
+            var result = await supabase
+                .from('quotes')
+                .select('*')
+                .or('forwarder_id.ilike.%' + forwarderId + '%,forwarder_name.ilike.%' + forwarderId + '%')
+                .order('created_at', { ascending: false });
+            
+            if (!result.error && result.data) {
+                myQuotes = result.data.map(function(q) {
+                    return {
+                        id: q.quote_id || q.id,
+                        requestId: q.request_id,
+                        clientId: q.client_id,
+                        forwarderId: q.forwarder_id,
+                        forwarderName: q.forwarder_name,
+                        origin: q.origin,
+                        destination: q.destination,
+                        containerType: q.container_type,
+                        totalPrice: q.total_price,
+                        transitDays: q.transit_days,
+                        validUntil: q.valid_until,
+                        status: q.status,
+                        notes: q.notes,
+                        createdAt: q.created_at
+                    };
+                });
+                console.log('Loaded', myQuotes.length, 'quotes from Supabase for', forwarderId);
+            }
+        } catch (e) {
+            console.log('Supabase quotes error:', e.message);
+        }
+    }
+    
+    // Fallback to localStorage if no Supabase data
+    if (myQuotes.length === 0) {
+        myQuotes = quotesDB.filter(function(q) {
+            return q.forwarderId === forwarderId || q.forwarderName === forwarderId;
+        });
+    }
     
     // Remove duplicates by quote_id or id
     var uniqueQuotes = [];
