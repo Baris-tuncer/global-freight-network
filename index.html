@@ -27261,7 +27261,7 @@ function getTimeAgo(dateStr) {
 }
 
 // Quote kabul et
-function handleAcceptQuote(quoteId) {
+async function handleAcceptQuote(quoteId) {
     var clientId = currentUser || 'demo-client';
     var clientContact = getUserContact(clientId, 'client');
     
@@ -27271,39 +27271,95 @@ function handleAcceptQuote(quoteId) {
         return;
     }
     
+    // Find the quote first
+    var quote = quotesDB.find(function(q) { return q.id === quoteId; });
+    if (!quote) {
+        alert('Quote not found!');
+        return;
+    }
+    
+    var requestId = quote.requestId;
+    
+    // VALIDATION: Check if there's already an accepted quote for this request in Supabase
+    if (supabase && requestId) {
+        try {
+            var existingAccepted = await supabase
+                .from('quotes')
+                .select('quote_id, forwarder_name')
+                .eq('request_id', requestId)
+                .eq('status', 'accepted')
+                .limit(1);
+            
+            if (existingAccepted.data && existingAccepted.data.length > 0) {
+                alert('This request already has an accepted quote from ' + existingAccepted.data[0].forwarder_name + '.\n\nYou cannot accept another quote for the same request.');
+                renderClientQuotes();
+                return;
+            }
+        } catch (e) {
+            console.log('Validation check error:', e.message);
+        }
+    }
+    
     if (confirm('Are you sure you want to accept this quote?\n\nAfter accepting, your contact information will be shared with the forwarder.\nOther quotes for this request will be automatically declined.')) {
         // Update quote status locally
-        var quote = acceptQuote(quoteId);
-        if (quote) {
+        var acceptedQuote = acceptQuote(quoteId);
+        if (acceptedQuote) {
             showRateNotification('Quote accepted! Creating shipment...', 'success');
             
-            // Update in Supabase
-            updateQuoteStatus(quoteId, 'accepted').then(function() {
-                console.log('Quote status updated in Supabase');
-            });
+            // === ATOMIC UPDATE SEQUENCE ===
             
-            // Auto-reject other quotes for the same request
-            var requestId = quote.requestId;
+            // 1. Update quote status to accepted in Supabase
+            await updateQuoteStatus(quoteId, 'accepted');
+            console.log('Step 1: Quote status updated to accepted');
+            
+            // 2. Update request status to booked in Supabase
             if (requestId) {
+                await updateRequestStatus(requestId, 'booked');
+                console.log('Step 2: Request status updated to booked');
+                
+                // 3. Auto-reject ALL other quotes for this request (from Supabase)
+                if (supabase) {
+                    try {
+                        var otherQuotes = await supabase
+                            .from('quotes')
+                            .select('quote_id')
+                            .eq('request_id', requestId)
+                            .eq('status', 'pending');
+                        
+                        if (otherQuotes.data && otherQuotes.data.length > 0) {
+                            // Batch update all pending quotes to rejected
+                            await supabase
+                                .from('quotes')
+                                .update({ 
+                                    status: 'rejected', 
+                                    updated_at: new Date().toISOString() 
+                                })
+                                .eq('request_id', requestId)
+                                .eq('status', 'pending');
+                            
+                            console.log('Step 3: Auto-rejected', otherQuotes.data.length, 'other quotes');
+                        }
+                    } catch (e) {
+                        console.log('Auto-reject error:', e.message);
+                    }
+                }
+                
+                // Update local quotesDB as well
                 quotesDB.forEach(function(q) {
                     if (q.requestId === requestId && q.id !== quoteId && q.status === 'pending') {
                         q.status = 'rejected';
                         q.rejectedAt = new Date().toISOString();
                         q.rejectionReason = 'Another quote was accepted for this request';
-                        // Update in Supabase
-                        updateQuoteStatus(q.id, 'rejected').then(function() {
-                            console.log('Other quote auto-rejected:', q.id);
-                        });
                     }
                 });
                 saveQuotesToStorage();
             }
             
-            // Create shipment in Supabase
-            createShipmentInSupabase(quote).then(function(result) {
-                console.log('Shipment created:', result);
-            });
+            // 4. Create shipment in Supabase
+            await createShipmentInSupabase(acceptedQuote);
+            console.log('Step 4: Shipment created');
             
+            // Refresh UI
             renderClientQuotes();
             
             // Show contact info
@@ -34140,10 +34196,11 @@ async function loadQuotesForClient(clientId) {
     }
     
     try {
+        // Use ilike for flexible matching (handles "Ahmet" vs "Ahmet Turan" etc.)
         var result = await supabase
             .from('quotes')
             .select('*')
-            .or('client_id.eq.' + clientId + ',client_id.eq.demo-client')
+            .or('client_id.ilike.%' + clientId + '%,client_id.eq.demo-client')
             .order('created_at', { ascending: false });
         
         if (result.error) {
@@ -34395,6 +34452,44 @@ async function updateQuoteStatus(quoteId, newStatus) {
         }
         return { success: true };
     } catch (e) {
+        return { success: true, source: 'localStorage' };
+    }
+}
+
+// Update request status in Supabase
+async function updateRequestStatus(requestId, newStatus) {
+    // localStorage güncelle
+    var localRequest = networkRequests.find(function(r) { return r.id === requestId; });
+    if (localRequest) {
+        localRequest.status = newStatus;
+        saveNetworkToStorage();
+    }
+    
+    if (!supabase) return { success: true, source: 'localStorage' };
+    
+    try {
+        // Try with request_id field first
+        var result = await supabase
+            .from('requests')
+            .update({ status: newStatus, updated_at: new Date().toISOString() })
+            .eq('request_id', requestId);
+        
+        // If no rows affected, try with id field
+        if (result.error || (result.data && result.data.length === 0)) {
+            result = await supabase
+                .from('requests')
+                .update({ status: newStatus, updated_at: new Date().toISOString() })
+                .eq('id', requestId);
+        }
+        
+        if (result.error) {
+            console.log('Supabase request update error:', result.error.message);
+        } else {
+            console.log('Request status updated to:', newStatus);
+        }
+        return { success: true };
+    } catch (e) {
+        console.log('Request status update error:', e.message);
         return { success: true, source: 'localStorage' };
     }
 }
