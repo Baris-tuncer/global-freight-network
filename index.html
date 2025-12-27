@@ -27041,19 +27041,44 @@ async function renderClientRequests() {
     container.innerHTML = '<div class="loading-state" style="text-align: center; padding: 40px;"><p>Loading your requests...</p></div>';
     
     try {
-        // Load requests from Supabase
-        var requests = await loadRequestsFromSupabase();
+        // Load requests directly from Supabase with client_id filter
+        var myRequests = [];
         
-        console.log('All requests from Supabase:', requests.length);
+        if (supabase) {
+            var result = await supabase
+                .from('requests')
+                .select('*')
+                .ilike('client_id', '%' + clientId + '%')
+                .order('created_at', { ascending: false });
+            
+            if (!result.error && result.data) {
+                myRequests = result.data.map(function(r) {
+                    return {
+                        id: r.request_id || r.id,
+                        clientId: r.client_id,
+                        shipper: r.shipper_name,
+                        shipperCompany: r.shipper_company,
+                        origin: r.origin,
+                        destination: r.destination,
+                        freight: r.freight_type,
+                        loadType: r.load_type,
+                        containerType: r.container_type,
+                        weight: r.weight,
+                        status: r.status || 'open',
+                        createdAt: r.created_at
+                    };
+                });
+                console.log('Loaded', myRequests.length, 'requests for', clientId, 'from Supabase');
+            }
+        }
         
-        // Filter requests for this client - check multiple possible field names
-        var myRequests = requests.filter(function(req) {
-            var matchClientId = req.client_id === clientId || req.clientId === clientId;
-            var matchShipper = req.shipper === clientId || req.shipper_name === clientId;
-            return matchClientId || matchShipper;
-        });
-        
-        console.log('Filtered requests for', clientId, ':', myRequests.length);
+        // Fallback to localStorage
+        if (myRequests.length === 0 && typeof networkRequests !== 'undefined') {
+            myRequests = networkRequests.filter(function(req) {
+                return req.clientId === clientId;
+            });
+            console.log('Using localStorage:', myRequests.length, 'requests');
+        }
         
         if (myRequests.length === 0) {
             container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 60px 20px;">' +
@@ -27070,19 +27095,19 @@ async function renderClientRequests() {
         
         // Sort by date (newest first)
         myRequests.sort(function(a, b) {
-            return new Date(b.created_at || b.createdAt) - new Date(a.created_at || a.createdAt);
+            return new Date(b.createdAt) - new Date(a.createdAt);
         });
         
         var html = '';
         myRequests.forEach(function(req) {
-            var origin = req.origin_port || req.originPort || req.origin || 'N/A';
-            var dest = req.destination_port || req.destPort || req.destination || 'N/A';
+            var origin = req.origin || 'N/A';
+            var dest = req.destination || 'N/A';
             var status = req.status || 'open';
             var statusClass = status === 'quoted' ? 'quoted' : status === 'accepted' ? 'accepted' : status === 'booked' ? 'booked' : 'pending';
             var statusText = status === 'quoted' ? 'Quotes Received' : status === 'accepted' ? 'Accepted' : status === 'booked' ? 'Booked' : 'Awaiting Quotes';
-            var transport = req.transport_mode || req.transportMode || 'Sea';
-            var container_type = req.container_type || req.containerType || '';
-            var requestDate = req.created_at || req.createdAt;
+            var transport = req.freight || 'Sea';
+            var container_type = req.containerType || '';
+            var requestDate = req.createdAt;
             var dateStr = requestDate ? new Date(requestDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
             
             html += '<div class="request-card">' +
