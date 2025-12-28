@@ -23983,10 +23983,22 @@ async function doLogin(e) {
             });
             
             if (authResult.error) {
-                console.log('Demo mode - continuing without Supabase auth');
+                console.log('Auth error:', authResult.error.message);
+                alert('Login failed: ' + authResult.error.message);
+                if (loginBtn) {
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = originalText;
+                }
+                return false;
             } else if (authResult.data && authResult.data.user) {
                 console.log('Supabase login successful');
-                // KALICI ÇÖZÜM: UUID'yi kaydet - bu PRIMARY identifier
+                
+                // KALICI ÇÖZÜM: ÖNCEKİ KULLANICININ VERİLERİNİ TEMİZLE
+                localStorage.clear();
+                networkRequests = [];
+                quotesDB = [];
+                
+                // YENİ KULLANICININ UUID'sini kaydet
                 currentUserId = authResult.data.user.id;
                 currentUserEmail = authResult.data.user.email;
                 localStorage.setItem('currentUserId', currentUserId);
@@ -23995,7 +24007,13 @@ async function doLogin(e) {
             }
         }
     } catch (authError) {
-        console.log('Demo mode active');
+        console.log('Auth exception:', authError);
+        alert('Login error. Please try again.');
+        if (loginBtn) {
+            loginBtn.disabled = false;
+            loginBtn.textContent = originalText;
+        }
+        return false;
     }
     
     // Restore button
@@ -24175,7 +24193,17 @@ async function doSignUp(e) {
                 console.log('Signup: Demo mode active');
             } else if (signupResult.data && signupResult.data.user) {
                 console.log('Supabase signup successful');
-                localStorage.setItem('currentUserEmail', signupResult.data.user.email);
+                // KALICI ÇÖZÜM: ÖNCEKİ KULLANICININ TÜM VERİLERİNİ TEMİZLE
+                localStorage.clear();
+                networkRequests = [];
+                quotesDB = [];
+                
+                // YENİ KULLANICININ UUID'sini kaydet
+                currentUserId = signupResult.data.user.id;
+                currentUserEmail = signupResult.data.user.email;
+                localStorage.setItem('currentUserId', currentUserId);
+                localStorage.setItem('currentUserEmail', currentUserEmail);
+                console.log('New user UUID:', currentUserId);
             }
         }
     } catch (authError) {
@@ -24202,10 +24230,12 @@ async function doSignUp(e) {
     
     currentUser = name;
     currentUserType = userType;
+    currentUserEmail = email;
     
     // Session bilgilerini localStorage'a kaydet
     localStorage.setItem('currentUser', currentUser);
     localStorage.setItem('currentUserType', currentUserType);
+    localStorage.setItem('currentUserEmail', currentUserEmail);
     
     hideAllPages();
     
@@ -27040,17 +27070,18 @@ async function renderClientRequests() {
     var container = document.getElementById('clientRequestsContainer');
     if (!container) return;
     
-    // KALICI ÇÖZÜM: UUID kullan, yoksa email'e düş
-    var userId = currentUserId;
+    // KALICI ÇÖZÜM: Sadece UUID kullan
+    var userId = currentUserId || localStorage.getItem('currentUserId');
     var userEmail = currentUserEmail || localStorage.getItem('currentUserEmail');
-    var clientName = currentUser;
     
-    if (!userId && !userEmail && !clientName) {
+    console.log('=== renderClientRequests ===');
+    console.log('currentUserId:', userId);
+    console.log('currentUserEmail:', userEmail);
+    
+    if (!userId && !userEmail) {
         container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 60px 20px;"><p>Please log in to view your requests.</p></div>';
         return;
     }
-    
-    console.log('Loading requests for user:', userId || userEmail || clientName);
     
     // Show loading state
     container.innerHTML = '<div class="loading-state" style="text-align: center; padding: 40px;"><p>Loading your requests...</p></div>';
@@ -27061,31 +27092,29 @@ async function renderClientRequests() {
         try {
             var result;
             
-            // ÖNCELİK 1: user_id (UUID) ile sorgula - EN GÜVENLİ
+            // SADECE user_id (UUID) ile sorgula - EN GÜVENLİ
             if (userId) {
+                console.log('Querying by user_id:', userId);
                 result = await supabase
                     .from('requests')
                     .select('*')
                     .eq('user_id', userId)
                     .order('created_at', { ascending: false });
                 
-                if (!result.error && result.data && result.data.length > 0) {
-                    console.log('Found requests by user_id (UUID)');
-                }
+                console.log('Query result:', result);
             }
             
-            // ÖNCELİK 2: Email ile ara (eski kayıtlar için)
-            if ((!result || !result.data || result.data.length === 0) && userEmail) {
-                var emailName = userEmail.split('@')[0].toLowerCase();
+            // user_id yoksa veya sonuç yoksa, email ile dene
+            if ((!result || result.error || !result.data || result.data.length === 0) && userEmail) {
+                var emailPrefix = userEmail.split('@')[0];
+                console.log('Fallback: Querying by email prefix:', emailPrefix);
                 result = await supabase
                     .from('requests')
                     .select('*')
-                    .or('client_id.ilike.' + emailName + ',client_id.ilike.' + emailName + ' %,client_id.ilike.' + emailName + '_%')
+                    .eq('client_id', emailPrefix)
                     .order('created_at', { ascending: false });
-                
-                if (!result.error && result.data && result.data.length > 0) {
-                    console.log('Found requests by email prefix');
-                }
+                    
+                console.log('Email query result:', result);
             }
             
             if (!result.error && result.data) {
@@ -27106,25 +27135,15 @@ async function renderClientRequests() {
                         createdAt: r.created_at
                     };
                 });
-                console.log('Loaded', myRequests.length, 'requests from Supabase');
+                console.log('Loaded', myRequests.length, 'requests');
             }
         } catch(e) {
             console.log('Supabase error:', e.message);
         }
     }
     
-    // Fallback to localStorage WITH STRICT FILTER
-    if (myRequests.length === 0 && typeof networkRequests !== 'undefined') {
-        var emailName = (userEmail || '').split('@')[0].toLowerCase();
-        myRequests = networkRequests.filter(function(req) {
-            var reqClientId = (req.clientId || '').toLowerCase();
-            return reqClientId === clientName.toLowerCase() || 
-                   reqClientId === emailName ||
-                   reqClientId.startsWith(emailName + ' ') ||
-                   reqClientId.startsWith(emailName + '_');
-        });
-        console.log('Using localStorage:', myRequests.length, 'requests');
-    }
+    // localStorage KULLANMA - sadece Supabase'den veri çek
+    // Bu sayede başka kullanıcının verisi görünmez
     
     if (myRequests.length === 0) {
         container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 60px 20px;">' +
@@ -34622,6 +34641,7 @@ async function saveProfileToSupabase(profileData) {
     try {
         // Match the actual profiles table structure
         var supabaseData = {
+            user_id: currentUserId || null, // KALICI ÇÖZÜM: UUID ekle
             email: profileData.email,
             user_type: profileData.userType,
             company_name: profileData.companyName,
@@ -34642,7 +34662,7 @@ async function saveProfileToSupabase(profileData) {
         
         var result;
         if (existing.data && existing.data.id) {
-            // Update existing
+            // Update existing - also update user_id if we have it now
             result = await supabase
                 .from('profiles')
                 .update(supabaseData)
