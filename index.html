@@ -25407,23 +25407,88 @@ function getShipmentTracking(shipmentId) {
 }
 
 // Load cargo owner shipments on tab show
-function loadCargoOwnerShipments() {
-    // Sync all shipment data from storage to UI
-    Object.keys(shipmentUpdates).forEach(function(shipmentId) {
-        var data = shipmentUpdates[shipmentId];
-        var statusTexts = {
-            'booked': 'Booked',
-            'picked-up': 'Picked Up',
-            'at-origin-port': 'At Origin Port',
-            'departed': 'In Transit',
-            'at-transit-port': 'At Transit Port',
-            'at-destination-port': 'At Destination',
-            'customs-clearance': 'Customs',
-            'out-for-delivery': 'Out for Delivery',
-            'delivered': 'Delivered'
-        };
-        updateCargoOwnerShipmentView(shipmentId, data, statusTexts);
-    });
+async function loadCargoOwnerShipments() {
+    console.log('Loading cargo owner shipments from Supabase...');
+    
+    var shipmentsContainer = document.getElementById('clientShipmentsList');
+    var noShipmentsMsg = document.getElementById('noClientShipmentsMessage');
+    
+    if (!shipmentsContainer) {
+        console.log('Shipments container not found');
+        return;
+    }
+    
+    // Supabase'den shipments çek
+    if (!supabase) {
+        console.log('Supabase not available');
+        return;
+    }
+    
+    try {
+        var clientId = currentUser || 'Fatma';
+        var userEmail = currentUserEmail || localStorage.getItem('currentUserEmail');
+        
+        console.log('Loading shipments for client:', clientId);
+        
+        var result = await supabase
+            .from('shipments')
+            .select('*')
+            .or('client_id.eq.' + clientId + ',client_id.eq.' + (userEmail ? userEmail.split('@')[0] : ''));
+        
+        if (result.error) {
+            console.log('Shipments load error:', result.error.message);
+            return;
+        }
+        
+        var shipments = result.data || [];
+        console.log('Loaded shipments:', shipments.length);
+        
+        if (shipments.length === 0) {
+            if (noShipmentsMsg) noShipmentsMsg.style.display = 'block';
+            return;
+        }
+        
+        // Hide empty message
+        if (noShipmentsMsg) noShipmentsMsg.style.display = 'none';
+        
+        // Shipments'ı render et
+        var html = '';
+        shipments.forEach(function(ship) {
+            var statusColors = {
+                'booked': '#3b82f6',
+                'picked-up': '#8b5cf6',
+                'in-transit': '#f59e0b',
+                'at-destination': '#10b981',
+                'delivered': '#22c55e'
+            };
+            var statusColor = statusColors[ship.status] || '#3b82f6';
+            
+            html += `
+                <div class="shipment-card" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid ${statusColor};">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                        <div>
+                            <h3 style="margin: 0 0 5px 0; color: #1e293b; font-size: 16px;">${ship.shipment_id || ship.quote_id || 'Shipment'}</h3>
+                            <p style="margin: 0; color: #64748b; font-size: 14px;">${ship.forwarder_name || 'Forwarder'}</p>
+                        </div>
+                        <span style="background: ${statusColor}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; text-transform: capitalize;">
+                            ${ship.status || 'Booked'}
+                        </span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; color: #475569; font-size: 14px;">
+                        <span>${ship.origin || 'Origin'}</span>
+                        <span>→</span>
+                        <span>${ship.destination || 'Destination'}</span>
+                    </div>
+                    ${ship.total_price ? `<div style="margin-top: 10px; color: #059669; font-weight: 600;">$${Number(ship.total_price).toLocaleString()}</div>` : ''}
+                </div>
+            `;
+        });
+        
+        shipmentsContainer.innerHTML = html;
+        
+    } catch(e) {
+        console.log('Shipments load exception:', e.message);
+    }
 }
 
 // Forwarder container takip tab değiştirme - removed, using Manage Shipments instead
