@@ -30418,12 +30418,15 @@ async function renderForwarderRequests() {
         });
     } else if (requestsFilter === 'quoted') {
         list = list.filter(function(r) { 
+            // Show requests where I submitted a quote (including booked ones if my quote was accepted)
             return hasMyQuote(r.id); 
         });
     }
-    // 'all' = show everything except accepted/booked
+    // 'all' = show everything except accepted/booked (unless I have a quote)
     if (requestsFilter === 'all') {
         list = list.filter(function(r) {
+            // Show booked if I have a quote for it
+            if ((r.status === 'accepted' || r.status === 'booked') && hasMyQuote(r.id)) return true;
             return r.status !== 'accepted' && r.status !== 'booked';
         });
     }
@@ -30440,11 +30443,16 @@ async function renderForwarderRequests() {
         var timeAgo = getTimeAgo(req.createdAt);
         var quoteCount = req.quotes ? req.quotes.length : 0;
         var hasQuote = hasMyQuote(req.id);
+        var isBooked = req.status === 'booked' || req.status === 'accepted';
         
-        html += '<div class="request-card network' + (hasQuote ? ' has-quote' : '') + '">';
+        html += '<div class="request-card network' + (hasQuote ? ' has-quote' : '') + (isBooked ? ' is-booked' : '') + '">';
         html += '<div class="request-header">';
         html += '<div class="request-id-badge">' + req.id + '</div>';
-        if (hasQuote) {
+        
+        // Status badge - booked veya quote submitted
+        if (isBooked && hasQuote) {
+            html += '<div class="booked-badge" style="background: #dcfce7; color: #15803d; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">Booked</div>';
+        } else if (hasQuote) {
             var myQuote = getMyQuoteDetails(req.id);
             var priceText = myQuote && myQuote.totalPrice ? ' - $' + numberFormat(myQuote.totalPrice) : '';
             html += '<div class="quote-submitted-badge">' + t('quoteSubmitted') + priceText + '</div>';
@@ -30471,24 +30479,35 @@ async function renderForwarderRequests() {
             html += '<div class="request-notes"> ' + req.notes + '</div>';
         }
         
-        html += '<div class="request-footer">';
-        html += '<div class="quote-count">';
-        if (quoteCount > 0) {
-            html += '<span class="count-badge">' + quoteCount + '</span> ' + t('quotesReceived');
+        // Booked durumunda özel içerik göster
+        if (isBooked && hasQuote) {
+            html += '<div class="request-footer" style="padding: 20px;">';
+            html += '<div style="text-align: center; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 12px; padding: 20px;">';
+            html += '<div style="width: 50px; height: 50px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: white; font-size: 20px; font-weight: bold;">&#10003;</div>';
+            html += '<h4 style="margin: 0 0 8px; color: #065f46; font-weight: 600;">Quote Accepted</h4>';
+            html += '<p style="color: #047857; margin: 0 0 16px; font-size: 14px;">This shipment is now in your Manage Shipments.</p>';
+            html += '<button onclick="showForwarderTab(\'tracking\')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">View in Manage Shipments</button>';
+            html += '</div></div>';
         } else {
-            html += '<span class="no-quotes">' + t('noQuotesYet') + '</span>';
+            html += '<div class="request-footer">';
+            html += '<div class="quote-count">';
+            if (quoteCount > 0) {
+                html += '<span class="count-badge">' + quoteCount + '</span> ' + t('quotesReceived');
+            } else {
+                html += '<span class="no-quotes">' + t('noQuotesYet') + '</span>';
+            }
+            html += '</div>';
+            html += '<div class="request-actions">';
+            if (hasQuote) {
+                var myQuoteInfo = getMyQuoteDetails(req.id);
+                var myPrice = myQuoteInfo && myQuoteInfo.totalPrice ? '$' + numberFormat(myQuoteInfo.totalPrice) : '';
+                html += '<button class="btn-quote btn-submitted" disabled>' + t('quoteSubmitted') + (myPrice ? ' (' + myPrice + ')' : '') + '</button>';
+            } else {
+                html += '<button class="btn-quote" onclick="openQuoteModal(\'' + req.id + '\')">' + t('submitQuote') + '</button>';
+            }
+            html += '</div>';
+            html += '</div>';
         }
-        html += '</div>';
-        html += '<div class="request-actions">';
-        if (hasQuote) {
-            var myQuoteInfo = getMyQuoteDetails(req.id);
-            var myPrice = myQuoteInfo && myQuoteInfo.totalPrice ? '$' + numberFormat(myQuoteInfo.totalPrice) : '';
-            html += '<button class="btn-quote btn-submitted" disabled>' + t('quoteSubmitted') + (myPrice ? ' (' + myPrice + ')' : '') + '</button>';
-        } else {
-            html += '<button class="btn-quote" onclick="openQuoteModal(\'' + req.id + '\')">' + t('submitQuote') + '</button>';
-        }
-        html += '</div>';
-        html += '</div>';
         
         html += '</div>';
     });
