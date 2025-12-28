@@ -26899,8 +26899,9 @@ function closeContactInfoModal() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // Client profil sayfasını yükle
-function loadClientProfile() {
+async function loadClientProfile() {
     var clientId = currentUser || 'demo-client';
+    var userEmail = currentUserEmail || localStorage.getItem('currentUserEmail');
     
     // Clear all fields first
     document.getElementById('clientCompanyName').value = '';
@@ -26914,7 +26915,43 @@ function loadClientProfile() {
     document.getElementById('clientProfileStatus').textContent = '';
     document.getElementById('clientProfileStatus').className = '';
     
-    var contact = getUserContact(clientId, 'client');
+    var contact = null;
+    
+    // ÖNCE SUPABASE'DEN YÜKLEYayım
+    if (supabase && userEmail) {
+        try {
+            var result = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('email', userEmail)
+                .single();
+            
+            if (result.data) {
+                contact = {
+                    companyName: result.data.company_name || '',
+                    contactPerson: result.data.contact_person || '',
+                    email: result.data.email || '',
+                    phone: result.data.phone || '',
+                    address: result.data.address || '',
+                    city: result.data.city || '',
+                    country: result.data.country || '',
+                    taxNumber: result.data.tax_number || '',
+                    website: result.data.website || ''
+                };
+                console.log('Profile loaded from Supabase:', contact.companyName);
+                
+                // localStorage'a da kaydet (cache olarak)
+                saveUserContact(clientId, 'client', contact);
+            }
+        } catch(e) {
+            console.log('Supabase profile load error:', e.message);
+        }
+    }
+    
+    // Fallback: localStorage
+    if (!contact) {
+        contact = getUserContact(clientId, 'client');
+    }
     
     if (contact) {
         document.getElementById('clientCompanyName').value = contact.companyName || '';
@@ -26994,8 +27031,9 @@ function saveClientContact(e) {
 }
 
 // Forwarder profil sayfasını yükle
-function loadForwarderProfile() {
+async function loadForwarderProfile() {
     var forwarderId = currentUser || 'demo-forwarder';
+    var userEmail = currentUserEmail || localStorage.getItem('currentUserEmail');
     
     // Clear all fields first
     document.getElementById('forwarderCompanyName').value = '';
@@ -27009,7 +27047,43 @@ function loadForwarderProfile() {
     document.getElementById('forwarderProfileStatus').textContent = '';
     document.getElementById('forwarderProfileStatus').className = '';
     
-    var contact = getUserContact(forwarderId, 'forwarder');
+    var contact = null;
+    
+    // ÖNCE SUPABASE'DEN YÜKLE
+    if (supabase && userEmail) {
+        try {
+            var result = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('email', userEmail)
+                .single();
+            
+            if (result.data) {
+                contact = {
+                    companyName: result.data.company_name || '',
+                    contactPerson: result.data.contact_person || '',
+                    email: result.data.email || '',
+                    phone: result.data.phone || '',
+                    address: result.data.address || '',
+                    city: result.data.city || '',
+                    country: result.data.country || '',
+                    taxNumber: result.data.tax_number || '',
+                    website: result.data.website || ''
+                };
+                console.log('Forwarder profile loaded from Supabase:', contact.companyName);
+                
+                // localStorage'a da kaydet (cache olarak)
+                saveUserContact(forwarderId, 'forwarder', contact);
+            }
+        } catch(e) {
+            console.log('Supabase profile load error:', e.message);
+        }
+    }
+    
+    // Fallback: localStorage
+    if (!contact) {
+        contact = getUserContact(forwarderId, 'forwarder');
+    }
     
     if (contact) {
         document.getElementById('forwarderCompanyName').value = contact.companyName || '';
@@ -27368,7 +27442,36 @@ function getTimeAgo(dateStr) {
 // Quote kabul et
 async function handleAcceptQuote(quoteId) {
     var clientId = currentUser || 'demo-client';
-    var clientContact = getUserContact(clientId, 'client');
+    
+    // ÖNCE SUPABASE'DEN PROFİL KONTROL ET
+    var clientContact = null;
+    var userEmail = currentUserEmail || localStorage.getItem('currentUserEmail');
+    
+    if (supabase && userEmail) {
+        try {
+            var profileResult = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('email', userEmail)
+                .single();
+            
+            if (profileResult.data) {
+                clientContact = {
+                    email: profileResult.data.email,
+                    companyName: profileResult.data.company_name,
+                    contactPerson: profileResult.data.contact_person,
+                    phone: profileResult.data.phone
+                };
+            }
+        } catch(e) {
+            console.log('Profile check error:', e.message);
+        }
+    }
+    
+    // Fallback: localStorage
+    if (!clientContact) {
+        clientContact = getUserContact(clientId, 'client');
+    }
     
     if (!clientContact || !clientContact.email) {
         alert('Warning: You must save your contact information before accepting the quote!\n\nEnter your information from the Profile tab.');
