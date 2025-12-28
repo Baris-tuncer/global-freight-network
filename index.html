@@ -25217,6 +25217,7 @@ function showForwarderTab(tabName) {
             break;
         case 'completed':
             show('forwarderCompletedSection');
+            if (typeof loadCompletedShipments === 'function') loadCompletedShipments();
             break;
         case 'quotes':
         case 'myQuotes':
@@ -25238,6 +25239,85 @@ function showForwarderTab(tabName) {
 // Shipment data storage (would be in database in production)
 var shipmentUpdates = {};
 
+// Load completed shipments for forwarder
+async function loadCompletedShipments() {
+    var container = document.getElementById('completedShipmentsList');
+    var emptyMessage = document.getElementById('noCompletedShipmentsMessage');
+    
+    if (!container) return;
+    
+    var forwarderId = currentUser;
+    if (!forwarderId) {
+        console.log('No forwarder ID');
+        return;
+    }
+    
+    console.log('Loading completed shipments for forwarder:', forwarderId);
+    
+    var shipments = [];
+    
+    if (supabase) {
+        try {
+            var result = await supabase
+                .from('shipments')
+                .select('*')
+                .eq('forwarder_id', forwarderId)
+                .eq('status', 'completed')
+                .order('created_at', { ascending: false });
+            
+            if (!result.error && result.data) {
+                shipments = result.data;
+                console.log('Loaded', shipments.length, 'completed shipments');
+            }
+        } catch (e) {
+            console.log('Completed shipments error:', e.message);
+        }
+    }
+    
+    if (shipments.length === 0) {
+        container.innerHTML = '';
+        if (emptyMessage) emptyMessage.style.display = 'block';
+        return;
+    }
+    
+    if (emptyMessage) emptyMessage.style.display = 'none';
+    
+    var html = '';
+    shipments.forEach(function(s) {
+        var completedDate = s.delivered_at ? new Date(s.delivered_at).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'}) : 'N/A';
+        
+        html += '<div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid #10b981;">';
+        
+        // Header
+        html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">';
+        html += '<div>';
+        html += '<span style="font-weight: 600; color: #1e3c72;">' + s.shipment_id + '</span>';
+        html += '<span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 10px;">✓ Completed</span>';
+        html += '</div>';
+        html += '<span style="font-size: 12px; color: #64748b;">Delivered: ' + completedDate + '</span>';
+        html += '</div>';
+        
+        // Route
+        html += '<div style="display: flex; align-items: center; gap: 10px; color: #475569; font-size: 14px; margin-bottom: 10px;">';
+        html += '<span>' + (s.origin || 'Origin') + '</span>';
+        html += '<span>→</span>';
+        html += '<span>' + (s.destination || 'Destination') + '</span>';
+        html += '</div>';
+        
+        // Details
+        html += '<div style="display: flex; gap: 20px; font-size: 13px; color: #64748b;">';
+        html += '<span>Client: <strong>' + (s.client_id || 'N/A') + '</strong></span>';
+        if (s.total_price) {
+            html += '<span>Value: <strong style="color: #059669;">$' + Number(s.total_price).toLocaleString() + '</strong></span>';
+        }
+        html += '</div>';
+        
+        html += '</div>';
+    });
+    
+    container.innerHTML = html;
+}
+
 // Load and render forwarder shipments from Supabase
 async function loadForwarderShipments() {
     var container = document.getElementById('forwarderShipmentsList');
@@ -25253,21 +25333,25 @@ async function loadForwarderShipments() {
     
     console.log('Loading shipments for forwarder:', forwarderId);
     
+    // Check auto-complete for delivered shipments
+    await checkAndAutoCompleteShipments();
+    
     // Try to load from Supabase
     var shipments = [];
     
     if (supabase) {
         try {
+            // Tüm aktif statusları al (completed hariç)
             var result = await supabase
                 .from('shipments')
                 .select('*')
                 .eq('forwarder_id', forwarderId)
-                .in('status', ['booked', 'in_transit', 'picked_up', 'at_port'])
+                .neq('status', 'completed')
                 .order('created_at', { ascending: false });
             
             if (!result.error && result.data) {
                 shipments = result.data;
-                console.log('Loaded', shipments.length, 'shipments from Supabase');
+                console.log('Loaded', shipments.length, 'active shipments from Supabase');
             }
         } catch (e) {
             console.log('Supabase shipments error:', e.message);
@@ -25283,33 +25367,118 @@ async function loadForwarderShipments() {
     
     // Render shipments or show empty state
     if (shipments.length === 0) {
-        if (emptyMessage) emptyMessage.style.display = 'block';
+        container.innerHTML = '<div id="noShipmentsMessage" style="text-align: center; padding: 40px; color: #64748b;"><p>No active shipments</p></div>';
         return;
     }
     
-    if (emptyMessage) emptyMessage.style.display = 'none';
+    var statusTexts = {
+        'booked': 'Booked',
+        'confirmed': 'Confirmed',
+        'picked_up': 'Picked Up',
+        'at_origin_port': 'At Origin',
+        'in_transit': 'In Transit',
+        'at_transit_port': 'Transit Port',
+        'at_destination_port': 'At Destination',
+        'customs_clearance': 'Customs',
+        'out_for_delivery': 'Out for Delivery',
+        'delivered': 'Delivered'
+    };
+    
+    var statusColors = {
+        'booked': '#3b82f6',
+        'confirmed': '#6366f1',
+        'picked_up': '#8b5cf6',
+        'at_origin_port': '#a855f7',
+        'in_transit': '#f59e0b',
+        'at_transit_port': '#f97316',
+        'at_destination_port': '#14b8a6',
+        'customs_clearance': '#06b6d4',
+        'out_for_delivery': '#22c55e',
+        'delivered': '#10b981'
+    };
     
     var html = '';
     shipments.forEach(function(s) {
-        var statusText = s.status === 'booked' ? 'Booked' : 
-                         s.status === 'in_transit' ? 'In Transit' : 
-                         s.status === 'picked_up' ? 'Picked Up' : 'At Port';
+        var statusText = statusTexts[s.status] || s.status || 'Booked';
+        var statusColor = statusColors[s.status] || '#3b82f6';
+        var progressPercent = s.progress_percent || 0;
         
-        html += '<div class="shipment-tracking-card" data-shipment-id="' + s.shipment_id + '">';
-        html += '<div class="shipment-header">';
-        html += '<div class="shipment-id-badge">' + s.shipment_id + '</div>';
-        html += '<span class="shipment-status-badge ' + s.status + '">' + statusText + '</span>';
+        html += '<div class="shipment-tracking-card" data-shipment-id="' + s.shipment_id + '" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">';
+        
+        // Header
+        html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">';
+        html += '<div class="shipment-id-badge" style="font-weight: 600; color: #1e3c72;">' + s.shipment_id + '</div>';
+        html += '<span class="shipment-status-badge" style="background: ' + statusColor + '; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">' + statusText + '</span>';
         html += '</div>';
-        html += '<div class="shipment-route-display">';
-        html += '<span class="route-origin">' + (s.origin || 'Origin') + '</span>';
-        html += '<span class="route-arrow">→</span>';
-        html += '<span class="route-dest">' + (s.destination || 'Destination') + '</span>';
+        
+        // Route
+        html += '<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; color: #475569;">';
+        html += '<span style="font-weight: 500;">' + (s.origin || 'Origin') + '</span>';
+        html += '<span>→</span>';
+        html += '<span style="font-weight: 500;">' + (s.destination || 'Destination') + '</span>';
         html += '</div>';
-        html += '<div class="shipment-client">Client: ' + (s.client_id || 'N/A') + '</div>';
+        
+        // Client info
+        html += '<div style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Client: <strong>' + (s.client_id || 'N/A') + '</strong></div>';
+        
+        // Progress bar
+        html += '<div style="margin-bottom: 20px;">';
+        html += '<div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;"><span>Progress</span><span id="progressLabel-' + s.shipment_id + '">' + progressPercent + '%</span></div>';
+        html += '<div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">';
+        html += '<div style="height: 100%; width: ' + progressPercent + '%; background: linear-gradient(90deg, #3b82f6, #10b981); transition: width 0.3s;"></div>';
+        html += '</div></div>';
+        
+        // Update form
+        html += '<div style="background: #f8fafc; border-radius: 8px; padding: 15px;">';
+        html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">';
+        
+        // Status dropdown
+        html += '<div><label style="font-size: 11px; color: #64748b; display: block; margin-bottom: 4px;">Status</label>';
+        html += '<select id="status-' + s.shipment_id + '" style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;">';
+        html += '<option value="booked"' + (s.status === 'booked' ? ' selected' : '') + '>Booked</option>';
+        html += '<option value="confirmed"' + (s.status === 'confirmed' ? ' selected' : '') + '>Confirmed</option>';
+        html += '<option value="picked_up"' + (s.status === 'picked_up' ? ' selected' : '') + '>Picked Up</option>';
+        html += '<option value="at_origin_port"' + (s.status === 'at_origin_port' ? ' selected' : '') + '>At Origin Port</option>';
+        html += '<option value="in_transit"' + (s.status === 'in_transit' ? ' selected' : '') + '>In Transit</option>';
+        html += '<option value="at_transit_port"' + (s.status === 'at_transit_port' ? ' selected' : '') + '>At Transit Port</option>';
+        html += '<option value="at_destination_port"' + (s.status === 'at_destination_port' ? ' selected' : '') + '>At Destination Port</option>';
+        html += '<option value="customs_clearance"' + (s.status === 'customs_clearance' ? ' selected' : '') + '>Customs Clearance</option>';
+        html += '<option value="out_for_delivery"' + (s.status === 'out_for_delivery' ? ' selected' : '') + '>Out for Delivery</option>';
+        html += '<option value="delivered"' + (s.status === 'delivered' ? ' selected' : '') + '>Delivered</option>';
+        html += '</select></div>';
+        
+        // Location
+        html += '<div><label style="font-size: 11px; color: #64748b; display: block; margin-bottom: 4px;">Current Location</label>';
+        html += '<input type="text" id="location-' + s.shipment_id + '" value="' + (s.current_location || '') + '" placeholder="e.g. Port of Rotterdam" style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;"></div>';
+        
+        // ETA
+        html += '<div><label style="font-size: 11px; color: #64748b; display: block; margin-bottom: 4px;">ETA</label>';
+        html += '<input type="date" id="eta-' + s.shipment_id + '" value="' + (s.eta || '') + '" style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;"></div>';
+        
+        // Container (hidden fields for compatibility)
+        html += '<input type="hidden" id="container-' + s.shipment_id + '" value="' + (s.container_number || '') + '">';
+        html += '<input type="hidden" id="vessel-' + s.shipment_id + '" value="' + (s.vessel_name || '') + '">';
+        html += '<input type="hidden" id="progress-' + s.shipment_id + '" value="' + progressPercent + '">';
+        
         html += '</div>';
+        
+        // Notes
+        html += '<div style="margin-bottom: 12px;"><label style="font-size: 11px; color: #64748b; display: block; margin-bottom: 4px;">Update Notes</label>';
+        html += '<textarea id="notes-' + s.shipment_id + '" rows="2" placeholder="Add notes for cargo owner..." style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; resize: none;"></textarea></div>';
+        
+        // Update button
+        html += '<button onclick="saveShipmentUpdate(\'' + s.shipment_id + '\')" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">Update Shipment</button>';
+        
+        // Last update info
+        if (s.last_update) {
+            var lastUpdateDate = new Date(s.last_update);
+            html += '<div class="last-update" style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 10px;">Last updated: ' + lastUpdateDate.toLocaleString() + '</div>';
+        }
+        
+        html += '</div></div>';
     });
     
-    container.innerHTML = html + (emptyMessage ? emptyMessage.outerHTML : '');
+    container.innerHTML = html;
 }
 
 // Update progress label when slider changes
@@ -25318,8 +25487,8 @@ function updateProgressLabel(shipmentId, value) {
     if (label) label.textContent = value + '%';
 }
 
-// Save shipment update (Forwarder side)
-function saveShipmentUpdate(shipmentId) {
+// Save shipment update (Forwarder side) - KÖK ÇÖZÜM: Supabase'e kaydet
+async function saveShipmentUpdate(shipmentId) {
     var status = document.getElementById('status-' + shipmentId).value;
     var location = document.getElementById('location-' + shipmentId).value;
     var container = document.getElementById('container-' + shipmentId).value;
@@ -25332,14 +25501,31 @@ function saveShipmentUpdate(shipmentId) {
     var formattedDate = now.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
     var formattedTime = now.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'});
     
-    // Save to storage
+    // Status progress mapping
+    var statusProgress = {
+        'booked': 5,
+        'confirmed': 10,
+        'picked_up': 20,
+        'at_origin_port': 30,
+        'in_transit': 50,
+        'at_transit_port': 60,
+        'at_destination_port': 75,
+        'customs_clearance': 85,
+        'out_for_delivery': 95,
+        'delivered': 100
+    };
+    
+    // Auto-set progress based on status
+    var autoProgress = statusProgress[status] || parseInt(progress) || 0;
+    
+    // Save to local storage for UI sync
     shipmentUpdates[shipmentId] = {
         status: status,
         location: location,
         container: container,
         vessel: vessel,
         eta: eta,
-        progress: parseInt(progress),
+        progress: autoProgress,
         notes: notes,
         lastUpdate: now.toISOString(),
         lastUpdateFormatted: formattedDate + ' ' + formattedTime
@@ -25347,15 +25533,53 @@ function saveShipmentUpdate(shipmentId) {
     
     var statusTexts = {
         'booked': 'Booked',
-        'picked-up': 'Picked Up',
-        'at-origin-port': 'At Origin Port',
-        'departed': 'In Transit',
-        'at-transit-port': 'At Transit Port',
-        'at-destination-port': 'At Destination',
-        'customs-clearance': 'Customs',
-        'out-for-delivery': 'Out for Delivery',
-        'delivered': 'Delivered'
+        'confirmed': 'Confirmed',
+        'picked_up': 'Picked Up',
+        'at_origin_port': 'At Origin Port',
+        'in_transit': 'In Transit',
+        'at_transit_port': 'At Transit Port',
+        'at_destination_port': 'At Destination',
+        'customs_clearance': 'Customs Clearance',
+        'out_for_delivery': 'Out for Delivery',
+        'delivered': 'Delivered',
+        'completed': 'Completed'
     };
+    
+    // ========================================
+    // SUPABASE'E KAYDET - KÖK ÇÖZÜM
+    // ========================================
+    if (supabase) {
+        try {
+            var updateData = {
+                status: status,
+                current_location: location,
+                eta: eta || null,
+                progress_percent: autoProgress,
+                last_update: now.toISOString()
+            };
+            
+            // Delivered olduğunda delivered_at timestamp'i kaydet
+            if (status === 'delivered') {
+                updateData.delivered_at = now.toISOString();
+            }
+            
+            var result = await supabase
+                .from('shipments')
+                .update(updateData)
+                .eq('shipment_id', shipmentId);
+            
+            if (result.error) {
+                console.log('Shipment update error:', result.error.message);
+            } else {
+                console.log('✅ Shipment updated in Supabase');
+                
+                // Tracking history'e ekle
+                await addTrackingHistory(shipmentId, status, location, notes);
+            }
+        } catch(e) {
+            console.log('Supabase update error:', e.message);
+        }
+    }
     
     // Update Forwarder side status badge
     var statusBadge = document.querySelector('[data-shipment-id="' + shipmentId + '"] .shipment-status-badge');
@@ -25380,6 +25604,64 @@ function saveShipmentUpdate(shipmentId) {
     
     console.log('Shipment update saved and synced:', shipmentUpdates[shipmentId]);
 }
+
+// Add tracking history entry
+async function addTrackingHistory(shipmentId, status, location, notes) {
+    if (!supabase) return;
+    
+    try {
+        var trackingData = {
+            shipment_id: shipmentId,
+            status: status,
+            location: location || '',
+            notes: notes || '',
+            updated_by: currentUser,
+            created_at: new Date().toISOString()
+        };
+        
+        await supabase
+            .from('shipment_tracking')
+            .insert([trackingData]);
+        
+        console.log('Tracking history added');
+    } catch(e) {
+        console.log('Tracking history error:', e.message);
+    }
+}
+
+// Check and auto-complete delivered shipments (24 hour rule)
+async function checkAndAutoCompleteShipments() {
+    if (!supabase) return;
+    
+    try {
+        var twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        
+        // Delivered olup 24 saatten fazla sürmüş shipment'ları bul
+        var result = await supabase
+            .from('shipments')
+            .select('shipment_id, delivered_at')
+            .eq('status', 'delivered')
+            .lt('delivered_at', twentyFourHoursAgo);
+        
+        if (result.data && result.data.length > 0) {
+            console.log('Auto-completing', result.data.length, 'shipments');
+            
+            for (var i = 0; i < result.data.length; i++) {
+                await supabase
+                    .from('shipments')
+                    .update({ status: 'completed' })
+                    .eq('shipment_id', result.data[i].shipment_id);
+            }
+            
+            console.log('✅ Shipments auto-completed');
+        }
+    } catch(e) {
+        console.log('Auto-complete check error:', e.message);
+    }
+}
+
+// Run auto-complete check on page load and every hour
+setInterval(checkAndAutoCompleteShipments, 60 * 60 * 1000); // Her saat
 
 // Update Cargo Owner's shipment view with forwarder data
 function updateCargoOwnerShipmentView(shipmentId, data, statusTexts) {
@@ -25457,7 +25739,7 @@ function getShipmentTracking(shipmentId) {
     return shipmentUpdates[shipmentId] || null;
 }
 
-// Load cargo owner shipments on tab show
+// Load cargo owner shipments on tab show - KÖK ÇÖZÜM: Detaylı tracking view
 async function loadCargoOwnerShipments() {
     console.log('Loading cargo owner shipments from Supabase...');
     
@@ -25481,10 +25763,13 @@ async function loadCargoOwnerShipments() {
         
         console.log('Loading shipments for client:', clientId);
         
+        // Aktif shipment'ları çek (completed hariç)
         var result = await supabase
             .from('shipments')
             .select('*')
-            .or('client_id.eq.' + clientId + ',client_id.eq.' + (userEmail ? userEmail.split('@')[0] : ''));
+            .or('client_id.eq.' + clientId + ',client_id.eq.' + (userEmail ? userEmail.split('@')[0] : ''))
+            .neq('status', 'completed')
+            .order('created_at', { ascending: false });
         
         if (result.error) {
             console.log('Shipments load error:', result.error.message);
@@ -25495,44 +25780,143 @@ async function loadCargoOwnerShipments() {
         console.log('Loaded shipments:', shipments.length);
         
         if (shipments.length === 0) {
-            if (noShipmentsMsg) noShipmentsMsg.style.display = 'block';
+            shipmentsContainer.innerHTML = '<div id="noClientShipmentsMessage" style="text-align: center; padding: 60px 20px;"><div style="width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;"><svg width="40" height="40" fill="none" stroke="#94a3b8" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg></div><h3 style="margin: 0 0 10px; color: #1e293b;">No Active Shipments</h3><p style="color: #64748b; margin: 0;">Your shipments will appear here once you accept a quote.</p></div>';
             return;
         }
         
-        // Hide empty message
-        if (noShipmentsMsg) noShipmentsMsg.style.display = 'none';
+        // Status configuration
+        var allStatuses = ['booked', 'confirmed', 'picked_up', 'in_transit', 'customs_clearance', 'delivered'];
+        var statusLabels = {
+            'booked': 'Booked',
+            'confirmed': 'Confirmed', 
+            'picked_up': 'Picked Up',
+            'at_origin_port': 'At Origin',
+            'in_transit': 'In Transit',
+            'at_transit_port': 'Transit Port',
+            'at_destination_port': 'At Destination',
+            'customs_clearance': 'Customs',
+            'out_for_delivery': 'Out for Delivery',
+            'delivered': 'Delivered'
+        };
+        
+        var statusColors = {
+            'booked': '#3b82f6',
+            'confirmed': '#6366f1',
+            'picked_up': '#8b5cf6',
+            'in_transit': '#f59e0b',
+            'customs_clearance': '#06b6d4',
+            'delivered': '#10b981'
+        };
         
         // Shipments'ı render et
         var html = '';
         shipments.forEach(function(ship) {
-            var statusColors = {
-                'booked': '#3b82f6',
-                'picked-up': '#8b5cf6',
-                'in-transit': '#f59e0b',
-                'at-destination': '#10b981',
-                'delivered': '#22c55e'
-            };
-            var statusColor = statusColors[ship.status] || '#3b82f6';
+            var currentStatus = ship.status || 'booked';
+            var statusColor = statusColors[currentStatus] || '#3b82f6';
+            var progressPercent = ship.progress_percent || 0;
+            var currentStatusIndex = allStatuses.indexOf(currentStatus);
+            if (currentStatusIndex === -1) currentStatusIndex = 0;
             
-            html += `
-                <div class="shipment-card" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid ${statusColor};">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
-                        <div>
-                            <h3 style="margin: 0 0 5px 0; color: #1e293b; font-size: 16px;">${ship.shipment_id || ship.quote_id || 'Shipment'}</h3>
-                            <p style="margin: 0; color: #64748b; font-size: 14px;">${ship.forwarder_name || 'Forwarder'}</p>
-                        </div>
-                        <span style="background: ${statusColor}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; text-transform: capitalize;">
-                            ${ship.status || 'Booked'}
-                        </span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; color: #475569; font-size: 14px;">
-                        <span>${ship.origin || 'Origin'}</span>
-                        <span>→</span>
-                        <span>${ship.destination || 'Destination'}</span>
-                    </div>
-                    ${ship.total_price ? `<div style="margin-top: 10px; color: #059669; font-weight: 600;">$${Number(ship.total_price).toLocaleString()}</div>` : ''}
-                </div>
-            `;
+            html += '<div id="shipmentCard-' + ship.shipment_id + '" class="shipment-card" style="background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">';
+            
+            // Header
+            html += '<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">';
+            html += '<div>';
+            html += '<h3 style="margin: 0 0 5px 0; color: #1e293b; font-size: 18px; font-weight: 600;">📦 ' + (ship.shipment_id || 'Shipment') + '</h3>';
+            html += '<p style="margin: 0; color: #64748b; font-size: 14px;">Forwarder: <strong>' + (ship.forwarder_name || ship.forwarder_id || 'N/A') + '</strong></p>';
+            html += '</div>';
+            html += '<span id="clientStatus-' + ship.shipment_id + '" style="background: ' + statusColor + '; color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;">' + (statusLabels[currentStatus] || currentStatus) + '</span>';
+            html += '</div>';
+            
+            // Route display
+            html += '<div style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); padding: 16px; border-radius: 12px; margin-bottom: 20px;">';
+            html += '<div style="display: flex; align-items: center; justify-content: space-between;">';
+            html += '<div style="text-align: left;"><span style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Origin</span><br><strong style="color: #1e293b;">' + (ship.origin || 'Origin') + '</strong></div>';
+            html += '<div style="flex: 1; margin: 0 20px; position: relative;">';
+            html += '<div style="height: 4px; background: #e2e8f0; border-radius: 2px;"><div id="clientProgress-' + ship.shipment_id + '" style="height: 100%; width: ' + progressPercent + '%; background: linear-gradient(90deg, #3b82f6, #10b981); border-radius: 2px;"></div></div>';
+            html += '<div class="progress-marker" style="position: absolute; top: -10px; left: ' + progressPercent + '%; transform: translateX(-50%); width: 24px; height: 24px; background: white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center;"><span style="font-size: 10px;">🚚</span></div>';
+            html += '</div>';
+            html += '<div style="text-align: right;"><span style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Destination</span><br><strong style="color: #1e293b;">' + (ship.destination || 'Destination') + '</strong></div>';
+            html += '</div>';
+            html += '<div style="text-align: center; margin-top: 10px;"><span id="clientProgressText-' + ship.shipment_id + '" style="font-size: 13px; color: #10b981; font-weight: 600;">' + progressPercent + '% Complete</span></div>';
+            html += '</div>';
+            
+            // Status Timeline
+            html += '<div style="margin-bottom: 20px;">';
+            html += '<h4 style="margin: 0 0 15px 0; font-size: 14px; color: #475569;">Shipment Progress</h4>';
+            html += '<div style="display: flex; justify-content: space-between; position: relative;">';
+            
+            // Timeline line
+            html += '<div style="position: absolute; top: 12px; left: 20px; right: 20px; height: 2px; background: #e2e8f0; z-index: 0;"></div>';
+            html += '<div style="position: absolute; top: 12px; left: 20px; height: 2px; background: #10b981; z-index: 1; width: ' + (currentStatusIndex / (allStatuses.length - 1) * 100) + '%;"></div>';
+            
+            allStatuses.forEach(function(status, index) {
+                var isCompleted = index <= currentStatusIndex;
+                var isCurrent = index === currentStatusIndex;
+                
+                html += '<div style="text-align: center; z-index: 2; flex: 1;">';
+                html += '<div style="width: 24px; height: 24px; border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; ';
+                
+                if (isCompleted) {
+                    html += 'background: #10b981; color: white;';
+                } else {
+                    html += 'background: #e2e8f0; color: #94a3b8;';
+                }
+                
+                if (isCurrent) {
+                    html += 'box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);';
+                }
+                
+                html += '">';
+                html += isCompleted ? '✓' : (index + 1);
+                html += '</div>';
+                html += '<span style="font-size: 10px; color: ' + (isCompleted ? '#10b981' : '#94a3b8') + ';">' + statusLabels[status] + '</span>';
+                html += '</div>';
+            });
+            
+            html += '</div></div>';
+            
+            // Shipment Details Grid
+            html += '<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">';
+            
+            html += '<div style="background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center;">';
+            html += '<span style="font-size: 10px; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 4px;">Location</span>';
+            html += '<strong id="clientLocation-' + ship.shipment_id + '" style="font-size: 13px; color: #1e293b;">' + (ship.current_location || '-') + '</strong>';
+            html += '</div>';
+            
+            html += '<div style="background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center;">';
+            html += '<span style="font-size: 10px; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 4px;">ETA</span>';
+            html += '<strong id="clientETA-' + ship.shipment_id + '" style="font-size: 13px; color: #1e293b;">' + (ship.eta ? new Date(ship.eta).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) : '-') + '</strong>';
+            html += '</div>';
+            
+            html += '<div style="background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center;">';
+            html += '<span style="font-size: 10px; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 4px;">Container</span>';
+            html += '<strong id="clientContainer-' + ship.shipment_id + '" style="font-size: 13px; color: #1e293b;">' + (ship.container_type || '-') + '</strong>';
+            html += '</div>';
+            
+            html += '<div style="background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center;">';
+            html += '<span style="font-size: 10px; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 4px;">Value</span>';
+            html += '<strong style="font-size: 13px; color: #059669;">$' + (ship.total_price ? Number(ship.total_price).toLocaleString() : '0') + '</strong>';
+            html += '</div>';
+            
+            html += '</div>';
+            
+            // Last update note
+            if (ship.last_update) {
+                html += '<div style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px;">';
+                html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">';
+                html += '<span style="font-size: 14px;">📝</span>';
+                html += '<strong style="font-size: 12px; color: #92400e;">Latest Update</strong>';
+                html += '<span id="clientNoteDate-' + ship.shipment_id + '" style="font-size: 11px; color: #b45309; margin-left: auto;">' + new Date(ship.last_update).toLocaleString() + '</span>';
+                html += '</div>';
+                html += '<p id="clientNoteText-' + ship.shipment_id + '" style="margin: 0; font-size: 13px; color: #78350f; line-height: 1.5;">Shipment is being tracked. Updates will appear here.</p>';
+                html += '</div>';
+            }
+            
+            // Last updated footer
+            html += '<div id="clientLastUpdate-' + ship.shipment_id + '" style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 15px;">Last updated: ' + (ship.last_update ? new Date(ship.last_update).toLocaleString() : 'Not yet updated') + '</div>';
+            
+            html += '</div>';
         });
         
         shipmentsContainer.innerHTML = html;
