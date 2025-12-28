@@ -26966,7 +26966,7 @@ function getForwarderQuotes(forwarderId) {
 }
 
 // Kabul edilen quotete iletişim bilgilerini göster
-function showContactInfoModal(quoteId) {
+async function showContactInfoModal(quoteId) {
     var quote = quotesDB.find(function(q) { return q.id === quoteId; });
     if (!quote || quote.status !== 'accepted') {
         alert('This quote has not been accepted yet!');
@@ -26977,11 +26977,64 @@ function showContactInfoModal(quoteId) {
     console.log('Quote:', quote);
     console.log('quote.clientId:', quote.clientId);
     console.log('quote.forwarderId:', quote.forwarderId);
-    console.log('userContactsDB keys:', Object.keys(userContactsDB));
     
-    // Client ve Forwarder için doğru userType ile contact bilgilerini al
-    var clientContact = getUserContact(quote.clientId, 'client');
-    var forwarderContact = getUserContact(quote.forwarderId, 'forwarder');
+    var clientContact = null;
+    var forwarderContact = null;
+    
+    // SUPABASE'DEN İLETİŞİM BİLGİLERİNİ ÇEK
+    if (supabase) {
+        try {
+            // Client bilgilerini çek
+            var clientResult = await supabase
+                .from('profiles')
+                .select('*')
+                .or('contact_person.eq.' + quote.clientId + ',email.ilike.%' + quote.clientId + '%')
+                .limit(1);
+            
+            if (clientResult.data && clientResult.data.length > 0) {
+                var c = clientResult.data[0];
+                clientContact = {
+                    companyName: c.company_name || '',
+                    contactPerson: c.contact_person || '',
+                    email: c.email || '',
+                    phone: c.phone || '',
+                    address: c.address || '',
+                    city: c.city || ''
+                };
+            }
+            
+            // Forwarder bilgilerini çek
+            var forwarderResult = await supabase
+                .from('profiles')
+                .select('*')
+                .or('contact_person.eq.' + quote.forwarderId + ',contact_person.eq.' + (quote.forwarderName || '') + ',email.ilike.%' + (quote.forwarderId || '') + '%')
+                .eq('user_type', 'forwarder')
+                .limit(1);
+            
+            if (forwarderResult.data && forwarderResult.data.length > 0) {
+                var f = forwarderResult.data[0];
+                forwarderContact = {
+                    companyName: f.company_name || '',
+                    contactPerson: f.contact_person || '',
+                    email: f.email || '',
+                    phone: f.phone || '',
+                    address: f.address || '',
+                    city: f.city || '',
+                    website: f.website || ''
+                };
+            }
+        } catch(e) {
+            console.log('Contact info load error:', e.message);
+        }
+    }
+    
+    // Fallback: localStorage cache
+    if (!clientContact) {
+        clientContact = getUserContact(quote.clientId, 'client');
+    }
+    if (!forwarderContact) {
+        forwarderContact = getUserContact(quote.forwarderId, 'forwarder');
+    }
     
     console.log('clientContact:', clientContact);
     console.log('forwarderContact:', forwarderContact);
