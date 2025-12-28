@@ -35562,7 +35562,7 @@ async function createShipmentInSupabase(quote) {
                 .limit(1);
             
             if (existingCheck.data && existingCheck.data.length > 0) {
-                console.log('⚠️ Shipment already exists for quote:', quoteId);
+                console.log('Shipment already exists for quote:', quoteId);
                 return { success: true, source: 'existing', data: existingCheck.data[0] };
             }
         } catch(e) {
@@ -35602,11 +35602,103 @@ async function createShipmentInSupabase(quote) {
             return { success: false, error: result.error.message };
         }
         
-        console.log('✅ Shipment created in Supabase:', result.data[0].shipment_id);
+        console.log('Shipment created in Supabase:', result.data[0].shipment_id);
+        
+        // KOK COZUM: Request status'u otomatik guncelle
+        // Origin + Destination + Client bazli eslesme ile request'i bul ve guncelle
+        await updateRequestStatusByShipment(shipmentData);
+        
         return { success: true, source: 'supabase', data: result.data[0] };
     } catch (e) {
         console.log('Shipment create error:', e.message);
         return { success: false, error: e.message };
+    }
+}
+
+// KOK COZUM: Shipment verilerine gore request status guncelle
+async function updateRequestStatusByShipment(shipmentData) {
+    if (!supabase) return;
+    
+    try {
+        var clientId = shipmentData.client_id;
+        var origin = shipmentData.origin;
+        var destination = shipmentData.destination;
+        
+        console.log('Updating request status for:', clientId, origin, '->', destination);
+        
+        // Client + Origin + Destination bazli request bul
+        var findResult = await supabase
+            .from('requests')
+            .select('request_id, id')
+            .eq('client_id', clientId)
+            .eq('status', 'open')
+            .or('origin.ilike.%' + origin.split(',')[0] + '%,origin.ilike.%' + origin.split(' ')[0] + '%');
+        
+        if (findResult.data && findResult.data.length > 0) {
+            // Destination ile de eslesen request'i bul
+            var matchingRequest = findResult.data.find(function(r) {
+                return true; // Ilk eslesen request (client_id zaten eslesiyor)
+            });
+            
+            if (matchingRequest) {
+                var reqId = matchingRequest.request_id || matchingRequest.id;
+                
+                var updateResult = await supabase
+                    .from('requests')
+                    .update({ 
+                        status: 'booked', 
+                        updated_at: new Date().toISOString() 
+                    })
+                    .eq('request_id', reqId);
+                
+                if (!updateResult.error) {
+                    console.log('Request status updated to booked:', reqId);
+                } else {
+                    // request_id ile olmadiysa id ile dene
+                    await supabase
+                        .from('requests')
+                        .update({ 
+                            status: 'booked', 
+                            updated_at: new Date().toISOString() 
+                        })
+                        .eq('id', matchingRequest.id);
+                    console.log('Request status updated via id:', matchingRequest.id);
+                }
+            }
+        } else {
+            // Alternatif: Tum open request'leri client_id ile bul
+            var allOpenResult = await supabase
+                .from('requests')
+                .select('request_id, id, origin, destination')
+                .eq('client_id', clientId)
+                .eq('status', 'open');
+            
+            if (allOpenResult.data && allOpenResult.data.length > 0) {
+                // Origin veya destination ile eslesen request bul
+                var match = allOpenResult.data.find(function(r) {
+                    var originMatch = r.origin && origin && 
+                        (r.origin.toLowerCase().includes(origin.split(',')[0].toLowerCase()) ||
+                         origin.toLowerCase().includes(r.origin.split(',')[0].toLowerCase()));
+                    var destMatch = r.destination && destination && 
+                        (r.destination.toLowerCase().includes(destination.split(',')[0].toLowerCase()) ||
+                         destination.toLowerCase().includes(r.destination.split(',')[0].toLowerCase()));
+                    return originMatch || destMatch;
+                });
+                
+                if (match) {
+                    await supabase
+                        .from('requests')
+                        .update({ 
+                            status: 'booked', 
+                            updated_at: new Date().toISOString() 
+                        })
+                        .eq('request_id', match.request_id);
+                    console.log('Request matched and updated:', match.request_id);
+                }
+            }
+        }
+    } catch(e) {
+        console.log('Request status update by shipment error:', e.message);
     }
 }
 
