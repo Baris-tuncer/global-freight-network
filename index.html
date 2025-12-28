@@ -29448,9 +29448,34 @@ function hasMyQuote(reqId) {
     return false;
 }
 
-// Mark a request as having my quote
-function markQuoteSubmitted(reqId) {
-    mySubmittedQuotes[reqId] = true;
+// Verdiğim teklifin detaylarını getir
+function getMyQuoteDetails(reqId) {
+    // Check local tracking first
+    if (mySubmittedQuotes[reqId] && typeof mySubmittedQuotes[reqId] === 'object') {
+        return mySubmittedQuotes[reqId];
+    }
+    // Fallback: check quotesDB
+    if (typeof quotesDB !== 'undefined' && Array.isArray(quotesDB)) {
+        var myQuote = quotesDB.find(function(q) { 
+            return q.requestId === reqId && (q.forwarderId === currentUser || q.forwarderName === currentUser); 
+        });
+        return myQuote || null;
+    }
+    return null;
+}
+
+// Mark a request as having my quote - with price info
+function markQuoteSubmitted(reqId, quoteData) {
+    if (quoteData) {
+        mySubmittedQuotes[reqId] = {
+            totalPrice: quoteData.totalPrice,
+            freightRate: quoteData.freightRate,
+            transitDays: quoteData.transitDays,
+            submittedAt: new Date().toISOString()
+        };
+    } else {
+        mySubmittedQuotes[reqId] = true;
+    }
     saveSubmittedQuotes();
 }
 
@@ -29530,7 +29555,9 @@ async function renderForwarderRequests() {
         html += '<div class="request-header">';
         html += '<div class="request-id-badge">' + req.id + '</div>';
         if (hasQuote) {
-            html += '<div class="quote-submitted-badge">' + t('quoteSubmitted') + '</div>';
+            var myQuote = getMyQuoteDetails(req.id);
+            var priceText = myQuote && myQuote.totalPrice ? ' - $' + numberFormat(myQuote.totalPrice) : '';
+            html += '<div class="quote-submitted-badge">' + t('quoteSubmitted') + priceText + '</div>';
         }
         html += '<div class="request-time">' + timeAgo + '</div>';
         html += '</div>';
@@ -29564,7 +29591,9 @@ async function renderForwarderRequests() {
         html += '</div>';
         html += '<div class="request-actions">';
         if (hasQuote) {
-            html += '<button class="btn-quote btn-submitted" disabled>' + t('quoteSubmitted') + '</button>';
+            var myQuoteInfo = getMyQuoteDetails(req.id);
+            var myPrice = myQuoteInfo && myQuoteInfo.totalPrice ? '$' + numberFormat(myQuoteInfo.totalPrice) : '';
+            html += '<button class="btn-quote btn-submitted" disabled>' + t('quoteSubmitted') + (myPrice ? ' (' + myPrice + ')' : '') + '</button>';
         } else {
             html += '<button class="btn-quote" onclick="openQuoteModal(\'' + req.id + '\')">' + t('submitQuote') + '</button>';
         }
@@ -30441,8 +30470,8 @@ function submitForwarderQuote() {
             
             saveNetworkToStorage();
             
-            // Mark quote as submitted for this forwarder
-            markQuoteSubmitted(selectedRequestId);
+            // Mark quote as submitted for this forwarder - with price info
+            markQuoteSubmitted(selectedRequestId, newQuote);
             
             // Show success and close modal
             closeQuoteModal();
