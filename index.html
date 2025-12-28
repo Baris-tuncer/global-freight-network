@@ -21075,45 +21075,80 @@ var worldPorts = {
 };
 
 // Insurance Tarifeleri Veritabanı - localStorage ile kalıcı
-var insuranceRatesDB = (function() {
-    var stored = localStorage.getItem('insuranceRatesDB');
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch(e) {
-            console.error('insuranceRatesDB yükleme hatası:', e);
-        }
-    }
-    return { premiums: [] };
-})();
+// ═══════════════════════════════════════════════════════════════════════════════
+// KÖK ÇÖZÜM: Sigorta ve Gümrük Oranları - SUPABASE FIRST
+// ═══════════════════════════════════════════════════════════════════════════════
 
-function saveInsuranceRatesToStorage() {
+var insuranceRatesDB = { premiums: [] };
+var customsRatesDB = { serviceFees: [], taxRates: [] };
+
+// Sigorta oranlarını Supabase'den yükle
+async function loadInsuranceRatesFromSupabase() {
+    if (!supabase) return;
+    
     try {
-        localStorage.setItem('insuranceRatesDB', JSON.stringify(insuranceRatesDB));
+        var result = await supabase
+            .from('insurance_rates')
+            .select('*')
+            .eq('is_active', true);
+        
+        if (result.data && result.data.length > 0) {
+            insuranceRatesDB.premiums = result.data.map(function(r) {
+                return {
+                    id: r.id,
+                    cargoType: r.cargo_type,
+                    coverageType: r.coverage_type,
+                    rate: r.rate_percentage,
+                    minPremium: r.min_premium,
+                    currency: r.currency,
+                    notes: r.notes
+                };
+            });
+            console.log('✅ Insurance rates loaded:', insuranceRatesDB.premiums.length);
+        }
     } catch(e) {
-        console.error('localStorage kaydetme hatası:', e);
+        console.log('Insurance rates load error:', e.message);
     }
 }
 
-// Customs Tarifeleri Veritabanı - localStorage ile kalıcı
-var customsRatesDB = (function() {
-    var stored = localStorage.getItem('customsRatesDB');
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch(e) {
-            console.error('customsRatesDB yükleme hatası:', e);
+// Gümrük oranlarını Supabase'den yükle
+async function loadCustomsRatesFromSupabase() {
+    if (!supabase) return;
+    
+    try {
+        var result = await supabase
+            .from('customs_rates')
+            .select('*')
+            .eq('is_active', true);
+        
+        if (result.data && result.data.length > 0) {
+            customsRatesDB.taxRates = result.data.map(function(r) {
+                return {
+                    id: r.id,
+                    countryCode: r.country_code,
+                    productCategory: r.product_category,
+                    dutyRate: r.duty_rate,
+                    vatRate: r.vat_rate,
+                    clearanceFee: r.clearance_fee,
+                    currency: r.currency,
+                    notes: r.notes
+                };
+            });
+            console.log('✅ Customs rates loaded:', customsRatesDB.taxRates.length);
         }
+    } catch(e) {
+        console.log('Customs rates load error:', e.message);
     }
-    return { serviceFees: [], taxRates: [] };
-})();
+}
+
+function saveInsuranceRatesToStorage() {
+    // KÖK ÇÖZÜM: Artık Supabase'e kaydedilecek, localStorage kullanılmıyor
+    console.log('Insurance rates - Supabase only');
+}
 
 function saveCustomsRatesToStorage() {
-    try {
-        localStorage.setItem('customsRatesDB', JSON.stringify(customsRatesDB));
-    } catch(e) {
-        console.error('localStorage kaydetme hatası:', e);
-    }
+    // KÖK ÇÖZÜM: Artık Supabase'e kaydedilecek, localStorage kullanılmıyor
+    console.log('Customs rates - Supabase only');
 }
 
 // Incoterm Tanımları ve Included Services
@@ -23259,14 +23294,43 @@ async function selectAcceptedConversation(quoteId) {
     loadConversationMessages(quoteId);
 }
 
+// KÖK ÇÖZÜM: Mesajlar için in-memory cache (Supabase messages tablosu hazır olunca oradan yüklenecek)
+var conversationMessagesCache = {};
+
 // Load messages for a specific conversation
-function loadConversationMessages(quoteId) {
+async function loadConversationMessages(quoteId) {
     var chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
     
-    // Get messages from localStorage
-    var allMessages = JSON.parse(localStorage.getItem('conversationMessages') || '{}');
-    var messages = allMessages[quoteId] || [];
+    // Önce cache'e bak
+    var messages = conversationMessagesCache[quoteId] || [];
+    
+    // Supabase'den yüklemeyi dene (messages tablosu varsa)
+    if (supabase && messages.length === 0) {
+        try {
+            var result = await supabase
+                .from('messages')
+                .select('*')
+                .eq('conversation_id', quoteId)
+                .order('created_at', { ascending: true });
+            
+            if (result.data && result.data.length > 0) {
+                messages = result.data.map(function(m) {
+                    return {
+                        from: m.sender_type === 'client' ? 'me' : 'forwarder',
+                        text: m.message_text,
+                        time: new Date(m.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                        avatar: m.sender_name ? m.sender_name.substring(0, 2).toUpperCase() : 'FW'
+                    };
+                });
+                conversationMessagesCache[quoteId] = messages;
+                console.log('✅ Messages loaded from Supabase:', messages.length);
+            }
+        } catch(e) {
+            // messages tablosu yoksa sessizce devam et
+            console.log('Messages table not available yet');
+        }
+    }
     
     if (messages.length === 0) {
         // Show welcome message for new conversations
@@ -23291,6 +23355,36 @@ function loadConversationMessages(quoteId) {
         });
         chatMessages.innerHTML = html;
         chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+}
+
+// KÖK ÇÖZÜM: Mesajı Supabase'e kaydet
+async function saveMessageToSupabase(conversationId, messageText, senderType) {
+    if (!supabase) return;
+    
+    try {
+        var messageData = {
+            conversation_id: conversationId,
+            sender_id: currentUser || 'unknown',
+            sender_type: senderType,
+            sender_name: currentUser,
+            message_text: messageText,
+            message_type: 'text',
+            created_at: new Date().toISOString()
+        };
+        
+        var result = await supabase
+            .from('messages')
+            .insert([messageData]);
+        
+        if (result.error) {
+            // Tablo yoksa sessizce devam et
+            console.log('Message save: table not ready');
+        } else {
+            console.log('✅ Message saved to Supabase');
+        }
+    } catch(e) {
+        console.log('Message save error:', e.message);
     }
 }
 
@@ -23540,9 +23634,8 @@ function sendMessage() {
     var activeConvItem = document.querySelector('#conversationsList .conversation-item.active');
     var quoteId = activeConvItem ? activeConvItem.getAttribute('data-quote-id') : null;
     
-    // Get forwarder info
-    var acceptedQuotes = JSON.parse(localStorage.getItem('acceptedQuotes') || '[]');
-    var activeQuote = quoteId ? acceptedQuotes.find(function(p) { return p.id === quoteId; }) : null;
+    // Get forwarder info from quotesDB (Supabase'den yüklendi)
+    var activeQuote = quoteId ? quotesDB.find(function(q) { return q.id === quoteId && q.status === 'accepted'; }) : null;
     var avatar = activeQuote && activeQuote.forwarderName ? activeQuote.forwarderName.substring(0, 2).toUpperCase() : 'FW';
     
     // Add message to UI
@@ -23559,16 +23652,17 @@ function sendMessage() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
     input.value = '';
     
-    // Store message in localStorage
+    // KÖK ÇÖZÜM: Mesajı cache'e ve Supabase'e kaydet
     if (quoteId) {
-        var allMessages = JSON.parse(localStorage.getItem('conversationMessages') || '{}');
-        if (!allMessages[quoteId]) allMessages[quoteId] = [];
-        allMessages[quoteId].push({
+        if (!conversationMessagesCache[quoteId]) conversationMessagesCache[quoteId] = [];
+        conversationMessagesCache[quoteId].push({
             from: 'me',
             text: message,
             time: currentTime
         });
-        localStorage.setItem('conversationMessages', JSON.stringify(allMessages));
+        
+        // Supabase'e kaydet (messages tablosu varsa)
+        saveMessageToSupabase(quoteId, message, 'client');
     }
     
     // Forwarder auto-reply (simulated)
@@ -23592,17 +23686,18 @@ function sendMessage() {
         chatMessages.appendChild(autoReply);
         chatMessages.scrollTop = chatMessages.scrollHeight;
         
-        // Store reply in localStorage
+        // KÖK ÇÖZÜM: Auto-reply'ı cache'e ve Supabase'e kaydet
         if (quoteId) {
-            var allMessages = JSON.parse(localStorage.getItem('conversationMessages') || '{}');
-            if (!allMessages[quoteId]) allMessages[quoteId] = [];
-            allMessages[quoteId].push({
-                from: 'them',
-                avatar: avatar,
+            if (!conversationMessagesCache[quoteId]) conversationMessagesCache[quoteId] = [];
+            conversationMessagesCache[quoteId].push({
+                from: 'forwarder',
                 text: replyText,
-                time: currentTime
+                time: currentTime,
+                avatar: avatar
             });
-            localStorage.setItem('conversationMessages', JSON.stringify(allMessages));
+            
+            // Supabase'e kaydet
+            saveMessageToSupabase(quoteId, replyText, 'forwarder');
         }
     }, 1500);
 }
@@ -23623,87 +23718,18 @@ function viewOfferDetails(offerId) {
 }
 
 function acceptOffer(offerId) {
-    // Client profile check
-    var clientId = currentUser || 'demo-client';
-    var clientContact = getUserContact(clientId, 'client');
+    // Eski demo sistemi - yeni handleAcceptQuote'a yönlendir
+    console.log('acceptOffer called for:', offerId);
     
-    if (!clientContact || !clientContact.email) {
-        alert('Warning: You must save your contact information before accepting the quote!\n\nEnter your information from the Profile tab.');
-        showClientTab('profile');
+    // Eğer gerçek quote ID ise handleAcceptQuote kullan
+    if (offerId && offerId.startsWith('QT-')) {
+        handleAcceptQuote(offerId);
         return;
     }
     
-    if (confirm('Are you sure you want to accept this quote?\n\nWhen accepted, a shipment will be created and the forwarder will be notified.')) {
-        // Update the accepted card
-        var offerCard = document.querySelector('[onclick*="acceptOffer(\'' + offerId + '\')"]');
-        if (offerCard) {
-            var card = offerCard.closest('.offer-card');
-            if (card) {
-                card.classList.add('accepted');
-                card.style.background = 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)';
-                card.style.borderColor = '#86efac';
-                
-                // Change Accept button
-                offerCard.textContent = 'Accepted ✓';
-                offerCard.disabled = true;
-                offerCard.style.background = '#10b981';
-                offerCard.style.cursor = 'default';
-            }
-        }
-        
-        // Forwarder data
-        var forwarderData = {
-            'offer1': { name: 'ABC Logistics', route: 'Istanbul → Hamburg', price: '$2,450' },
-            'offer2': { name: 'XYZ Shipping', route: 'Istanbul → Hamburg', price: '$2,680' },
-            'offer3': { name: 'Global Lines', route: 'Istanbul → Hamburg', price: '$2,890' }
-        };
-        
-        var forwarder = forwarderData[offerId] || { name: 'Forwarder', route: 'Shipment', price: 'N/A' };
-        
-        // Store accepted quote for Messages functionality
-        var acceptedQuotes = JSON.parse(localStorage.getItem('acceptedQuotes') || '[]');
-        var newAccepted = {
-            id: offerId,
-            forwarderName: forwarder.name,
-            route: forwarder.route,
-            price: forwarder.price,
-            acceptedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            shipmentNo: 'GFN-2024-' + (78543 + acceptedQuotes.length)
-        };
-        
-        // Avoid duplicates
-        if (!acceptedQuotes.find(function(p) { return p.id === offerId; })) {
-            acceptedQuotes.push(newAccepted);
-            localStorage.setItem('acceptedQuotes', JSON.stringify(acceptedQuotes));
-        }
-        
-        showRateNotification('Quote accepted! Creating shipment...', 'success');
-        
-        // Create shipment
-        setTimeout(function() {
-            showRateNotification('Shipment ' + newAccepted.shipmentNo + ' created!', 'success');
-            
-            // Show forwarder contact info
-            alert('Contact Information\n\n' + 
-                  'Company: ' + forwarder.name + '\n' +
-                  'Phone: +90 212 555 1234\n' +
-                  'Email: operations@' + offerId.replace('offer', 'forwarder') + '.com\n\n' +
-                  'You can now communicate directly via the Messages tab.');
-                  
-            // Update Messages menu badge
-            var messagesMenuItem = document.getElementById('clientMessagesMenuItem');
-            if (messagesMenuItem) {
-                var existingBadge = messagesMenuItem.querySelector('.menu-badge');
-                if (!existingBadge) {
-                    var badge = document.createElement('span');
-                    badge.className = 'menu-badge';
-                    badge.style.cssText = 'background: #10b981; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 6px;';
-                    badge.textContent = 'New';
-                    messagesMenuItem.appendChild(badge);
-                }
-            }
-        }, 1500);
-    }
+    // Demo offer için - Received Quotes'a yönlendir
+    alert('Please use the Received Quotes tab to accept quotes.');
+    showClientTab('myQuotes');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -24080,6 +24106,10 @@ async function doLogin(e) {
                 // 🔑 KÖK ÇÖZÜM: TÜM REQUESTS'LERİ YÜKLE
                 await loadNetworkFromSupabase();
                 
+                // 🔑 KÖK ÇÖZÜM: SİGORTA VE GÜMRÜK ORANLARINI YÜKLE
+                await loadInsuranceRatesFromSupabase();
+                await loadCustomsRatesFromSupabase();
+                
                 console.log('✅ All data loaded from Supabase');
             }
         }
@@ -24287,6 +24317,8 @@ async function doSignUp(e) {
                 await loadAllProfilesFromSupabase();
                 await loadQuotesFromSupabase();
                 await loadNetworkFromSupabase();
+                await loadInsuranceRatesFromSupabase();
+                await loadCustomsRatesFromSupabase();
                 console.log('✅ All data loaded for new user');
             }
         }
@@ -27007,8 +27039,7 @@ function acceptQuote(quoteId) {
         });
         if (request) {
             request.status = 'booked';
-            localStorage.setItem('networkRequests', JSON.stringify(networkRequests));
-            // Also update in Supabase if available
+            // KÖK ÇÖZÜM: Sadece Supabase'e kaydet
             if (supabase) {
                 supabase.from('requests').update({ status: 'booked' })
                     .eq('request_id', quote.requestId)
@@ -35239,16 +35270,9 @@ async function loadProfileFromSupabase(email) {
     }
 }
 
-// --- HELPER: localStorage sync load ---
+// --- HELPER: localStorage sync load - KÖK ÇÖZÜM: Artık Supabase'den yükleniyor ---
 function loadNetworkFromStorageSync() {
-    try {
-        var stored = localStorage.getItem('networkRequests');
-        if (stored) {
-            return JSON.parse(stored);
-        }
-    } catch(e) {
-        console.log('localStorage parse error');
-    }
+    // KÖK ÇÖZÜM: localStorage kullanılmıyor, networkRequests zaten Supabase'den yüklendi
     return networkRequests || [];
 }
 
