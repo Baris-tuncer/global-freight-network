@@ -13963,8 +13963,8 @@
         }
         
         .request-status.booked {
-            background: #c7d2fe;
-            color: #4338ca;
+            background: #dcfce7;
+            color: #15803d;
         }
         
         .request-status.expired {
@@ -25822,7 +25822,7 @@ async function loadCargoOwnerShipments() {
             // Header
             html += '<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">';
             html += '<div>';
-            html += '<h3 style="margin: 0 0 5px 0; color: #1e293b; font-size: 18px; font-weight: 600;">📦 ' + (ship.shipment_id || 'Shipment') + '</h3>';
+            html += '<h3 style="margin: 0 0 5px 0; color: #1e293b; font-size: 18px; font-weight: 600;">' + (ship.shipment_id || 'Shipment') + '</h3>';
             html += '<p style="margin: 0; color: #64748b; font-size: 14px;">Forwarder: <strong>' + (ship.forwarder_name || ship.forwarder_id || 'N/A') + '</strong></p>';
             html += '</div>';
             html += '<span id="clientStatus-' + ship.shipment_id + '" style="background: ' + statusColor + '; color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;">' + (statusLabels[currentStatus] || currentStatus) + '</span>';
@@ -25834,7 +25834,7 @@ async function loadCargoOwnerShipments() {
             html += '<div style="text-align: left;"><span style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Origin</span><br><strong style="color: #1e293b;">' + (ship.origin || 'Origin') + '</strong></div>';
             html += '<div style="flex: 1; margin: 0 20px; position: relative;">';
             html += '<div style="height: 4px; background: #e2e8f0; border-radius: 2px;"><div id="clientProgress-' + ship.shipment_id + '" style="height: 100%; width: ' + progressPercent + '%; background: linear-gradient(90deg, #3b82f6, #10b981); border-radius: 2px;"></div></div>';
-            html += '<div class="progress-marker" style="position: absolute; top: -10px; left: ' + progressPercent + '%; transform: translateX(-50%); width: 24px; height: 24px; background: white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center;"><span style="font-size: 10px;">🚚</span></div>';
+            html += '<div class="progress-marker" style="position: absolute; top: -10px; left: ' + progressPercent + '%; transform: translateX(-50%); width: 24px; height: 24px; background: white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center;"><span style="font-size: 12px; color: #10b981; font-weight: bold;">&#8594;</span></div>';
             html += '</div>';
             html += '<div style="text-align: right;"><span style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Destination</span><br><strong style="color: #1e293b;">' + (ship.destination || 'Destination') + '</strong></div>';
             html += '</div>';
@@ -25905,7 +25905,7 @@ async function loadCargoOwnerShipments() {
             if (ship.last_update) {
                 html += '<div style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px;">';
                 html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">';
-                html += '<span style="font-size: 14px;">📝</span>';
+                html += '<span style="font-size: 14px; color: #92400e; font-weight: bold;">*</span>';
                 html += '<strong style="font-size: 12px; color: #92400e;">Latest Update</strong>';
                 html += '<span id="clientNoteDate-' + ship.shipment_id + '" style="font-size: 11px; color: #b45309; margin-left: auto;">' + new Date(ship.last_update).toLocaleString() + '</span>';
                 html += '</div>';
@@ -27959,8 +27959,23 @@ async function renderClientRequests() {
             var origin = req.origin || 'N/A';
             var dest = req.destination || 'N/A';
             var status = req.status || 'open';
-            var statusClass = status === 'quoted' ? 'quoted' : status === 'accepted' ? 'accepted' : status === 'booked' ? 'booked' : 'pending';
-            var statusText = status === 'quoted' ? 'Quotes Received' : status === 'accepted' ? 'Accepted' : status === 'booked' ? 'Booked' : 'Awaiting Quotes';
+            
+            // Status badge ayarları
+            var statusClass, statusText;
+            if (status === 'booked' || status === 'shipped') {
+                statusClass = 'booked';
+                statusText = 'Shipped';
+            } else if (status === 'quoted') {
+                statusClass = 'quoted';
+                statusText = 'Quotes Received';
+            } else if (status === 'accepted') {
+                statusClass = 'accepted';
+                statusText = 'Accepted';
+            } else {
+                statusClass = 'pending';
+                statusText = 'Awaiting Quotes';
+            }
+            
             var transport = req.freight || 'Sea';
             var container_type = req.containerType || '';
             var requestDate = req.createdAt;
@@ -27977,7 +27992,18 @@ async function renderClientRequests() {
                 '<div class="request-detail-item"><label>Request Date</label><span>' + dateStr + '</span></div>' +
                 '</div>';
             
-            if (status === 'open') {
+            // Status'a göre farklı içerik göster
+            if (status === 'booked' || status === 'shipped') {
+                // Booked/Shipped durumunda My Shipments'a yönlendir
+                html += '<div class="request-offers" style="padding: 24px;">' +
+                    '<div style="text-align: center; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 12px; padding: 24px;">' +
+                    '<div style="width: 60px; height: 60px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: white; font-size: 24px; font-weight: bold;">&#10003;</div>' +
+                    '<h4 style="margin: 0 0 8px; color: #065f46; font-weight: 600;">Shipment Created</h4>' +
+                    '<p style="color: #047857; margin: 0 0 16px; font-size: 14px;">Your cargo is now being handled by the forwarder.</p>' +
+                    '<button onclick="showClientTab(\'shipments\')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer;">View in My Shipments</button>' +
+                    '</div></div>';
+            } else if (status === 'open') {
+                // Open durumunda quote bekleniyor
                 html += '<div class="request-offers">' +
                     '<div class="empty-offers waiting-state">' +
                     '<div class="waiting-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>' +
