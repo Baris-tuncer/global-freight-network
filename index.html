@@ -24062,6 +24062,7 @@ async function doLogin(e) {
                 localStorage.clear();
                 networkRequests = [];
                 quotesDB = [];
+                userContactsDB = {};
                 
                 // YENİ KULLANICININ UUID'sini kaydet
                 currentUserId = authResult.data.user.id;
@@ -24069,6 +24070,17 @@ async function doLogin(e) {
                 localStorage.setItem('currentUserId', currentUserId);
                 localStorage.setItem('currentUserEmail', currentUserEmail);
                 console.log('User UUID:', currentUserId);
+                
+                // 🔑 KÖK ÇÖZÜM: TÜM PROFİLLERİ SUPABASE'DEN ÇEK VE CACHE'LE
+                await loadAllProfilesFromSupabase();
+                
+                // 🔑 KÖK ÇÖZÜM: TÜM QUOTES'LARI YÜKLE
+                await loadQuotesFromSupabase();
+                
+                // 🔑 KÖK ÇÖZÜM: TÜM REQUESTS'LERİ YÜKLE
+                await loadNetworkFromSupabase();
+                
+                console.log('✅ All data loaded from Supabase');
             }
         }
     } catch (authError) {
@@ -24262,6 +24274,7 @@ async function doSignUp(e) {
                 localStorage.clear();
                 networkRequests = [];
                 quotesDB = [];
+                userContactsDB = {};
                 
                 // YENİ KULLANICININ UUID'sini kaydet
                 currentUserId = signupResult.data.user.id;
@@ -24269,6 +24282,12 @@ async function doSignUp(e) {
                 localStorage.setItem('currentUserId', currentUserId);
                 localStorage.setItem('currentUserEmail', currentUserEmail);
                 console.log('New user UUID:', currentUserId);
+                
+                // 🔑 KÖK ÇÖZÜM: TÜM VERİLERİ SUPABASE'DEN YÜKLE
+                await loadAllProfilesFromSupabase();
+                await loadQuotesFromSupabase();
+                await loadNetworkFromSupabase();
+                console.log('✅ All data loaded for new user');
             }
         }
     } catch (authError) {
@@ -26710,6 +26729,68 @@ function populateForwarderPorts() {
 // User iletişim bilgileri veritabanı - SUPABASE FIRST (cache olarak kullanılır)
 var userContactsDB = {};
 
+// 🔑 KÖK ÇÖZÜM: TÜM PROFİLLERİ SUPABASE'DEN YÜKLE VE CACHE'LE
+async function loadAllProfilesFromSupabase() {
+    if (!supabase) {
+        console.log('Supabase not available for profiles');
+        return;
+    }
+    
+    try {
+        var result = await supabase
+            .from('profiles')
+            .select('*');
+        
+        if (result.error) {
+            console.log('Profiles load error:', result.error.message);
+            return;
+        }
+        
+        var profiles = result.data || [];
+        console.log('Loading', profiles.length, 'profiles from Supabase...');
+        
+        // TÜM PROFİLLERİ userContactsDB'YE CACHE'LE
+        profiles.forEach(function(p) {
+            var contact = {
+                companyName: p.company_name || '',
+                contactPerson: p.contact_person || '',
+                email: p.email || '',
+                phone: p.phone || '',
+                address: p.address || '',
+                city: p.city || '',
+                country: p.country || '',
+                website: p.website || '',
+                userType: p.user_type || 'client'
+            };
+            
+            // Birden fazla key ile cache'le - böylece her türlü arama çalışır
+            var userName = p.contact_person || p.email.split('@')[0];
+            var userType = p.user_type || 'client';
+            
+            // Key 1: contactPerson_userType (örn: "Fatma_client")
+            userContactsDB[userName + '_' + userType] = contact;
+            
+            // Key 2: email prefix_userType (örn: "fatma_client")
+            var emailPrefix = p.email.split('@')[0];
+            var capitalizedPrefix = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+            userContactsDB[capitalizedPrefix + '_' + userType] = contact;
+            
+            // Key 3: sadece contactPerson (geriye uyumluluk)
+            userContactsDB[userName] = contact;
+            
+            // Key 4: sadece email prefix
+            userContactsDB[capitalizedPrefix] = contact;
+            
+            console.log('  ✓ Cached:', userName, '(' + userType + ')');
+        });
+        
+        console.log('✅ All profiles cached. Keys:', Object.keys(userContactsDB).length);
+        
+    } catch(e) {
+        console.log('Profiles load exception:', e.message);
+    }
+}
+
 // Supabase'den profil yükle ve userContactsDB'ye cache et
 async function loadUserContactFromSupabase(email) {
     if (!supabase || !email) return null;
@@ -26977,37 +27058,20 @@ async function showContactInfoModal(quoteId) {
     console.log('Quote:', quote);
     console.log('quote.clientId:', quote.clientId);
     console.log('quote.forwarderId:', quote.forwarderId);
+    console.log('userContactsDB keys:', Object.keys(userContactsDB));
     
-    var clientContact = null;
-    var forwarderContact = null;
+    // KÖK ÇÖZÜM: Önce cache'den bak (login'de yüklendi)
+    var clientContact = getUserContact(quote.clientId, 'client');
+    var forwarderContact = getUserContact(quote.forwarderId, 'forwarder') || 
+                           getUserContact(quote.forwarderName, 'forwarder');
     
-    // SUPABASE'DEN İLETİŞİM BİLGİLERİNİ ÇEK
-    if (supabase) {
+    // Eğer cache'de yoksa Supabase'den çek
+    if (!forwarderContact && supabase) {
         try {
-            // Client bilgilerini çek
-            var clientResult = await supabase
-                .from('profiles')
-                .select('*')
-                .or('contact_person.eq.' + quote.clientId + ',email.ilike.%' + quote.clientId + '%')
-                .limit(1);
-            
-            if (clientResult.data && clientResult.data.length > 0) {
-                var c = clientResult.data[0];
-                clientContact = {
-                    companyName: c.company_name || '',
-                    contactPerson: c.contact_person || '',
-                    email: c.email || '',
-                    phone: c.phone || '',
-                    address: c.address || '',
-                    city: c.city || ''
-                };
-            }
-            
-            // Forwarder bilgilerini çek
             var forwarderResult = await supabase
                 .from('profiles')
                 .select('*')
-                .or('contact_person.eq.' + quote.forwarderId + ',contact_person.eq.' + (quote.forwarderName || '') + ',email.ilike.%' + (quote.forwarderId || '') + '%')
+                .or('contact_person.ilike.%' + (quote.forwarderId || '') + '%,contact_person.ilike.%' + (quote.forwarderName || '') + '%')
                 .eq('user_type', 'forwarder')
                 .limit(1);
             
@@ -27022,18 +27086,12 @@ async function showContactInfoModal(quoteId) {
                     city: f.city || '',
                     website: f.website || ''
                 };
+                // Cache'e ekle
+                userContactsDB[quote.forwarderId + '_forwarder'] = forwarderContact;
             }
         } catch(e) {
-            console.log('Contact info load error:', e.message);
+            console.log('Forwarder contact load error:', e.message);
         }
-    }
-    
-    // Fallback: localStorage cache
-    if (!clientContact) {
-        clientContact = getUserContact(quote.clientId, 'client');
-    }
-    if (!forwarderContact) {
-        forwarderContact = getUserContact(quote.forwarderId, 'forwarder');
     }
     
     console.log('clientContact:', clientContact);
