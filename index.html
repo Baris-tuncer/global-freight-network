@@ -27610,53 +27610,66 @@ function getTimeAgo(dateStr) {
 }
 
 // Quote kabul et
+// Çift tıklama koruması için flag
+var acceptQuoteProcessing = false;
+
 async function handleAcceptQuote(quoteId) {
-    var clientId = currentUser || 'demo-client';
+    // Çift tıklama koruması
+    if (acceptQuoteProcessing) {
+        console.log('⚠️ Accept already in progress, ignoring...');
+        return;
+    }
+    acceptQuoteProcessing = true;
     
-    // ÖNCE SUPABASE'DEN PROFİL KONTROL ET
-    var clientContact = null;
-    var userEmail = currentUserEmail || localStorage.getItem('currentUserEmail');
-    
-    if (supabase && userEmail) {
-        try {
-            var profileResult = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('email', userEmail)
-                .single();
-            
-            if (profileResult.data) {
-                clientContact = {
-                    email: profileResult.data.email,
-                    companyName: profileResult.data.company_name,
-                    contactPerson: profileResult.data.contact_person,
-                    phone: profileResult.data.phone
-                };
+    try {
+        var clientId = currentUser || 'demo-client';
+        
+        // ÖNCE SUPABASE'DEN PROFİL KONTROL ET
+        var clientContact = null;
+        var userEmail = currentUserEmail || localStorage.getItem('currentUserEmail');
+        
+        if (supabase && userEmail) {
+            try {
+                var profileResult = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('email', userEmail)
+                    .single();
+                
+                if (profileResult.data) {
+                    clientContact = {
+                        email: profileResult.data.email,
+                        companyName: profileResult.data.company_name,
+                        contactPerson: profileResult.data.contact_person,
+                        phone: profileResult.data.phone
+                    };
+                }
+            } catch(e) {
+                console.log('Profile check error:', e.message);
             }
-        } catch(e) {
-            console.log('Profile check error:', e.message);
         }
-    }
-    
-    // Fallback: localStorage
-    if (!clientContact) {
-        clientContact = getUserContact(clientId, 'client');
-    }
-    
-    if (!clientContact || !clientContact.email) {
-        alert('Warning: You must save your contact information before accepting the quote!\n\nEnter your information from the Profile tab.');
-        showClientTab('profile');
-        return;
-    }
-    
-    // Find the quote first
-    var quote = quotesDB.find(function(q) { return q.id === quoteId; });
-    if (!quote) {
-        alert('Quote not found!');
-        return;
-    }
-    
-    var requestId = quote.requestId;
+        
+        // Fallback: localStorage
+        if (!clientContact) {
+            clientContact = getUserContact(clientId, 'client');
+        }
+        
+        if (!clientContact || !clientContact.email) {
+            alert('Warning: You must save your contact information before accepting the quote!\n\nEnter your information from the Profile tab.');
+            showClientTab('profile');
+            acceptQuoteProcessing = false;
+            return;
+        }
+        
+        // Find the quote first
+        var quote = quotesDB.find(function(q) { return q.id === quoteId; });
+        if (!quote) {
+            alert('Quote not found!');
+            acceptQuoteProcessing = false;
+            return;
+        }
+        
+        var requestId = quote.requestId;
     
     // VALIDATION: Check if there's already an accepted quote for this request in Supabase
     if (supabase && requestId) {
@@ -27745,6 +27758,10 @@ async function handleAcceptQuote(quoteId) {
                 showContactInfoModal(quoteId);
             }, 500);
         }
+    }
+    } finally {
+        // Çift tıklama korumasını kaldır
+        acceptQuoteProcessing = false;
     }
 }
 
@@ -34962,24 +34979,41 @@ async function updateRequestStatus(requestId, newStatus) {
 async function createShipmentInSupabase(quote) {
     console.log('Creating shipment for quote:', quote.id);
     
+    var quoteId = quote.id || quote.quote_id;
+    
+    // DUPLICATE KONTROLÜ - Aynı quote için zaten shipment var mı?
+    if (supabase) {
+        try {
+            var existingCheck = await supabase
+                .from('shipments')
+                .select('shipment_id')
+                .eq('quote_id', quoteId)
+                .limit(1);
+            
+            if (existingCheck.data && existingCheck.data.length > 0) {
+                console.log('⚠️ Shipment already exists for quote:', quoteId);
+                return { success: true, source: 'existing', data: existingCheck.data[0] };
+            }
+        } catch(e) {
+            console.log('Duplicate check error:', e.message);
+        }
+    }
+    
     var shipmentId = 'SHP-' + Date.now();
     var shipmentData = {
         shipment_id: shipmentId,
-        quote_id: quote.id || quote.quote_id,
+        quote_id: quoteId,
         request_id: quote.requestId || quote.request_id,
         client_id: quote.clientId || quote.client_id,
         forwarder_id: quote.forwarderId || quote.forwarder_id,
+        forwarder_name: quote.forwarderName || quote.forwarder_name,
         origin: quote.origin,
         destination: quote.destination,
         container_type: quote.containerType || quote.container_type,
+        total_price: quote.totalPrice || quote.total_price,
         status: 'booked',
         created_at: new Date().toISOString()
     };
-    
-    // Save to localStorage
-    var shipments = JSON.parse(localStorage.getItem('gfn_shipments') || '[]');
-    shipments.push(shipmentData);
-    localStorage.setItem('gfn_shipments', JSON.stringify(shipments));
     
     if (!supabase) {
         console.log('Shipment saved to localStorage only');
@@ -34994,14 +35028,14 @@ async function createShipmentInSupabase(quote) {
         
         if (result.error) {
             console.log('Supabase shipment insert error:', result.error.message);
-            return { success: true, source: 'localStorage', data: shipmentData };
+            return { success: false, error: result.error.message };
         }
         
-        console.log('Shipment created in Supabase:', result.data[0].id);
+        console.log('✅ Shipment created in Supabase:', result.data[0].shipment_id);
         return { success: true, source: 'supabase', data: result.data[0] };
     } catch (e) {
         console.log('Shipment create error:', e.message);
-        return { success: true, source: 'localStorage', data: shipmentData };
+        return { success: false, error: e.message };
     }
 }
 
