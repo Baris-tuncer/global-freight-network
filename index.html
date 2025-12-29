@@ -25261,21 +25261,22 @@ async function doLogout() {
     // localStorage'daki session verilerini temizle
     localStorage.removeItem('currentUser');
     localStorage.removeItem('currentUserType');
-    localStorage.removeItem('currentUserId'); // KALICI ÇÖZÜM: UUID temizle
+    localStorage.removeItem('currentUserId');
     localStorage.removeItem('currentUserEmail');
     localStorage.removeItem('userEmail');
+    localStorage.removeItem('userType');
     localStorage.removeItem('supabaseSession');
     
     // Global değişkenleri temizle
-    hideAllPages();
     currentUser = null;
-    currentUserId = null; // KALICI ÇÖZÜM: UUID temizle
+    currentUserId = null;
     currentUserEmail = null;
     userType = null;
     currentUserType = null;
-    mySubmittedQuotes = {}; // Clear submitted quotes on logout
+    mySubmittedQuotes = {};
     
-    // Landing page'e yönlendir
+    // Sayfaları gizle ve landing'e git
+    hideAllPages();
     document.getElementById('landingPage').classList.remove('hidden');
     
     console.log('User logged out successfully');
@@ -25283,6 +25284,32 @@ async function doLogout() {
 
 async function submitQuote(e) {
     e.preventDefault();
+    
+    // ═══════════════════════════════════════════════════════════════
+    // FREE TIER LIMIT CHECK - Cargo Owner: 3 RFQ per month
+    // ═══════════════════════════════════════════════════════════════
+    const CARGO_OWNER_MONTHLY_LIMIT = 3;
+    
+    try {
+        // Bu ayın başlangıcını hesapla
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        
+        // Bu ay kaç RFQ oluşturulmuş kontrol et
+        const { data: requests, error } = await supabase
+            .from('requests')
+            .select('id')
+            .eq('client_id', currentUser)
+            .gte('created_at', startOfMonth);
+        
+        if (!error && requests && requests.length >= CARGO_OWNER_MONTHLY_LIMIT) {
+            showNotification('Monthly limit reached! Free tier allows ' + CARGO_OWNER_MONTHLY_LIMIT + ' requests per month. Upgrade to Premium for unlimited access.', 'error');
+            return false;
+        }
+    } catch (err) {
+        console.log('Limit check error:', err);
+    }
+    // ═══════════════════════════════════════════════════════════════
     
     // Profile validation for cargo owner
     var clientContact = getUserContact(currentUser, 'client');
@@ -32177,7 +32204,33 @@ function showPreSubmitSummary() {
 
 // User's AI tier (stored in localStorage or user profile)
 // Submit quote
-function submitForwarderQuote() {
+async function submitForwarderQuote() {
+    // ═══════════════════════════════════════════════════════════════
+    // FREE TIER LIMIT CHECK - Forwarder: 5 quotes per month
+    // ═══════════════════════════════════════════════════════════════
+    const FORWARDER_MONTHLY_LIMIT = 5;
+    
+    try {
+        // Bu ayın başlangıcını hesapla
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        
+        // Bu ay kaç quote gönderilmiş kontrol et
+        const { data: quotes, error } = await supabase
+            .from('quotes')
+            .select('id')
+            .eq('forwarder_id', currentUser)
+            .gte('created_at', startOfMonth);
+        
+        if (!error && quotes && quotes.length >= FORWARDER_MONTHLY_LIMIT) {
+            showNotification('Monthly limit reached! Free tier allows ' + FORWARDER_MONTHLY_LIMIT + ' quotes per month. Upgrade to Premium for unlimited access.', 'error');
+            return;
+        }
+    } catch (err) {
+        console.log('Limit check error:', err);
+    }
+    // ═══════════════════════════════════════════════════════════════
+    
     // Profile validation for forwarder
     var forwarderContact = getUserContact(currentUser, 'forwarder');
     if (!forwarderContact || !forwarderContact.email || !forwarderContact.companyName) {
