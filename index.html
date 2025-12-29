@@ -16746,15 +16746,15 @@
                 <label data-i18n="auth.password">Password</label>
                 <input type="password" id="passwordInput" data-i18n-placeholder="auth.passwordPlaceholder" placeholder="Enter your password" required>
             </div>
-            <div class="remember-row" style="display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center;">
-                    <input type="checkbox" id="rememberMe">
-                    <label for="rememberMe" data-i18n="auth.rememberMe" style="margin-left: 8px;">Remember me</label>
-                </div>
-                <a href="javascript:showForgotPassword()" style="color: #3b82f6; cursor: pointer; font-size: 14px; text-decoration: none;" data-i18n="auth.forgotPassword">Forgot Password?</a>
+            <div class="remember-row">
+                <input type="checkbox" id="rememberMe">
+                <label for="rememberMe" data-i18n="auth.rememberMe">Remember me</label>
             </div>
             <button type="submit" class="btn-primary" data-i18n="auth.login">Sign In</button>
         </form>
+        <div style="text-align: center; margin-top: 12px;">
+            <button type="button" onclick="showForgotPassword()" style="background: none; border: none; color: #3b82f6; cursor: pointer; font-size: 14px; text-decoration: underline;" data-i18n="auth.forgotPassword">Forgot Password?</button>
+        </div>
         <div class="auth-link">
             <span data-i18n="auth.noAccount">Don't have an account?</span> <a onclick="goToSignUp()" data-i18n="auth.signUp">Sign Up</a>
         </div>
