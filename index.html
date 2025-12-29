@@ -16763,22 +16763,20 @@
 
 <!-- FORGOT PASSWORD MODAL -->
 <div id="forgotPasswordModal" class="modal-overlay" onclick="closeForgotPasswordModal(event)">
-    <div class="modal-content" style="max-width: 400px;" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <h3 data-i18n="auth.resetPassword">Reset Password</h3>
-            <button class="modal-close" onclick="closeForgotPasswordModal()">&times;</button>
+    <div class="modal-box" style="max-width: 400px;" onclick="event.stopPropagation()">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; font-size: 20px; color: #1e293b;" data-i18n="auth.resetPassword">Reset Password</h3>
+            <button type="button" onclick="closeForgotPasswordModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; padding: 0; line-height: 1;">&times;</button>
         </div>
-        <div class="modal-body" style="padding: 24px;">
-            <p style="color: #64748b; margin-bottom: 20px; font-size: 14px;" data-i18n="auth.resetPasswordDesc">Enter your email address and we'll send you a link to reset your password.</p>
-            <form onsubmit="return handleForgotPassword(event)">
-                <div class="form-group">
-                    <label data-i18n="auth.email">Email</label>
-                    <input type="email" id="forgotPasswordEmail" placeholder="Enter your email address" required style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
-                </div>
-                <button type="submit" id="forgotPasswordBtn" class="btn-primary" style="width: 100%; margin-top: 16px;" data-i18n="auth.sendResetLink">Send Reset Link</button>
-            </form>
-            <div id="forgotPasswordMessage" style="margin-top: 16px; display: none;"></div>
-        </div>
+        <p style="color: #64748b; margin-bottom: 20px; font-size: 14px;" data-i18n="auth.resetPasswordDesc">Enter your email address and we'll send you a link to reset your password.</p>
+        <form onsubmit="return handleForgotPassword(event)">
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #374151;" data-i18n="auth.email">Email</label>
+                <input type="email" id="forgotPasswordEmail" placeholder="Enter your email address" required style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
+            </div>
+            <button type="submit" id="forgotPasswordBtn" class="btn-primary" style="width: 100%; padding: 14px; background: #1e3a5f; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;" data-i18n="auth.sendResetLink">Send Reset Link</button>
+        </form>
+        <div id="forgotPasswordMessage" style="margin-top: 16px; display: none;"></div>
     </div>
 </div>
 
