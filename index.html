@@ -16749,12 +16749,55 @@
             <div class="remember-row">
                 <input type="checkbox" id="rememberMe">
                 <label for="rememberMe" data-i18n="auth.rememberMe">Remember me</label>
+                <a onclick="showForgotPassword()" style="margin-left: auto; color: #3b82f6; cursor: pointer; font-size: 14px;" data-i18n="auth.forgotPassword">Forgot Password?</a>
             </div>
             <button type="submit" class="btn-primary" data-i18n="auth.login">Sign In</button>
         </form>
         <div class="auth-link">
             <span data-i18n="auth.noAccount">Don't have an account?</span> <a onclick="goToSignUp()" data-i18n="auth.signUp">Sign Up</a>
         </div>
+    </div>
+</div>
+
+<!-- FORGOT PASSWORD MODAL -->
+<div id="forgotPasswordModal" class="modal-overlay hidden" onclick="closeForgotPasswordModal(event)">
+    <div class="modal-content" style="max-width: 400px;" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 data-i18n="auth.resetPassword">Reset Password</h3>
+            <button class="modal-close" onclick="closeForgotPasswordModal()">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 24px;">
+            <p style="color: #64748b; margin-bottom: 20px; font-size: 14px;" data-i18n="auth.resetPasswordDesc">Enter your email address and we'll send you a link to reset your password.</p>
+            <form onsubmit="return handleForgotPassword(event)">
+                <div class="form-group">
+                    <label data-i18n="auth.email">Email</label>
+                    <input type="email" id="forgotPasswordEmail" placeholder="Enter your email address" required style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                </div>
+                <button type="submit" id="forgotPasswordBtn" class="btn-primary" style="width: 100%; margin-top: 16px;" data-i18n="auth.sendResetLink">Send Reset Link</button>
+            </form>
+            <div id="forgotPasswordMessage" style="margin-top: 16px; display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- RESET PASSWORD PAGE -->
+<div id="resetPasswordPage" class="auth-container hidden">
+    <div class="back-link" onclick="goToLogin()" data-i18n="auth.backToLogin">← Back to Login</div>
+    <div class="auth-box">
+        <h2 data-i18n="auth.setNewPassword">Set New Password</h2>
+        <p style="color: #64748b; margin-bottom: 24px; font-size: 14px;" data-i18n="auth.setNewPasswordDesc">Enter your new password below.</p>
+        <form onsubmit="return handleResetPassword(event)">
+            <div class="form-group">
+                <label data-i18n="auth.newPassword">New Password</label>
+                <input type="password" id="newPasswordInput" placeholder="Enter new password" required minlength="6">
+            </div>
+            <div class="form-group">
+                <label data-i18n="auth.confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPasswordInput" placeholder="Confirm new password" required minlength="6">
+            </div>
+            <button type="submit" id="resetPasswordBtn" class="btn-primary" data-i18n="auth.updatePassword">Update Password</button>
+        </form>
+        <div id="resetPasswordMessage" style="margin-top: 16px; display: none;"></div>
     </div>
 </div>
 
@@ -19318,6 +19361,15 @@ var translations = {
         'auth.password': 'Şifre',
         'auth.passwordPlaceholder': 'Şifrenizi girin',
         'auth.rememberMe': 'Beni hatırla',
+        'auth.forgotPassword': 'Sifremi Unuttum?',
+        'auth.resetPassword': 'Sifre Sifirlama',
+        'auth.resetPasswordDesc': 'E-posta adresinizi girin, size sifre sifirlama linki gonderelim.',
+        'auth.sendResetLink': 'Sifirlama Linki Gonder',
+        'auth.setNewPassword': 'Yeni Sifre Belirle',
+        'auth.setNewPasswordDesc': 'Asagiya yeni sifrenizi girin.',
+        'auth.newPassword': 'Yeni Sifre',
+        'auth.updatePassword': 'Sifreyi Guncelle',
+        'auth.backToLogin': '← Girişe Don',
         'auth.login': 'Login',
         'auth.signUp': 'Sign Up',
         'auth.noAccount': "Hesabınız yok mu?",
@@ -19742,6 +19794,15 @@ var translations = {
         'auth.password': 'Password',
         'auth.passwordPlaceholder': 'Enter your password',
         'auth.rememberMe': 'Remember me',
+        'auth.forgotPassword': 'Forgot Password?',
+        'auth.resetPassword': 'Reset Password',
+        'auth.resetPasswordDesc': 'Enter your email address and we\'ll send you a link to reset your password.',
+        'auth.sendResetLink': 'Send Reset Link',
+        'auth.setNewPassword': 'Set New Password',
+        'auth.setNewPasswordDesc': 'Enter your new password below.',
+        'auth.newPassword': 'New Password',
+        'auth.updatePassword': 'Update Password',
+        'auth.backToLogin': '← Back to Login',
         'auth.login': 'Sign In',
         'auth.signUp': 'Sign Up',
         'auth.noAccount': 'Don\'t have an account?',
@@ -24004,6 +24065,16 @@ function goToLogin(type) {
     document.getElementById('loginTitle').textContent = titles[type] || 'Giriş';
 }
 
+function goToLogin() {
+    hideAllPages();
+    document.getElementById('loginPage').classList.remove('hidden');
+    
+    // Clear URL hash (reset token)
+    if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', window.location.pathname);
+    }
+}
+
 function goToSignUp() {
     document.getElementById('loginPage').classList.add('hidden');
     document.getElementById('signUpPage').classList.remove('hidden');
@@ -24248,6 +24319,156 @@ async function doLogin(e) {
         
     }
     // Note: Insurance, Customs, Warehouse, Packaging removed for MVP
+    
+    return false;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FORGOT PASSWORD FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function showForgotPassword() {
+    document.getElementById('forgotPasswordModal').classList.remove('hidden');
+    document.getElementById('forgotPasswordEmail').value = document.getElementById('emailInput').value || '';
+    document.getElementById('forgotPasswordEmail').focus();
+}
+
+function closeForgotPasswordModal(e) {
+    if (!e || e.target === e.currentTarget) {
+        document.getElementById('forgotPasswordModal').classList.add('hidden');
+        document.getElementById('forgotPasswordMessage').style.display = 'none';
+    }
+}
+
+async function handleForgotPassword(e) {
+    e.preventDefault();
+    
+    var email = document.getElementById('forgotPasswordEmail').value;
+    var btn = document.getElementById('forgotPasswordBtn');
+    var msgDiv = document.getElementById('forgotPasswordMessage');
+    
+    if (!email) {
+        msgDiv.innerHTML = '<p style="color: #dc2626;">Please enter your email address.</p>';
+        msgDiv.style.display = 'block';
+        return false;
+    }
+    
+    // Loading state
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    
+    try {
+        if (supabase && supabase.auth) {
+            var result = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: 'https://www.global-freighting.com/?reset=true'
+            });
+            
+            if (result.error) {
+                msgDiv.innerHTML = '<p style="color: #dc2626;">' + result.error.message + '</p>';
+                msgDiv.style.display = 'block';
+            } else {
+                msgDiv.innerHTML = '<p style="color: #10b981; font-weight: 500;">Password reset link sent! Check your email inbox.</p>';
+                msgDiv.style.display = 'block';
+                
+                // 3 saniye sonra modalı kapat
+                setTimeout(function() {
+                    closeForgotPasswordModal();
+                }, 3000);
+            }
+        } else {
+            msgDiv.innerHTML = '<p style="color: #dc2626;">Service unavailable. Please try again later.</p>';
+            msgDiv.style.display = 'block';
+        }
+    } catch (err) {
+        console.error('Forgot password error:', err);
+        msgDiv.innerHTML = '<p style="color: #dc2626;">An error occurred. Please try again.</p>';
+        msgDiv.style.display = 'block';
+    }
+    
+    // Restore button
+    btn.disabled = false;
+    btn.textContent = 'Send Reset Link';
+    
+    return false;
+}
+
+async function handleResetPassword(e) {
+    e.preventDefault();
+    
+    var newPassword = document.getElementById('newPasswordInput').value;
+    var confirmPassword = document.getElementById('confirmPasswordInput').value;
+    var btn = document.getElementById('resetPasswordBtn');
+    var msgDiv = document.getElementById('resetPasswordMessage');
+    
+    if (newPassword !== confirmPassword) {
+        msgDiv.innerHTML = '<p style="color: #dc2626;">Passwords do not match.</p>';
+        msgDiv.style.display = 'block';
+        return false;
+    }
+    
+    if (newPassword.length < 6) {
+        msgDiv.innerHTML = '<p style="color: #dc2626;">Password must be at least 6 characters.</p>';
+        msgDiv.style.display = 'block';
+        return false;
+    }
+    
+    // Loading state
+    btn.disabled = true;
+    btn.textContent = 'Updating...';
+    
+    try {
+        if (supabase && supabase.auth) {
+            var result = await supabase.auth.updateUser({
+                password: newPassword
+            });
+            
+            if (result.error) {
+                msgDiv.innerHTML = '<p style="color: #dc2626;">' + result.error.message + '</p>';
+                msgDiv.style.display = 'block';
+            } else {
+                msgDiv.innerHTML = '<p style="color: #10b981; font-weight: 500;">Password updated successfully! Redirecting to login...</p>';
+                msgDiv.style.display = 'block';
+                
+                // Sign out and redirect to login
+                await supabase.auth.signOut();
+                
+                setTimeout(function() {
+                    hideAllPages();
+                    document.getElementById('loginPage').classList.remove('hidden');
+                }, 2000);
+            }
+        }
+    } catch (err) {
+        console.error('Reset password error:', err);
+        msgDiv.innerHTML = '<p style="color: #dc2626;">An error occurred. Please try again.</p>';
+        msgDiv.style.display = 'block';
+    }
+    
+    // Restore button
+    btn.disabled = false;
+    btn.textContent = 'Update Password';
+    
+    return false;
+}
+
+// Check if coming from password reset link
+function checkPasswordResetToken() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var hash = window.location.hash;
+    
+    // Supabase sends tokens in hash fragment
+    if (hash && hash.includes('type=recovery')) {
+        hideAllPages();
+        document.getElementById('resetPasswordPage').classList.remove('hidden');
+        return true;
+    }
+    
+    // Also check for reset=true query param
+    if (urlParams.get('reset') === 'true' && hash) {
+        hideAllPages();
+        document.getElementById('resetPasswordPage').classList.remove('hidden');
+        return true;
+    }
     
     return false;
 }
@@ -35906,6 +36127,12 @@ function redirectToDashboard(name, type) {
 
 // Check session when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    // Check for password reset token first
+    if (checkPasswordResetToken()) {
+        console.log('Password reset mode - showing reset page');
+        return;
+    }
+    
     // Auto-redirect devre dışı - kullanıcı her zaman landing page'i görmeli
     // Login sonrası yönlendirme doLogin fonksiyonunda yapılıyor
     console.log('Page loaded - showing landing page');
