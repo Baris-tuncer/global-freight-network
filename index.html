@@ -16785,21 +16785,38 @@
     <div class="back-link" onclick="goToLogin()" data-i18n="auth.backToLogin">← Back to Login</div>
     <div class="auth-box">
         <h2 data-i18n="auth.setNewPassword">Set New Password</h2>
-        <p style="color: #64748b; margin-bottom: 24px; font-size: 14px;" data-i18n="auth.setNewPasswordDesc">Enter your new password below.</p>
-        <form onsubmit="return handleResetPassword(event)">
-            <div class="form-group">
-                <label data-i18n="auth.newPassword">New Password</label>
-                <input type="password" id="newPasswordInput" placeholder="Enter new password" required minlength="6">
-            </div>
-            <div class="form-group">
-                <label data-i18n="auth.confirmPassword">Confirm Password</label>
-                <input type="password" id="confirmPasswordInput" placeholder="Confirm new password" required minlength="6">
-            </div>
-            <button type="submit" id="resetPasswordBtn" class="btn-primary" data-i18n="auth.updatePassword">Update Password</button>
-        </form>
+        
+        <!-- Loading state -->
+        <div id="resetPasswordLoading" style="text-align: center; padding: 40px 0;">
+            <div style="width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: #1e3a5f; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+            <p style="color: #64748b;">Verifying your reset link...</p>
+        </div>
+        
+        <!-- Form (hidden initially) -->
+        <div id="resetPasswordForm" style="display: none;">
+            <p style="color: #64748b; margin-bottom: 24px; font-size: 14px;" data-i18n="auth.setNewPasswordDesc">Enter your new password below.</p>
+            <form onsubmit="return handleResetPassword(event)">
+                <div class="form-group">
+                    <label data-i18n="auth.newPassword">New Password</label>
+                    <input type="password" id="newPasswordInput" placeholder="Enter new password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="auth.confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPasswordInput" placeholder="Confirm new password" required minlength="6">
+                </div>
+                <button type="submit" id="resetPasswordBtn" class="btn-primary" data-i18n="auth.updatePassword">Update Password</button>
+            </form>
+        </div>
+        
         <div id="resetPasswordMessage" style="margin-top: 16px; display: none;"></div>
     </div>
 </div>
+
+<style>
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
 
 <!-- SIGN UP -->
 <div id="signUpPage" class="auth-container hidden">
@@ -35253,9 +35270,68 @@ async function onSupabaseLoad() {
     console.log('Supabase SDK loaded, initializing...');
     try {
         if (window.supabase && window.supabase.createClient) {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                auth: {
+                    autoRefreshToken: true,
+                    persistSession: true,
+                    detectSessionInUrl: true
+                }
+            });
             supabaseReady = true;
             console.log('✅ Supabase ready!');
+            
+            // PASSWORD RECOVERY listener
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                console.log('Auth state changed:', event);
+                if (event === 'PASSWORD_RECOVERY') {
+                    console.log('Password recovery detected!');
+                    hideAllPages();
+                    document.getElementById('resetPasswordPage').classList.remove('hidden');
+                    // Show form, hide loading
+                    document.getElementById('resetPasswordLoading').style.display = 'none';
+                    document.getElementById('resetPasswordForm').style.display = 'block';
+                }
+            });
+            
+            // Check if URL has recovery token
+            const hash = window.location.hash;
+            if (hash && hash.includes('type=recovery')) {
+                console.log('Recovery token in URL, waiting for auth state...');
+                console.log('Hash:', hash);
+                
+                // Show reset page with loading
+                hideAllPages();
+                document.getElementById('resetPasswordPage').classList.remove('hidden');
+                
+                // Wait and check for session multiple times
+                let attempts = 0;
+                const maxAttempts = 10;
+                const checkSession = async () => {
+                    attempts++;
+                    console.log('Session check attempt', attempts);
+                    
+                    const { data, error } = await supabase.auth.getSession();
+                    console.log('Session:', data?.session ? 'found' : 'not found');
+                    
+                    if (data && data.session) {
+                        console.log('Recovery session established!');
+                        document.getElementById('resetPasswordLoading').style.display = 'none';
+                        document.getElementById('resetPasswordForm').style.display = 'block';
+                        return;
+                    }
+                    
+                    if (attempts < maxAttempts) {
+                        setTimeout(checkSession, 500);
+                    } else {
+                        // Show error after max attempts
+                        console.log('Session not established after max attempts');
+                        document.getElementById('resetPasswordLoading').innerHTML = '<p style="color: #dc2626;">Link expired or invalid. Please request a new password reset.</p><button onclick="goToLogin()" class="btn-primary" style="margin-top: 16px;">Back to Login</button>';
+                    }
+                };
+                
+                // Start checking after a brief delay
+                setTimeout(checkSession, 500);
+            }
             
             // VERİLERİ SUPABASE'DEN YÜKLE
             await loadNetworkFromSupabase();
@@ -36192,10 +36268,11 @@ function redirectToDashboard(name, type) {
 
 // Check session when page loads
 document.addEventListener('DOMContentLoaded', async function() {
-    // Check for password reset token first
-    const isReset = await checkPasswordResetToken();
-    if (isReset) {
-        console.log('Password reset mode - showing reset page');
+    // Check for password reset token - don't show landing if recovery token exists
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+        console.log('Password reset mode detected - waiting for Supabase to process...');
+        // Supabase onSupabaseLoad will handle showing the reset page
         return;
     }
     
