@@ -16762,7 +16762,7 @@
 </div>
 
 <!-- FORGOT PASSWORD MODAL -->
-<div id="forgotPasswordModal" class="modal-overlay hidden" onclick="closeForgotPasswordModal(event)">
+<div id="forgotPasswordModal" class="modal-overlay" onclick="closeForgotPasswordModal(event)">
     <div class="modal-content" style="max-width: 400px;" onclick="event.stopPropagation()">
         <div class="modal-header">
             <h3 data-i18n="auth.resetPassword">Reset Password</h3>
@@ -24330,14 +24330,14 @@ async function doLogin(e) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function showForgotPassword() {
-    document.getElementById('forgotPasswordModal').classList.remove('hidden');
+    document.getElementById('forgotPasswordModal').classList.add('active');
     document.getElementById('forgotPasswordEmail').value = document.getElementById('emailInput').value || '';
     document.getElementById('forgotPasswordEmail').focus();
 }
 
 function closeForgotPasswordModal(e) {
     if (!e || e.target === e.currentTarget) {
-        document.getElementById('forgotPasswordModal').classList.add('hidden');
+        document.getElementById('forgotPasswordModal').classList.remove('active');
         document.getElementById('forgotPasswordMessage').style.display = 'none';
     }
 }
