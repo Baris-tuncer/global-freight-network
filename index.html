@@ -23235,6 +23235,12 @@ function goBackToClientDashboard() {
 function showClientTab(tab) {
     console.log('showClientTab:', tab);
     
+    // 🔒 PROFİL KONTROLÜ - newQuote tab'ı için profil zorunlu
+    if (tab === 'newQuote' && !isProfileComplete('client')) {
+        showNotification('Please complete your profile first.', 'error');
+        tab = 'profile'; // Profile tab'ına yönlendir
+    }
+    
     // Update nav menu
     var menuItems = document.querySelectorAll('#clientDashboard .nav-menu-item');
     menuItems.forEach(function(item) {
@@ -23317,7 +23323,7 @@ async function checkNewQuoteNotifications() {
         var { data: profile } = await supabase
             .from('profiles')
             .select('last_seen_quotes')
-            .eq('id', currentUserId)
+            .eq('user_id', currentUserId)
             .single();
         
         var lastSeen = profile && profile.last_seen_quotes ? new Date(profile.last_seen_quotes) : new Date('1970-01-01');
@@ -23374,7 +23380,7 @@ async function clearQuoteNotifications() {
         await supabase
             .from('profiles')
             .update({ last_seen_quotes: new Date().toISOString() })
-            .eq('id', currentUserId);
+            .eq('user_id', currentUserId);
         
         updateNotificationBadge(0);
     } catch (err) {
@@ -23391,7 +23397,7 @@ async function checkNewRequestNotifications() {
         var { data: profile } = await supabase
             .from('profiles')
             .select('last_seen_requests')
-            .eq('id', currentUserId)
+            .eq('user_id', currentUserId)
             .single();
         
         var lastSeen = profile && profile.last_seen_requests ? new Date(profile.last_seen_requests) : new Date('1970-01-01');
@@ -23435,7 +23441,7 @@ async function clearRequestNotifications() {
         await supabase
             .from('profiles')
             .update({ last_seen_requests: new Date().toISOString() })
-            .eq('id', currentUserId);
+            .eq('user_id', currentUserId);
         
         updateForwarderNotificationBadge(0);
     } catch (err) {
@@ -24430,7 +24436,7 @@ async function doLogin(e) {
             
             if (authResult.error) {
                 console.log('Auth error:', authResult.error.message);
-                alert('Login failed: ' + authResult.error.message);
+                showNotification('Login failed: ' + authResult.error.message, 'error');
                 if (loginBtn) {
                     loginBtn.disabled = false;
                     loginBtn.textContent = originalText;
@@ -24479,7 +24485,7 @@ async function doLogin(e) {
         }
     } catch (authError) {
         console.log('Auth exception:', authError);
-        alert('Login error. Please try again.');
+        showNotification('Login error. Please try again.', 'error');
         if (loginBtn) {
             loginBtn.disabled = false;
             loginBtn.textContent = originalText;
@@ -24535,6 +24541,14 @@ async function doLogin(e) {
         // Profilei yükle
         loadClientProfile();
         
+        // 🔒 PROFİL KONTROLÜ - Eksikse uyarı göster ve profile tab'a yönlendir
+        setTimeout(function() {
+            if (!isProfileComplete('client')) {
+                showProfileIncompleteWarning();
+                showClientTab('profile');
+            }
+        }, 500);
+        
         // Supabase'den quoteleri yükle ve göster
         loadQuotesForClient(currentUser).then(function() {
             renderClientQuotes();
@@ -24575,6 +24589,14 @@ async function doLogin(e) {
             showForwarderTab('home');
             // Check for new request notifications
             checkNewRequestNotifications();
+            
+            // 🔒 PROFİL KONTROLÜ - Eksikse uyarı göster ve profile tab'a yönlendir
+            setTimeout(function() {
+                if (!isProfileComplete('forwarder')) {
+                    showProfileIncompleteWarning();
+                    showForwarderTab('profile');
+                }
+            }, 500);
         });
         
         // Setup realtime subscriptions for new requests
@@ -24843,7 +24865,7 @@ async function doSignUp(e) {
     var confirm = document.getElementById('confirmPassword').value;
     
     if (pass !== confirm) {
-        alert('Passwords do not match!');
+        showNotification('Passwords do not match!', 'error');
         return false;
     }
     
@@ -24853,7 +24875,7 @@ async function doSignUp(e) {
     var kvkkAccepted = document.getElementById('kvkkAccept').checked;
     
     if (!termsAccepted || !disclaimerAccepted || !kvkkAccepted) {
-        alert('⚠️ You must accept all required legal documents to continue.\n\n✓ Terms of Service\n✓ Disclaimer\n✓ Data Protection Notice');
+        showNotification('Please accept all required legal documents to continue.', 'error');
         return false;
     }
     
@@ -24882,7 +24904,7 @@ async function doSignUp(e) {
             
             if (signupResult.error) {
                 console.log('Signup error:', signupResult.error.message);
-                alert('Signup error: ' + signupResult.error.message);
+                showNotification('Signup error: ' + signupResult.error.message, 'error');
                 if (signUpBtn) {
                     signUpBtn.disabled = false;
                     signUpBtn.textContent = originalText;
@@ -25040,7 +25062,7 @@ async function submitQuote(e) {
     // Profile validation for cargo owner
     var clientContact = getUserContact(currentUser, 'client');
     if (!clientContact || !clientContact.email || !clientContact.companyName) {
-        alert('Please complete your profile before creating a quote request.\n\nGo to Profile tab and fill in your Company Name, Contact Person, Email, and Phone.');
+        showNotification('Please complete your profile before creating a quote request.', 'error');
         showClientTab('profile');
         return false;
     }
@@ -27981,6 +28003,45 @@ function getUserContact(userId, userType) {
     return null;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// PROFILE VALIDATION - Profil tamamlanmadan işlem yapılamaz
+// ═══════════════════════════════════════════════════════════════════════════════
+function isProfileComplete(userTypeToCheck) {
+    var contact = getUserContact(currentUser, userTypeToCheck || currentUserType);
+    
+    if (!contact) return false;
+    
+    // Zorunlu alanlar: companyName, contactPerson, email, phone
+    var hasCompany = contact.companyName && contact.companyName.trim() !== '';
+    var hasContact = contact.contactPerson && contact.contactPerson.trim() !== '';
+    var hasEmail = contact.email && contact.email.trim() !== '';
+    var hasPhone = contact.phone && contact.phone.trim() !== '';
+    
+    return hasCompany && hasContact && hasEmail && hasPhone;
+}
+
+// Profil eksik uyarısı göster ve profile tab'a yönlendir
+function showProfileIncompleteWarning() {
+    var warningDiv = document.createElement('div');
+    warningDiv.id = 'profileWarningBanner';
+    warningDiv.style.cssText = 'position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 9999; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 16px 32px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; max-width: 500px;';
+    warningDiv.innerHTML = 
+        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' +
+        '<div><strong>Complete Your Profile</strong><br><span style="font-size: 13px; opacity: 0.9;">Please fill in your company details to start using the platform.</span></div>' +
+        '<button onclick="closeProfileWarning()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 18px;">×</button>';
+    
+    // Remove existing warning if any
+    var existing = document.getElementById('profileWarningBanner');
+    if (existing) existing.remove();
+    
+    document.body.appendChild(warningDiv);
+}
+
+function closeProfileWarning() {
+    var warning = document.getElementById('profileWarningBanner');
+    if (warning) warning.remove();
+}
+
 // Quote oluştur (Forwarder → Client)
 function createQuote(quoteData) {
     var quote = {
@@ -28072,7 +28133,7 @@ function getForwarderQuotes(forwarderId) {
 async function showContactInfoModal(quoteId) {
     var quote = quotesDB.find(function(q) { return q.id === quoteId; });
     if (!quote || quote.status !== 'accepted') {
-        alert('This quote has not been accepted yet!');
+        showNotification('This quote has not been accepted yet!', 'error');
         return;
     }
     
@@ -28814,7 +28875,7 @@ async function handleAcceptQuote(quoteId) {
         }
         
         if (!clientContact || !clientContact.email) {
-            alert('Warning: You must save your contact information before accepting the quote!\n\nEnter your information from the Profile tab.');
+            showNotification('Please save your contact information before accepting the quote.', 'error');
             showClientTab('profile');
             acceptQuoteProcessing = false;
             return;
@@ -28823,7 +28884,7 @@ async function handleAcceptQuote(quoteId) {
         // Find the quote first
         var quote = quotesDB.find(function(q) { return q.id === quoteId; });
         if (!quote) {
-            alert('Quote not found!');
+            showNotification('Quote not found!', 'error');
             acceptQuoteProcessing = false;
             return;
         }
@@ -28841,7 +28902,7 @@ async function handleAcceptQuote(quoteId) {
                 .limit(1);
             
             if (existingAccepted.data && existingAccepted.data.length > 0) {
-                alert('This request already has an accepted quote from ' + existingAccepted.data[0].forwarder_name + '.\n\nYou cannot accept another quote for the same request.');
+                showNotification('This request already has an accepted quote from ' + existingAccepted.data[0].forwarder_name, 'error');
                 renderClientQuotes();
                 return;
             }
@@ -31185,6 +31246,14 @@ var currentQuoteAI = {
 // Open quote modal
 function openQuoteModal(requestId) {
     console.log('openQuoteModal called with:', requestId);
+    
+    // 🔒 PROFİL KONTROLÜ - Quote göndermek için profil zorunlu
+    if (!isProfileComplete('forwarder')) {
+        showNotification('Please complete your profile before sending a quote.', 'error');
+        showForwarderTab('profile');
+        return;
+    }
+    
     selectedRequestId = requestId;
     var request = networkRequests.find(function(r) { return r.id === requestId; });
     
@@ -31887,7 +31956,7 @@ function submitForwarderQuote() {
     // Profile validation for forwarder
     var forwarderContact = getUserContact(currentUser, 'forwarder');
     if (!forwarderContact || !forwarderContact.email || !forwarderContact.companyName) {
-        alert('Please complete your profile before submitting a quote.\n\nGo to Profile tab and fill in your Company Name, Contact Person, Email, and Phone.');
+        showNotification('Please complete your profile before submitting a quote.', 'error');
         closeQuoteModal();
         showForwarderTab('profile');
         return;
