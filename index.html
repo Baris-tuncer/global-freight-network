@@ -23304,40 +23304,49 @@ function showClientTab(tab) {
     if (notifDropdown) notifDropdown.classList.add('hidden');
 }
 
-// Check for accepted quotes and update Messages tab state
-function updateMessagesTabState() {
-
 // ============================================
-// IN-APP NOTIFICATION SYSTEM
+// IN-APP NOTIFICATION SYSTEM (Supabase-based)
 // ============================================
 
-// Check for new quotes and update notification badge
-function checkNewQuoteNotifications() {
-    if (!currentUserId) return;
+// Check for new quotes and update notification badge (for Cargo Owners)
+async function checkNewQuoteNotifications() {
+    if (!currentUserId || !supabase) return;
     
-    var lastSeenTimestamp = localStorage.getItem('lastSeenQuotesTimestamp_' + currentUserId) || '1970-01-01';
-    var newQuotesCount = 0;
-    
-    // Count quotes newer than last seen timestamp
-    if (quotesDB && quotesDB.length > 0) {
-        quotesDB.forEach(function(quote) {
-            // Check if this quote is for current user's requests
-            var userRequests = networkRequests.filter(function(r) {
-                return r.userId === currentUserId || r.user_id === currentUserId;
-            });
-            
-            var requestIds = userRequests.map(function(r) { return r.id; });
-            
-            if (requestIds.includes(quote.requestId) || requestIds.includes(quote.request_id)) {
-                var quoteDate = quote.createdAt || quote.created_at || quote.timestamp;
-                if (quoteDate && new Date(quoteDate) > new Date(lastSeenTimestamp)) {
-                    newQuotesCount++;
-                }
-            }
-        });
+    try {
+        // Get user's last seen timestamp from Supabase profiles
+        var { data: profile } = await supabase
+            .from('profiles')
+            .select('last_seen_quotes')
+            .eq('id', currentUserId)
+            .single();
+        
+        var lastSeen = profile && profile.last_seen_quotes ? new Date(profile.last_seen_quotes) : new Date('1970-01-01');
+        
+        // Count quotes for user's requests that are newer than last seen
+        var { data: userRequests } = await supabase
+            .from('requests')
+            .select('id')
+            .eq('user_id', currentUserId);
+        
+        if (!userRequests || userRequests.length === 0) {
+            updateNotificationBadge(0);
+            return;
+        }
+        
+        var requestIds = userRequests.map(function(r) { return r.id; });
+        
+        var { count } = await supabase
+            .from('quotes')
+            .select('*', { count: 'exact', head: true })
+            .in('request_id', requestIds)
+            .gt('created_at', lastSeen.toISOString());
+        
+        updateNotificationBadge(count || 0);
+        
+    } catch (err) {
+        console.log('Notification check error:', err);
+        updateNotificationBadge(0);
     }
-    
-    updateNotificationBadge(newQuotesCount);
 }
 
 // Update the notification badge
@@ -23358,31 +23367,47 @@ function updateNotificationBadge(count) {
 }
 
 // Clear notifications when user views quotes
-function clearQuoteNotifications() {
-    if (!currentUserId) return;
+async function clearQuoteNotifications() {
+    if (!currentUserId || !supabase) return;
     
-    localStorage.setItem('lastSeenQuotesTimestamp_' + currentUserId, new Date().toISOString());
-    updateNotificationBadge(0);
+    try {
+        await supabase
+            .from('profiles')
+            .update({ last_seen_quotes: new Date().toISOString() })
+            .eq('id', currentUserId);
+        
+        updateNotificationBadge(0);
+    } catch (err) {
+        console.log('Clear notification error:', err);
+    }
 }
 
-// Check for new requests (for forwarders)
-function checkNewRequestNotifications() {
-    if (!currentUserId) return;
+// Check for new requests (for Forwarders)
+async function checkNewRequestNotifications() {
+    if (!currentUserId || !supabase) return;
     
-    var lastSeenTimestamp = localStorage.getItem('lastSeenRequestsTimestamp_' + currentUserId) || '1970-01-01';
-    var newRequestsCount = 0;
-    
-    // Count requests newer than last seen timestamp
-    if (networkRequests && networkRequests.length > 0) {
-        networkRequests.forEach(function(request) {
-            var requestDate = request.createdAt || request.created_at || request.timestamp;
-            if (requestDate && new Date(requestDate) > new Date(lastSeenTimestamp)) {
-                newRequestsCount++;
-            }
-        });
+    try {
+        // Get user's last seen timestamp from Supabase profiles
+        var { data: profile } = await supabase
+            .from('profiles')
+            .select('last_seen_requests')
+            .eq('id', currentUserId)
+            .single();
+        
+        var lastSeen = profile && profile.last_seen_requests ? new Date(profile.last_seen_requests) : new Date('1970-01-01');
+        
+        // Count requests newer than last seen
+        var { count } = await supabase
+            .from('requests')
+            .select('*', { count: 'exact', head: true })
+            .gt('created_at', lastSeen.toISOString());
+        
+        updateForwarderNotificationBadge(count || 0);
+        
+    } catch (err) {
+        console.log('Notification check error:', err);
+        updateForwarderNotificationBadge(0);
     }
-    
-    updateForwarderNotificationBadge(newRequestsCount);
 }
 
 // Update the forwarder notification badge
@@ -23403,30 +23428,44 @@ function updateForwarderNotificationBadge(count) {
 }
 
 // Clear forwarder notifications when viewing requests
-function clearRequestNotifications() {
-    if (!currentUserId) return;
+async function clearRequestNotifications() {
+    if (!currentUserId || !supabase) return;
     
-    localStorage.setItem('lastSeenRequestsTimestamp_' + currentUserId, new Date().toISOString());
-    updateForwarderNotificationBadge(0);
+    try {
+        await supabase
+            .from('profiles')
+            .update({ last_seen_requests: new Date().toISOString() })
+            .eq('id', currentUserId);
+        
+        updateForwarderNotificationBadge(0);
+    } catch (err) {
+        console.log('Clear notification error:', err);
+    }
 }
 
-// Show notification toast
+// Show notification toast (professional, no emoji)
 function showNotificationToast(message, type) {
     type = type || 'info';
     
+    var bgColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6';
+    var icon = type === 'success' ? 
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>' :
+        type === 'error' ?
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' :
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+    
     var toast = document.createElement('div');
-    toast.className = 'notification-toast notification-' + type;
-    toast.innerHTML = '<span>' + message + '</span>';
-    toast.style.cssText = 'position: fixed; top: 80px; right: 20px; padding: 16px 24px; background: ' + 
-        (type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6') + 
-        '; color: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 10000; animation: slideIn 0.3s ease;';
+    toast.className = 'notification-toast';
+    toast.innerHTML = '<span style="display: flex; align-items: center; gap: 10px;">' + icon + message + '</span>';
+    toast.style.cssText = 'position: fixed; top: 80px; right: 20px; padding: 16px 24px; background: ' + bgColor + 
+        '; color: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 10000; animation: slideIn 0.3s ease; display: flex; align-items: center;';
     
     document.body.appendChild(toast);
     
     setTimeout(function() {
         toast.style.animation = 'slideOut 0.3s ease';
         setTimeout(function() {
-            toast.remove();
+            if (toast.parentNode) toast.remove();
         }, 300);
     }, 4000);
 }
@@ -24295,10 +24334,10 @@ function showEmailVerificationMessage(email) {
     // Show login page with verification message
     document.getElementById('loginPage').classList.remove('hidden');
     
-    // Create and show verification alert
-    var alertHtml = '<div id="emailVerificationAlert" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center;">' +
-        '<div style="font-size: 32px; margin-bottom: 10px;">📧</div>' +
-        '<h3 style="margin: 0 0 10px 0; font-size: 18px;">Check Your Email!</h3>' +
+    // Create and show verification alert with professional icon
+    var alertHtml = '<div id="emailVerificationAlert" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; text-align: center;">' +
+        '<div style="margin-bottom: 12px;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"/></svg></div>' +
+        '<h3 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 600;">Check Your Email</h3>' +
         '<p style="margin: 0; font-size: 14px; opacity: 0.9;">We sent a verification link to<br><strong>' + email + '</strong></p>' +
         '<p style="margin: 10px 0 0 0; font-size: 13px; opacity: 0.8;">Please click the link to activate your account.</p>' +
         '</div>';
