@@ -24569,6 +24569,75 @@ async function completeOAuthSignup(selectedUserType) {
     }
 }
 
+// OAuth ve normal login sonrası dashboard gösterme
+function showMainDashboard(name, userType) {
+    console.log('showMainDashboard called with:', name, userType);
+    
+    hideAllPages();
+    
+    if (userType === 'client') {
+        document.getElementById('clientDashboard').classList.remove('hidden');
+        
+        var displayName = name;
+        document.getElementById('clientNameDisplay').textContent = displayName;
+        document.getElementById('clientWelcomeName').textContent = displayName;
+        
+        // Avatar initiallerini ayarla
+        var initials = displayName.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase().substring(0,2);
+        var avatarEl = document.getElementById('clientAvatarInitial');
+        if (avatarEl) avatarEl.textContent = initials || 'CL';
+        
+        setupAutocomplete();
+        loadClientProfile();
+        
+        // Profil kontrolü
+        setTimeout(function() {
+            if (!isProfileComplete('client')) {
+                showProfileIncompleteWarning();
+                showClientTab('profile');
+            }
+        }, 500);
+        
+        // Quoteleri yükle
+        loadQuotesForClient(currentUser).then(function() {
+            renderClientQuotes();
+            checkNewQuoteNotifications();
+        });
+        
+        setupRealtimeSubscriptions();
+        
+    } else if (userType === 'forwarder') {
+        document.getElementById('forwarderDashboard').classList.remove('hidden');
+        
+        var displayName = name;
+        document.getElementById('forwarderNameDisplay').textContent = displayName;
+        document.getElementById('forwarderWelcomeName').textContent = displayName;
+        document.getElementById('forwarderTypeLabel').textContent = 'Freight Forwarder';
+        document.getElementById('forwarderModeFilter').textContent = translations[currentLanguage]['dashboard.allModes'] || 'All Modes';
+        
+        // Avatar initiallerini ayarla
+        var initials = displayName.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase().substring(0,2);
+        var avatarEl = document.getElementById('forwarderAvatarInitial');
+        if (avatarEl) avatarEl.textContent = initials || 'FF';
+        
+        carrierMode = 'all';
+        mySubmittedQuotes = {};
+        loadSubmittedQuotes();
+        loadForwarderProfile();
+        
+        // Profil kontrolü
+        setTimeout(function() {
+            if (!isProfileComplete('forwarder')) {
+                showProfileIncompleteWarning();
+                showForwarderTab('profile');
+            }
+        }, 500);
+        
+        loadRequestsFromSupabase();
+        setupRealtimeSubscriptions();
+    }
+}
+
 async function doLogin(e) {
     e.preventDefault();
     var email = document.getElementById('emailInput').value;
