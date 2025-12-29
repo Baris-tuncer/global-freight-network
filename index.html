@@ -1313,6 +1313,55 @@
             gap: 20px;
         }
         
+        /* Notification Bell */
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 10px;
+            background: #f8fafc;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        
+        .notification-bell:hover {
+            background: #e2e8f0;
+            color: #1e3a5f;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            min-width: 18px;
+            height: 18px;
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            animation: pulse-badge 2s infinite;
+        }
+        
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
         .nav-user-info {
             display: flex;
             align-items: center;
@@ -17139,6 +17188,13 @@
                 </div>
             </div>
             <div class="nav-user-section">
+                <!-- Notification Bell -->
+                <div id="notificationBell" class="notification-bell" onclick="showClientTab('myQuotes')" title="View Quotes" style="display: none;">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+                    </svg>
+                    <span id="notificationBadge" class="notification-badge">0</span>
+                </div>
                 <div class="nav-user-info">
                     <div class="nav-user-avatar client-avatar" id="clientAvatarInitial">CL</div>
                     <div class="nav-user-details">
@@ -18202,6 +18258,13 @@
                 </div>
             </div>
             <div class="nav-user-section">
+                <!-- Notification Bell for New Requests -->
+                <div id="forwarderNotificationBell" class="notification-bell" onclick="showForwarderTab('requests')" title="View Requests" style="display: none;">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+                    </svg>
+                    <span id="forwarderNotificationBadge" class="notification-badge">0</span>
+                </div>
                 <div class="nav-user-info">
                     <div class="nav-user-avatar" id="forwarderAvatarInitial">FF</div>
                     <div class="nav-user-details">
@@ -23217,6 +23280,8 @@ function showClientTab(tab) {
         // Tab-specific operations
         if (tab === 'myQuotes' && typeof renderClientQuotes === 'function') {
             renderClientQuotes();
+            // Clear notifications when viewing quotes
+            clearQuoteNotifications();
         }
         if (tab === 'myRequests' && typeof renderClientRequests === 'function') {
             renderClientRequests();
@@ -23238,6 +23303,137 @@ function showClientTab(tab) {
     var notifDropdown = document.getElementById('notificationDropdown');
     if (notifDropdown) notifDropdown.classList.add('hidden');
 }
+
+// Check for accepted quotes and update Messages tab state
+function updateMessagesTabState() {
+
+// ============================================
+// IN-APP NOTIFICATION SYSTEM
+// ============================================
+
+// Check for new quotes and update notification badge
+function checkNewQuoteNotifications() {
+    if (!currentUserId) return;
+    
+    var lastSeenTimestamp = localStorage.getItem('lastSeenQuotesTimestamp_' + currentUserId) || '1970-01-01';
+    var newQuotesCount = 0;
+    
+    // Count quotes newer than last seen timestamp
+    if (quotesDB && quotesDB.length > 0) {
+        quotesDB.forEach(function(quote) {
+            // Check if this quote is for current user's requests
+            var userRequests = networkRequests.filter(function(r) {
+                return r.userId === currentUserId || r.user_id === currentUserId;
+            });
+            
+            var requestIds = userRequests.map(function(r) { return r.id; });
+            
+            if (requestIds.includes(quote.requestId) || requestIds.includes(quote.request_id)) {
+                var quoteDate = quote.createdAt || quote.created_at || quote.timestamp;
+                if (quoteDate && new Date(quoteDate) > new Date(lastSeenTimestamp)) {
+                    newQuotesCount++;
+                }
+            }
+        });
+    }
+    
+    updateNotificationBadge(newQuotesCount);
+}
+
+// Update the notification badge
+function updateNotificationBadge(count) {
+    var bell = document.getElementById('notificationBell');
+    var badge = document.getElementById('notificationBadge');
+    
+    if (bell && badge) {
+        if (count > 0) {
+            bell.style.display = 'block';
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.display = 'flex';
+        } else {
+            bell.style.display = 'none';
+            badge.style.display = 'none';
+        }
+    }
+}
+
+// Clear notifications when user views quotes
+function clearQuoteNotifications() {
+    if (!currentUserId) return;
+    
+    localStorage.setItem('lastSeenQuotesTimestamp_' + currentUserId, new Date().toISOString());
+    updateNotificationBadge(0);
+}
+
+// Check for new requests (for forwarders)
+function checkNewRequestNotifications() {
+    if (!currentUserId) return;
+    
+    var lastSeenTimestamp = localStorage.getItem('lastSeenRequestsTimestamp_' + currentUserId) || '1970-01-01';
+    var newRequestsCount = 0;
+    
+    // Count requests newer than last seen timestamp
+    if (networkRequests && networkRequests.length > 0) {
+        networkRequests.forEach(function(request) {
+            var requestDate = request.createdAt || request.created_at || request.timestamp;
+            if (requestDate && new Date(requestDate) > new Date(lastSeenTimestamp)) {
+                newRequestsCount++;
+            }
+        });
+    }
+    
+    updateForwarderNotificationBadge(newRequestsCount);
+}
+
+// Update the forwarder notification badge
+function updateForwarderNotificationBadge(count) {
+    var bell = document.getElementById('forwarderNotificationBell');
+    var badge = document.getElementById('forwarderNotificationBadge');
+    
+    if (bell && badge) {
+        if (count > 0) {
+            bell.style.display = 'block';
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.display = 'flex';
+        } else {
+            bell.style.display = 'none';
+            badge.style.display = 'none';
+        }
+    }
+}
+
+// Clear forwarder notifications when viewing requests
+function clearRequestNotifications() {
+    if (!currentUserId) return;
+    
+    localStorage.setItem('lastSeenRequestsTimestamp_' + currentUserId, new Date().toISOString());
+    updateForwarderNotificationBadge(0);
+}
+
+// Show notification toast
+function showNotificationToast(message, type) {
+    type = type || 'info';
+    
+    var toast = document.createElement('div');
+    toast.className = 'notification-toast notification-' + type;
+    toast.innerHTML = '<span>' + message + '</span>';
+    toast.style.cssText = 'position: fixed; top: 80px; right: 20px; padding: 16px 24px; background: ' + 
+        (type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6') + 
+        '; color: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 10000; animation: slideIn 0.3s ease;';
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(function() {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(function() {
+            toast.remove();
+        }, 300);
+    }, 4000);
+}
+
+// ============================================
+// END NOTIFICATION SYSTEM
+// ============================================
 
 // Check for accepted quotes and update Messages tab state
 function updateMessagesTabState() {
@@ -24294,6 +24490,8 @@ async function doLogin(e) {
         // Supabase'den quoteleri yükle ve göster
         loadQuotesForClient(currentUser).then(function() {
             renderClientQuotes();
+            // Check for new quotes notifications
+            checkNewQuoteNotifications();
         });
         
         // Setup realtime subscriptions for new quotes
@@ -24327,6 +24525,8 @@ async function doLogin(e) {
         loadAllRequestsForForwarder().then(function() {
             // Varsayılan tab'ı göster
             showForwarderTab('home');
+            // Check for new request notifications
+            checkNewRequestNotifications();
         });
         
         // Setup realtime subscriptions for new requests
@@ -25567,6 +25767,8 @@ function showForwarderTab(tabName) {
         case 'requests':
             show('forwarderRequestsSection');
             if (typeof renderForwarderRequests === 'function') renderForwarderRequests();
+            // Clear request notifications when viewing requests
+            clearRequestNotifications();
             break;
         case 'tracking':
             show('forwarderTrackingTab');
