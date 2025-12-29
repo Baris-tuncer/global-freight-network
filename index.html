@@ -24418,16 +24418,45 @@ async function handleResetPassword(e) {
     
     try {
         if (supabase && supabase.auth) {
+            // First check if we have a valid session
+            const { data: sessionData } = await supabase.auth.getSession();
+            
+            if (!sessionData || !sessionData.session) {
+                // Try to get token from URL again
+                const hash = window.location.hash;
+                if (hash) {
+                    const hashParams = new URLSearchParams(hash.substring(1));
+                    const accessToken = hashParams.get('access_token');
+                    const refreshToken = hashParams.get('refresh_token');
+                    
+                    if (accessToken) {
+                        await supabase.auth.setSession({
+                            access_token: accessToken,
+                            refresh_token: refreshToken || accessToken
+                        });
+                    }
+                }
+            }
+            
             var result = await supabase.auth.updateUser({
                 password: newPassword
             });
             
             if (result.error) {
-                msgDiv.innerHTML = '<p style="color: #dc2626;">' + result.error.message + '</p>';
+                if (result.error.message.includes('session') || result.error.message.includes('token')) {
+                    msgDiv.innerHTML = '<p style="color: #dc2626;">Session expired. Please request a new password reset link.</p>';
+                } else {
+                    msgDiv.innerHTML = '<p style="color: #dc2626;">' + result.error.message + '</p>';
+                }
                 msgDiv.style.display = 'block';
             } else {
                 msgDiv.innerHTML = '<p style="color: #10b981; font-weight: 500;">Password updated successfully! Redirecting to login...</p>';
                 msgDiv.style.display = 'block';
+                
+                // Clear URL hash
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState(null, '', window.location.pathname);
+                }
                 
                 // Sign out and redirect to login
                 await supabase.auth.signOut();
@@ -24440,7 +24469,7 @@ async function handleResetPassword(e) {
         }
     } catch (err) {
         console.error('Reset password error:', err);
-        msgDiv.innerHTML = '<p style="color: #dc2626;">An error occurred. Please try again.</p>';
+        msgDiv.innerHTML = '<p style="color: #dc2626;">An error occurred. Please request a new reset link.</p>';
         msgDiv.style.display = 'block';
     }
     
@@ -24452,19 +24481,55 @@ async function handleResetPassword(e) {
 }
 
 // Check if coming from password reset link
-function checkPasswordResetToken() {
-    var urlParams = new URLSearchParams(window.location.search);
+async function checkPasswordResetToken() {
     var hash = window.location.hash;
     
     // Supabase sends tokens in hash fragment
     if (hash && hash.includes('type=recovery')) {
-        hideAllPages();
-        document.getElementById('resetPasswordPage').classList.remove('hidden');
-        return true;
-    }
-    
-    // Also check for reset=true query param
-    if (urlParams.get('reset') === 'true' && hash) {
+        console.log('Recovery token detected, processing...');
+        
+        // Wait a bit for Supabase to initialize
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        if (supabase && supabase.auth) {
+            try {
+                // Try to get session - Supabase should auto-detect the token
+                const { data, error } = await supabase.auth.getSession();
+                
+                if (data && data.session) {
+                    console.log('Recovery session found');
+                    hideAllPages();
+                    document.getElementById('resetPasswordPage').classList.remove('hidden');
+                    return true;
+                }
+                
+                // If no session, try to manually set it from URL params
+                const hashParams = new URLSearchParams(hash.substring(1));
+                const accessToken = hashParams.get('access_token');
+                const refreshToken = hashParams.get('refresh_token');
+                
+                if (accessToken) {
+                    console.log('Trying to set session from token...');
+                    const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken || accessToken
+                    });
+                    
+                    if (!sessionError && sessionData && sessionData.session) {
+                        console.log('Session set successfully');
+                        hideAllPages();
+                        document.getElementById('resetPasswordPage').classList.remove('hidden');
+                        return true;
+                    } else {
+                        console.error('Failed to set session:', sessionError);
+                    }
+                }
+            } catch (err) {
+                console.error('Token processing error:', err);
+            }
+        }
+        
+        // Show reset page anyway
         hideAllPages();
         document.getElementById('resetPasswordPage').classList.remove('hidden');
         return true;
@@ -36126,9 +36191,10 @@ function redirectToDashboard(name, type) {
 }
 
 // Check session when page loads
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Check for password reset token first
-    if (checkPasswordResetToken()) {
+    const isReset = await checkPasswordResetToken();
+    if (isReset) {
         console.log('Password reset mode - showing reset page');
         return;
     }
