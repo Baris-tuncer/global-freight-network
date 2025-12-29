@@ -1240,46 +1240,21 @@
         /* DASHBOARD COMMON */
         .dashboard-container {
             min-height: 100vh;
-            background: #0f172a;
-            position: relative;
-        }
-        
-        /* Dünya Haritası Arka Plan */
-        .dashboard-container::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: url("https://raw.githubusercontent.com/Baris-tuncer/global-freight-network/main/world-map.jpeg");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            pointer-events: none;
-            z-index: 0;
-        }
-        
-        .dashboard-container > * {
-            position: relative;
-            z-index: 1;
+            background: var(--bg-light);
         }
 
         /* ═══════════════════════════════════════════════════════════════════════════════
-           🏢 ENTERPRISE HEADER STILI - Glass Morphism
+           🏢 ENTERPRISE HEADER STILI
         ═══════════════════════════════════════════════════════════════════════════════ */
         
         .dashboard-nav {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: var(--white);
             display: flex;
             flex-direction: column;
-            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             position: sticky;
             top: 0;
             z-index: 100;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         
         .nav-top-row {
@@ -1287,31 +1262,31 @@
             justify-content: space-between;
             align-items: center;
             padding: 16px 40px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid #f1f5f9;
         }
         
         .nav-brand-name {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 22px;
             font-weight: 700;
-            color: #ffffff;
+            color: #1e293b;
             line-height: 1.1;
         }
         
         .nav-brand-tagline {
             font-size: 11px;
-            color: rgba(255,255,255,0.6);
+            color: #64748b;
             font-weight: 500;
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
         
         .nav-user-name {
-            color: #ffffff !important;
+            color: #1e293b !important;
         }
         
         .nav-user-role {
-            color: rgba(255,255,255,0.6) !important;
+            color: #64748b !important;
         }
         
         .nav-brand {
@@ -1477,8 +1452,8 @@
             display: flex;
             align-items: center;
             padding: 0 40px;
-            background: rgba(15, 23, 42, 0.7);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: #fafbfc;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .nav-logo {
@@ -1502,23 +1477,23 @@
             cursor: pointer;
             font-weight: 500;
             font-size: 13px;
-            color: rgba(255,255,255,0.7);
+            color: #1e3c72;
             transition: all 0.3s;
             border-bottom: 3px solid transparent;
-            background: rgba(255,255,255,0.1);
+            background: #cbd5e1;
             border-radius: 8px 8px 0 0;
             margin: 0 2px;
         }
 
         .nav-menu-item:hover {
-            color: #ffffff;
-            background: rgba(255,255,255,0.2);
+            color: #1e3c72;
+            background: #94a3b8;
         }
 
         .nav-menu-item.active {
-            color: #00d4aa;
-            border-bottom-color: #00d4aa;
-            background: rgba(0, 212, 170, 0.15);
+            color: #1e3c72;
+            border-bottom-color: #1e3c72;
+            background: white;
             font-weight: 600;
         }
         
@@ -17231,9 +17206,7 @@
         <!-- Üst Satır: Logo ve User -->
         <div class="nav-top-row">
             <div class="nav-brand" onclick="goToLanding()" style="cursor:pointer;" title="Back to Role Selection">
-                <div class="nav-brand-icon" style="width: 50px; height: 50px; border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-                    <img src="https://raw.githubusercontent.com/Baris-tuncer/global-freight-network/main/logo.jpg" alt="Global Freight Network" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">
-                </div>
+                <img src="https://raw.githubusercontent.com/Baris-tuncer/global-freight-network/main/logo.jpg" alt="Global Freight Network" style="width: 55px; height: 55px; object-fit: contain; border-radius: 10px;">
                 <div class="nav-brand-text">
                     <span class="nav-brand-name">Global Freight Network</span>
                     <span class="nav-brand-tagline">Enterprise Logistics Platform</span>
@@ -18299,9 +18272,7 @@
         <!-- Üst Satır: Logo ve User -->
         <div class="nav-top-row">
             <div class="nav-brand" onclick="goToLanding()" style="cursor:pointer;" title="Back to Role Selection">
-                <div class="nav-brand-icon" style="width: 50px; height: 50px; border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-                    <img src="https://raw.githubusercontent.com/Baris-tuncer/global-freight-network/main/logo.jpg" alt="Global Freight Network" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">
-                </div>
+                <img src="https://raw.githubusercontent.com/Baris-tuncer/global-freight-network/main/logo.jpg" alt="Global Freight Network" style="width: 55px; height: 55px; object-fit: contain; border-radius: 10px;">
                 <div class="nav-brand-text">
                     <span class="nav-brand-name">Global Freight Network</span>
                     <span class="nav-brand-tagline">Enterprise Logistics Platform</span>
