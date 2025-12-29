@@ -24092,6 +24092,38 @@ function goToLogin() {
     }
 }
 
+function showEmailVerificationMessage(email) {
+    // Hide signup page
+    hideAllPages();
+    
+    // Show login page with verification message
+    document.getElementById('loginPage').classList.remove('hidden');
+    
+    // Create and show verification alert
+    var alertHtml = '<div id="emailVerificationAlert" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center;">' +
+        '<div style="font-size: 32px; margin-bottom: 10px;">📧</div>' +
+        '<h3 style="margin: 0 0 10px 0; font-size: 18px;">Check Your Email!</h3>' +
+        '<p style="margin: 0; font-size: 14px; opacity: 0.9;">We sent a verification link to<br><strong>' + email + '</strong></p>' +
+        '<p style="margin: 10px 0 0 0; font-size: 13px; opacity: 0.8;">Please click the link to activate your account.</p>' +
+        '</div>';
+    
+    var loginBox = document.querySelector('#loginPage .auth-box');
+    if (loginBox) {
+        // Remove existing alert if any
+        var existingAlert = document.getElementById('emailVerificationAlert');
+        if (existingAlert) existingAlert.remove();
+        
+        // Insert at the beginning of auth-box
+        loginBox.insertAdjacentHTML('afterbegin', alertHtml);
+        
+        // Auto-remove after 30 seconds
+        setTimeout(function() {
+            var alert = document.getElementById('emailVerificationAlert');
+            if (alert) alert.remove();
+        }, 30000);
+    }
+}
+
 function goToSignUp() {
     document.getElementById('loginPage').classList.add('hidden');
     document.getElementById('signUpPage').classList.remove('hidden');
@@ -24595,14 +24627,36 @@ async function doSignUp(e) {
                     data: {
                         full_name: name,
                         user_type: userType
-                    }
+                    },
+                    emailRedirectTo: 'https://www.global-freighting.com/'
                 }
             });
             
             if (signupResult.error) {
-                console.log('Signup: Demo mode active');
+                console.log('Signup error:', signupResult.error.message);
+                alert('Signup error: ' + signupResult.error.message);
+                if (signUpBtn) {
+                    signUpBtn.disabled = false;
+                    signUpBtn.textContent = originalText;
+                }
+                return false;
             } else if (signupResult.data && signupResult.data.user) {
                 console.log('Supabase signup successful');
+                
+                // Check if email confirmation is required
+                if (!signupResult.data.session) {
+                    // Email confirmation required - show message and redirect to login
+                    if (signUpBtn) {
+                        signUpBtn.disabled = false;
+                        signUpBtn.textContent = originalText;
+                    }
+                    
+                    // Show verification message
+                    showEmailVerificationMessage(email);
+                    return false;
+                }
+                
+                // If session exists, email was auto-confirmed (shouldn't happen with confirm enabled)
                 // KALICI ÇÖZÜM: ÖNCEKİ KULLANICININ TÜM VERİLERİNİ TEMİZLE
                 localStorage.clear();
                 networkRequests = [];
