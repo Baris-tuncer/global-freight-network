@@ -35885,19 +35885,26 @@ async function onSupabaseLoad() {
                 if (event === 'SIGNED_IN' && session) {
                     console.log('User signed in via OAuth');
                     var user = session.user;
-                    var userType = user.user_metadata?.user_type;
                     
-                    // OAuth login (Google/LinkedIn) - user_type yoksa landing'e yönlendir
+                    // Önce profiles tablosundan user_type'ı kontrol et
+                    const { data: profile, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('user_type')
+                        .eq('id', user.id)
+                        .single();
+                    
+                    var userType = profile?.user_type || user.user_metadata?.user_type;
+                    
+                    // OAuth login - user_type yoksa yeni kullanıcı, seçim yaptır
                     if (!userType && user.app_metadata?.provider !== 'email') {
                         console.log('OAuth user without user_type, showing user type selection');
-                        // Store OAuth user temporarily
                         window.pendingOAuthUser = user;
                         hideAllPages();
                         showUserTypeSelectionForOAuth();
                         return;
                     }
                     
-                    // Normal OAuth login with user_type already set
+                    // Mevcut kullanıcı - direkt dashboard'a yönlendir
                     if (userType) {
                         currentUser = user.id;
                         currentUserEmail = user.email;
@@ -35915,7 +35922,6 @@ async function onSupabaseLoad() {
                     console.log('Password recovery detected!');
                     hideAllPages();
                     document.getElementById('resetPasswordPage').classList.remove('hidden');
-                    // Show form, hide loading
                     document.getElementById('resetPasswordLoading').style.display = 'none';
                     document.getElementById('resetPasswordForm').style.display = 'block';
                 }
