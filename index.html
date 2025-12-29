@@ -24439,6 +24439,15 @@ async function doLogin(e) {
             } else if (authResult.data && authResult.data.user) {
                 console.log('Supabase login successful');
                 
+                // 🔑 KÖK ÇÖZÜM: SUPABASE'DEKİ GERÇEK USER_TYPE'I KULLAN
+                var supabaseUserType = authResult.data.user.user_metadata ? authResult.data.user.user_metadata.user_type : null;
+                if (supabaseUserType) {
+                    console.log('Using Supabase user_type:', supabaseUserType);
+                    userType = supabaseUserType; // Landing page seçimini override et!
+                } else {
+                    console.log('No user_type in metadata, using selected:', userType);
+                }
+                
                 // KALICI ÇÖZÜM: ÖNCEKİ KULLANICININ VERİLERİNİ TEMİZLE
                 localStorage.clear();
                 networkRequests = [];
