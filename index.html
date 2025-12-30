@@ -24390,11 +24390,16 @@ function goToSignUp() {
     document.getElementById('loginPage').classList.add('hidden');
     document.getElementById('signUpPage').classList.remove('hidden');
     
-    // FORM TEMİZLE - önceki kullanıcının verileri görünmesin
-    document.getElementById('signUpName').value = '';
-    document.getElementById('signUpEmail').value = '';
-    document.getElementById('signUpPassword').value = '';
-    document.getElementById('signUpConfirmPassword').value = '';
+    // FORM TEMİZLE - önceki kullanıcının verileri görünmesin (null check ekle)
+    var signUpName = document.getElementById('signUpName');
+    var signUpEmail = document.getElementById('signUpEmail');
+    var signUpPassword = document.getElementById('signUpPassword');
+    var signUpConfirmPassword = document.getElementById('signUpConfirmPassword');
+    
+    if (signUpName) signUpName.value = '';
+    if (signUpEmail) signUpEmail.value = '';
+    if (signUpPassword) signUpPassword.value = '';
+    if (signUpConfirmPassword) signUpConfirmPassword.value = '';
     
     // Checkbox'ları da temizle
     var checkboxes = document.querySelectorAll('#signUpPage input[type="checkbox"]');
@@ -35936,8 +35941,16 @@ async function onSupabaseLoad() {
                 console.log('Auth state changed:', event);
                 
                 if (event === 'SIGNED_IN' && session) {
-                    console.log('User signed in via OAuth');
                     var user = session.user;
+                    var provider = user.app_metadata?.provider;
+                    
+                    // Sadece OAuth login'ler için işlem yap (email login kendi akışını kullanır)
+                    if (provider === 'email') {
+                        console.log('Email login detected, skipping OAuth handler');
+                        return;
+                    }
+                    
+                    console.log('User signed in via OAuth:', provider);
                     
                     // Önce profiles tablosundan user_type'ı kontrol et
                     const { data: profile, error: profileError } = await supabase
@@ -35949,7 +35962,7 @@ async function onSupabaseLoad() {
                     var userType = profile?.user_type || user.user_metadata?.user_type;
                     
                     // OAuth login - user_type yoksa yeni kullanıcı, seçim yaptır
-                    if (!userType && user.app_metadata?.provider !== 'email') {
+                    if (!userType) {
                         console.log('OAuth user without user_type, showing user type selection');
                         window.pendingOAuthUser = user;
                         hideAllPages();
